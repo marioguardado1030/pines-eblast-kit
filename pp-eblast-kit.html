@@ -32,7 +32,6 @@ h1{font-size:26px;font-weight:700}
 .ci a{font-size:12px;color:var(--pink);text-decoration:none}
 .ci a:hover{text-decoration:underline}
 .cc{font-size:10px;color:var(--muted);background:#f2eef1;border-radius:4px;padding:1px 6px;margin-left:4px}
-/* admin */
 .card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:14px}
 .card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--pink);margin-bottom:16px}
 .field{margin-bottom:14px}
@@ -51,6 +50,13 @@ h1{font-size:26px;font-weight:700}
 .cbtn{background:var(--pink);color:#fff;border:none;border-radius:5px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer}
 .cbtn:hover{opacity:.85}
 .err{background:#fff4f4;border:1px solid #f0d0d0;border-radius:8px;padding:12px 14px;font-size:13px;color:#c0304a}
+.cal-link{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 18px;text-decoration:none;color:#2a2a2a;transition:border-color .15s}
+.cal-link:hover{border-color:var(--pink)}
+.cal-link-left{display:flex;align-items:center;gap:10px}
+.cal-icon{width:34px;height:34px;border-radius:8px;background:#fce8f0;display:flex;align-items:center;justify-content:center;font-size:16px}
+.cal-label{font-size:13px;font-weight:700}
+.cal-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.cal-arrow{color:var(--pink);font-size:18px;font-weight:700}
 </style>
 </head>
 <body>
@@ -77,10 +83,7 @@ var TEAM = [
 
 function getParams() {
   var p = new URLSearchParams(window.location.search);
-  return {
-    sponsor: p.get('sponsor') || '',
-    drive:   p.get('drive')   || ''
-  };
+  return {sponsor: p.get('sponsor')||'', drive: p.get('drive')||''};
 }
 
 function contactsHTML() {
@@ -111,7 +114,7 @@ function renderClient(sponsor, drive) {
       +'</div></div>'
       +'<div class="step"><div class="num">2</div><div>'
         +'<h2>Upload Your Assets</h2>'
-        +'<p>Upload your logo, 1&ndash;2 photos, and completed copy template to your sponsor folder. We&rsquo;ll take it from there.</p>'
+        +'<p>Upload your logo, 1–2 photos, and completed copy template to your sponsor folder. We’ll take it from there.</p>'
         +uploadHTML
       +'</div></div>'
     +'</div>'
@@ -146,6 +149,15 @@ function renderAdmin() {
       +'2. Generate the link and copy it.<br>'
       +'3. Send to the sponsor. They see their name, kit access, and their unique upload button.'
     +'</div>'
+    +'<div class="sec">Scheduling</div>'
+    +'<a class="cal-link" href="./calendar.html">'
+      +'<div class="cal-link-left">'
+        +'<div class="cal-icon">&#128197;</div>'
+        +'<div><div class="cal-label">Eblast Scheduling Calendar</div>'
+        +'<div class="cal-sub">Track sponsor date requests &amp; export to Monday.com</div></div>'
+      +'</div>'
+      +'<div class="cal-arrow">›</div>'
+    +'</a>'
     +'<div class="sec">Team</div>'
     +'<div class="contacts">'+contactsHTML()+'</div>';
 }
