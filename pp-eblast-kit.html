@@ -62,12 +62,12 @@ h1{font-size:26px;font-weight:700}
 <body>
 
 <div class="hdr">
-  <div class="hdr-in">
-    <div class="eyebrow">Pines Party 2026 &mdash; Fire Island Pines</div>
-    <h1 id="pgTitle">Sponsor Eblast Kit</h1>
-    <div class="hdr-sub" id="pgSub">Post-event eblast system for PP2026 sponsors.</div>
-    <div id="pgChip" class="chip" style="display:none"></div>
-  </div>
+<div class="hdr-in">
+<div class="eyebrow">Pines Party 2026 &mdash; Fire Island Pines</div>
+<h1 id="pgTitle">Sponsor Eblast Kit</h1>
+<div class="hdr-sub" id="pgSub">Post-event eblast system for PP2026 sponsors.</div>
+<div id="pgChip" class="chip" style="display:none"></div>
+</div>
 </div>
 
 <div class="main" id="main"></div>
@@ -76,116 +76,119 @@ h1{font-size:26px;font-weight:700}
 var KIT = 'https://drive.google.com/drive/folders/1f-x19JB9m2c3_YA4Ia2f7_in78xCXDcT?usp=drive_link';
 
 var TEAM = [
-  {n:'Mario Guardado',  e:'mario.guardado@pinesparty.com',  i:'MG', cc:false},
-  {n:'Tim Dejsiriudom', e:'tdejsiriudom@pinesparty.com',    i:'TD', cc:true},
-  {n:'Tejesh Mistry',   e:'tj@pinesparty.com',              i:'TM', cc:true}
+{n:'Mario Guardado', e:'mario.guardado@pinesparty.com', i:'MG', cc:false},
+{n:'Tim Dejsiriudom', e:'tdejsiriudom@pinesparty.com', i:'TD', cc:true},
+{n:'Tejesh Mistry', e:'tj@pinesparty.com', i:'TM', cc:true}
 ];
 
 function getParams() {
-  var p = new URLSearchParams(window.location.search);
-  return {sponsor: p.get('sponsor')||'', drive: p.get('drive')||''};
+var p = new URLSearchParams(window.location.search);
+return {sponsor: p.get('sponsor')||'', drive: p.get('drive')||''};
 }
 
 function contactsHTML() {
-  return TEAM.map(function(c){
-    return '<div class="crow"><div class="av">'+c.i+'</div><div class="ci">'
-      +'<strong>'+c.n+(c.cc?'<span class="cc">CC</span>':'')+'</strong>'
-      +'<a href="mailto:'+c.e+'">'+c.e+'</a></div></div>';
-  }).join('');
+return TEAM.map(function(c){
+return '<div class="crow"><div class="av">'+c.i+'</div><div class="ci">'
++'<strong>'+c.n+(c.cc?'<span class="cc">CC</span>':'')+'</strong>'
++'<a href="mailto:'+c.e+'">'+c.e+'</a></div></div>';
+}).join('');
 }
 
 function renderClient(sponsor, drive) {
-  document.getElementById('pgTitle').textContent = sponsor + ' — Eblast Kit';
-  document.getElementById('pgSub').textContent = 'Your post-event eblast assets for Pines Party 2026.';
-  var chip = document.getElementById('pgChip');
-  chip.textContent = sponsor;
-  chip.style.display = 'inline-block';
+document.getElementById('pgTitle').textContent = sponsor + ' â Eblast Kit';
+document.getElementById('pgSub').textContent = 'Your post-event eblast assets for Pines Party 2026.';
+var chip = document.getElementById('pgChip');
+chip.textContent = sponsor;
+chip.style.display = 'inline-block';
 
-  var uploadHTML = drive
-    ? '<a class="btn btn-pink" href="'+encodeURI(drive)+'" target="_blank">Upload Your Assets →</a>'
-    : '<div class="err">Upload folder not set. Contact <a href="mailto:mario.guardado@pinesparty.com" style="color:#c0304a">Mario</a> for your link.</div>';
+var uploadHTML = drive
+? '<a class="btn btn-pink" href="'+encodeURI(drive)+'" target="_blank">Upload Your Assets â</a>'
+: '<div class="err">Upload folder not set. Contact <a href="mailto:mario.guardado@pinesparty.com" style="color:#c0304a">Mario</a> for your link.</div>';
 
-  document.getElementById('main').innerHTML =
-    '<div class="steps">'
-      +'<div class="step"><div class="num">1</div><div>'
-        +'<h2>Open the Kit</h2>'
-        +'<p>Your kit includes a writing guide, blank template, and completed example &mdash; everything you need to prepare your eblast copy.</p>'
-        +'<a class="btn btn-outline" href="'+KIT+'" target="_blank">Open Kit Folder →</a>'
-      +'</div></div>'
-      +'<div class="step"><div class="num">2</div><div>'
-        +'<h2>Upload Your Assets</h2>'
-        +'<p>Upload your logo, 1–2 photos, and completed copy template to your sponsor folder. We’ll take it from there.</p>'
-        +uploadHTML
-      +'</div></div>'
-    +'</div>'
-    +'<div class="sec">Questions? Contact us</div>'
-    +'<div class="contacts">'+contactsHTML()+'</div>';
+document.getElementById('main').innerHTML =
+'<div class="steps">'
++'<div class="step"><div class="num">1</div><div>'
++'<h2>Open the Kit</h2>'
++'<p>Your kit includes a writing guide, blank template, and completed example &mdash; everything you need to prepare your eblast copy.</p>'
++'<a class="btn btn-outline" href="'+KIT+'" target="_blank">Open Kit Folder â</a>'
++'</div></div>'
++'<div class="step"><div class="num">2</div><div>'
++'<h2>Upload Your Assets</h2>'
++'<p>Upload your logo, 1â2 photos, and completed copy template to your sponsor folder. We'll take it from there.</p>'
++uploadHTML
++'</div></div>'
++'</div>'
++'<div class="sec">Questions? Contact us</div>'
++'<div class="contacts">'+contactsHTML()+'</div>';
 }
 
 function renderAdmin() {
-  document.getElementById('main').innerHTML =
-    '<div class="card"><div class="card-title">Generate Sponsor Link</div>'
-      +'<div class="field"><label>Sponsor Name</label>'
-        +'<input id="inS" type="text" placeholder="e.g. Identiti Financial"/>'
-        +'<div class="hint">Appears in the header when the sponsor opens their page.</div>'
-      +'</div>'
-      +'<div class="field"><label>Sponsor Upload Folder (Google Drive URL)</label>'
-        +'<input id="inD" type="text" placeholder="https://drive.google.com/drive/folders/..."/>'
-        +'<div class="hint">Each sponsor gets their own Drive folder. Paste it here.</div>'
-      +'</div>'
-      +'<div class="row">'
-        +'<button class="abtn abtn-p" onclick="generate()">Generate Link</button>'
-        +'<a class="abtn abtn-s" href="'+KIT+'" target="_blank">Open Kit Folder</a>'
-      +'</div>'
-      +'<div class="out" id="out">'
-        +'<div class="out-lbl">Shareable Sponsor Link</div>'
-        +'<div class="out-url" id="outUrl"></div>'
-        +'<button class="cbtn" onclick="copyLink()">Copy Link</button>'
-      +'</div>'
-    +'</div>'
-    +'<div class="card" style="padding:16px 20px;font-size:13px;color:var(--muted);line-height:1.9">'
-      +'<strong style="color:#2a2a2a">How it works</strong><br>'
-      +'1. Enter the sponsor name and their Drive upload folder URL.<br>'
-      +'2. Generate the link and copy it.<br>'
-      +'3. Send to the sponsor. They see their name, kit access, and their unique upload button.'
-    +'</div>'
-    +'<div class="sec">Scheduling</div>'
-    +'<a class="cal-link" href="./calendar.html">'
-      +'<div class="cal-link-left">'
-        +'<div class="cal-icon">&#128197;</div>'
-        +'<div><div class="cal-label">Eblast Scheduling Calendar</div>'
-        +'<div class="cal-sub">Track sponsor date requests &amp; export to Monday.com</div></div>'
-      +'</div>'
-      +'<div class="cal-arrow">›</div>'
-    +'</a>'
-    +'<div class="sec">Team</div>'
-    +'<div class="contacts">'+contactsHTML()+'</div>';
+document.getElementById('main').innerHTML =
+'<div class="card"><div class="card-title">Generate Sponsor Link</div>'
++'<div class="field"><label>Sponsor Name</label>'
++'<input id="inS" type="text" placeholder="e.g. Identiti Financial"/>'
++'<div class="hint">Appears in the header when the sponsor opens their page.</div>'
++'</div>'
++'<div class="field"><label>Sponsor Upload Folder (Google Drive URL)</label>'
++'<input id="inD" type="text" placeholder="https://drive.google.com/drive/folders/..."/>'
++'<div class="hint">Each sponsor gets their own Drive folder. Paste it here.</div>'
++'</div>'
++'<div class="row">'
++'<button class="abtn abtn-p" onclick="generate()">Generate Link</button>'
++'<a class="abtn abtn-s" href="'+KIT+'" target="_blank">Open Kit Folder</a>'
++'</div>'
++'<div class="out" id="out">'
++'<div class="out-lbl">Shareable Sponsor Link</div>'
++'<div class="out-url" id="outUrl"></div>'
++'<button class="cbtn" onclick="copyLink()">Copy Link</button>'
++'</div>'
++'</div>'
++'<div class="card" style="padding:16px 20px;font-size:13px;color:var(--muted);line-height:1.9">'
++'<strong style="color:#2a2a2a">How it works</strong><br>'
++'1. Enter the sponsor name and their Drive upload folder URL.<br>'
++'2. Generate the link and copy it.<br>'
++'3. Send to the sponsor. They see their name, kit access, and their unique upload button.'
++'</div>'
++'<div class="sec">Scheduling</div>'
++'<a class="cal-link" href="./calendar.html">'
++'<div class="cal-link-left">'
++'<div class="cal-icon">&#128197;</div>'
++'<div><div class="cal-label">Eblast Scheduling Calendar</div>'
++'<div class="cal-sub">Track sponsor date requests &amp; export to Monday.com</div></div>'
++'</div>'
++'<div class="cal-arrow">âº</div>'
++'</a>'
++'<div class="sec">Team</div>'
++'<div class="contacts">'+contactsHTML()+'</div>';
 }
 
 function generate() {
-  var s = (document.getElementById('inS').value||'').trim();
-  var d = (document.getElementById('inD').value||'').trim();
-  if (!s) { document.getElementById('inS').focus(); return; }
-  var url = window.location.origin + window.location.pathname
-    + '?sponsor=' + encodeURIComponent(s)
-    + (d ? '&drive=' + encodeURIComponent(d) : '');
-  document.getElementById('outUrl').textContent = url;
-  document.getElementById('out').style.display = 'block';
+var s = (document.getElementById('inS').value||'').trim();
+var d = (document.getElementById('inD').value||'').trim();
+if (!s) { document.getElementById('inS').focus(); return; }
+var calData = JSON.parse(localStorage.getItem('pp2026cal') || '{}');
+var bookedKeys = Object.keys(calData).filter(function(k){ return (calData[k].status||'')==='booked'; });
+var url = window.location.origin + window.location.pathname
++ '?sponsor=' + encodeURIComponent(s)
++ (d ? '&drive=' + encodeURIComponent(d) : '')
++ (bookedKeys.length ? '&booked=' + bookedKeys.join(',') : '');
+document.getElementById('outUrl').textContent = url;
+document.getElementById('out').style.display = 'block';
 }
 
 function copyLink() {
-  var url = document.getElementById('outUrl').textContent;
-  navigator.clipboard.writeText(url).then(function(){
-    var b = document.querySelector('.cbtn');
-    b.textContent = 'Copied!';
-    setTimeout(function(){ b.textContent = 'Copy Link'; }, 2000);
-  });
+var url = document.getElementById('outUrl').textContent;
+navigator.clipboard.writeText(url).then(function(){
+var b = document.querySelector('.cbtn');
+b.textContent = 'Copied!';
+setTimeout(function(){ b.textContent = 'Copy Link'; }, 2000);
+});
 }
 
 (function(){
-  var p = getParams();
-  if (p.sponsor) renderClient(p.sponsor, p.drive);
-  else renderAdmin();
+var p = getParams();
+if (p.sponsor) renderClient(p.sponsor, p.drive);
+else renderAdmin();
 })();
 </script>
 </body>
