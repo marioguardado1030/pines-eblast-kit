@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>PP2026 Sponsor Eblast Kit</title>
+<style>
+:root{--pink:#d31876;--gray:#444;--light:#faf5f8;--border:#e8d0dc;--muted:#888}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Helvetica Neue',Arial,sans-serif;background:var(--light);color:#2a2a2a;min-height:100vh}
+.hdr{background:var(--pink);color:#fff;padding:30px 28px 24px}
+.hdr-in{max-width:580px;margin:0 auto}
+.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;opacity:.7;margin-bottom:8px}
+h1{font-size:26px;font-weight:700}
+.hdr-sub{font-size:13px;opacity:.8;margin-top:5px}
+.chip{display:inline-block;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;margin-top:12px}
+.main{max-width:580px;margin:0 auto;padding:30px 24px 60px}
+.steps{display:flex;flex-direction:column;gap:14px}
+.step{background:#fff;border:1px solid var(--border);border-radius:12px;padding:22px;display:flex;gap:16px}
+.num{width:34px;height:34px;border-radius:50%;background:var(--pink);color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.step h2{font-size:15px;font-weight:700;margin-bottom:4px}
+.step p{font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:14px}
+.btn{display:flex;align-items:center;justify-content:center;gap:7px;border:none;border-radius:8px;padding:12px 20px;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;width:100%;transition:opacity .15s}
+.btn:hover{opacity:.85}
+.btn-pink{background:var(--pink);color:#fff}
+.btn-outline{background:#fff;color:var(--pink);border:2px solid var(--pink)}
+.sec{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:26px 0 10px}
+.contacts{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 20px;display:flex;flex-direction:column;gap:12px}
+.crow{display:flex;align-items:center;gap:12px}
+.av{width:32px;height:32px;border-radius:50%;background:var(--pink);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ci strong{display:block;font-size:13px;font-weight:700}
+.ci a{font-size:12px;color:var(--pink);text-decoration:none}
+.ci a:hover{text-decoration:underline}
+.cc{font-size:10px;color:var(--muted);background:#f2eef1;border-radius:4px;padding:1px 6px;margin-left:4px}
+/* admin */
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:14px}
+.card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--pink);margin-bottom:16px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--gray);margin-bottom:5px}
+.field input{width:100%;border:1.5px solid #ddd;border-radius:7px;padding:10px 12px;font-size:14px;color:#2a2a2a;outline:none;transition:border-color .15s}
+.field input:focus{border-color:var(--pink)}
+.hint{font-size:11px;color:var(--muted);margin-top:4px}
+.row{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+.abtn{display:inline-flex;align-items:center;gap:6px;border:none;border-radius:8px;padding:11px 18px;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;transition:opacity .15s}
+.abtn:hover{opacity:.85}
+.abtn-p{background:var(--pink);color:#fff}
+.abtn-s{background:#fff;color:var(--gray);border:1.5px solid #ddd}
+.out{background:#fff9fb;border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:16px;display:none}
+.out-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:7px}
+.out-url{font-size:12px;color:var(--pink);word-break:break-all;background:#fff;border:1px solid var(--border);border-radius:5px;padding:8px 10px;margin-bottom:10px;font-family:monospace}
+.cbtn{background:var(--pink);color:#fff;border:none;border-radius:5px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer}
+.cbtn:hover{opacity:.85}
+.err{background:#fff4f4;border:1px solid #f0d0d0;border-radius:8px;padding:12px 14px;font-size:13px;color:#c0304a}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-in">
+    <div class="eyebrow">Pines Party 2026 &mdash; Fire Island Pines</div>
+    <h1 id="pgTitle">Sponsor Eblast Kit</h1>
+    <div class="hdr-sub" id="pgSub">Post-event eblast system for PP2026 sponsors.</div>
+    <div id="pgChip" class="chip" style="display:none"></div>
+  </div>
+</div>
+
+<div class="main" id="main"></div>
+
+<script>
+var KIT = 'https://drive.google.com/drive/folders/1f-x19JB9m2c3_YA4Ia2f7_in78xCXDcT?usp=drive_link';
+
+var TEAM = [
+  {n:'Mario Guardado',  e:'mario.guardado@pinesparty.com',  i:'MG', cc:false},
+  {n:'Tim Dejsiriudom', e:'tdejsiriudom@pinesparty.com',    i:'TD', cc:true},
+  {n:'Tejesh Mistry',   e:'tj@pinesparty.com',              i:'TM', cc:true}
+];
+
+function getParams() {
+  var p = new URLSearchParams(window.location.search);
+  return {
+    sponsor: p.get('sponsor') || '',
+    drive:   p.get('drive')   || ''
+  };
+}
+
+function contactsHTML() {
+  return TEAM.map(function(c){
+    return '<div class="crow"><div class="av">'+c.i+'</div><div class="ci">'
+      +'<strong>'+c.n+(c.cc?'<span class="cc">CC</span>':'')+'</strong>'
+      +'<a href="mailto:'+c.e+'">'+c.e+'</a></div></div>';
+  }).join('');
+}
+
+function renderClient(sponsor, drive) {
+  document.getElementById('pgTitle').textContent = sponsor + ' — Eblast Kit';
+  document.getElementById('pgSub').textContent = 'Your post-event eblast assets for Pines Party 2026.';
+  var chip = document.getElementById('pgChip');
+  chip.textContent = sponsor;
+  chip.style.display = 'inline-block';
+
+  var uploadHTML = drive
+    ? '<a class="btn btn-pink" href="'+encodeURI(drive)+'" target="_blank">Upload Your Assets →</a>'
+    : '<div class="err">Upload folder not set. Contact <a href="mailto:mario.guardado@pinesparty.com" style="color:#c0304a">Mario</a> for your link.</div>';
+
+  document.getElementById('main').innerHTML =
+    '<div class="steps">'
+      +'<div class="step"><div class="num">1</div><div>'
+        +'<h2>Open the Kit</h2>'
+        +'<p>Your kit includes a writing guide, blank template, and completed example &mdash; everything you need to prepare your eblast copy.</p>'
+        +'<a class="btn btn-outline" href="'+KIT+'" target="_blank">Open Kit Folder →</a>'
+      +'</div></div>'
+      +'<div class="step"><div class="num">2</div><div>'
+        +'<h2>Upload Your Assets</h2>'
+        +'<p>Upload your logo, 1&ndash;2 photos, and completed copy template to your sponsor folder. We&rsquo;ll take it from there.</p>'
+        +uploadHTML
+      +'</div></div>'
+    +'</div>'
+    +'<div class="sec">Questions? Contact us</div>'
+    +'<div class="contacts">'+contactsHTML()+'</div>';
+}
+
+function renderAdmin() {
+  document.getElementById('main').innerHTML =
+    '<div class="card"><div class="card-title">Generate Sponsor Link</div>'
+      +'<div class="field"><label>Sponsor Name</label>'
+        +'<input id="inS" type="text" placeholder="e.g. Identiti Financial"/>'
+        +'<div class="hint">Appears in the header when the sponsor opens their page.</div>'
+      +'</div>'
+      +'<div class="field"><label>Sponsor Upload Folder (Google Drive URL)</label>'
+        +'<input id="inD" type="text" placeholder="https://drive.google.com/drive/folders/..."/>'
+        +'<div class="hint">Each sponsor gets their own Drive folder. Paste it here.</div>'
+      +'</div>'
+      +'<div class="row">'
+        +'<button class="abtn abtn-p" onclick="generate()">Generate Link</button>'
+        +'<a class="abtn abtn-s" href="'+KIT+'" target="_blank">Open Kit Folder</a>'
+      +'</div>'
+      +'<div class="out" id="out">'
+        +'<div class="out-lbl">Shareable Sponsor Link</div>'
+        +'<div class="out-url" id="outUrl"></div>'
+        +'<button class="cbtn" onclick="copyLink()">Copy Link</button>'
+      +'</div>'
+    +'</div>'
+    +'<div class="card" style="padding:16px 20px;font-size:13px;color:var(--muted);line-height:1.9">'
+      +'<strong style="color:#2a2a2a">How it works</strong><br>'
+      +'1. Enter the sponsor name and their Drive upload folder URL.<br>'
+      +'2. Generate the link and copy it.<br>'
+      +'3. Send to the sponsor. They see their name, kit access, and their unique upload button.'
+    +'</div>'
+    +'<div class="sec">Team</div>'
+    +'<div class="contacts">'+contactsHTML()+'</div>';
+}
+
+function generate() {
+  var s = (document.getElementById('inS').value||'').trim();
+  var d = (document.getElementById('inD').value||'').trim();
+  if (!s) { document.getElementById('inS').focus(); return; }
+  var url = window.location.origin + window.location.pathname
+    + '?sponsor=' + encodeURIComponent(s)
+    + (d ? '&drive=' + encodeURIComponent(d) : '');
+  document.getElementById('outUrl').textContent = url;
+  document.getElementById('out').style.display = 'block';
+}
+
+function copyLink() {
+  var url = document.getElementById('outUrl').textContent;
+  navigator.clipboard.writeText(url).then(function(){
+    var b = document.querySelector('.cbtn');
+    b.textContent = 'Copied!';
+    setTimeout(function(){ b.textContent = 'Copy Link'; }, 2000);
+  });
+}
+
+(function(){
+  var p = getParams();
+  if (p.sponsor) renderClient(p.sponsor, p.drive);
+  else renderAdmin();
+})();
+</script>
+</body>
+</html>
