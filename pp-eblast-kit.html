@@ -95,14 +95,14 @@ return '<div class="crow"><div class="av">'+c.i+'</div><div class="ci">'
 }
 
 function renderClient(sponsor, drive) {
-document.getElementById('pgTitle').textContent = sponsor + ' â Eblast Kit';
+document.getElementById('pgTitle').textContent = sponsor + ' - Eblast Kit';
 document.getElementById('pgSub').textContent = 'Your post-event eblast assets for Pines Party 2026.';
 var chip = document.getElementById('pgChip');
 chip.textContent = sponsor;
 chip.style.display = 'inline-block';
 
 var uploadHTML = drive
-? '<a class="btn btn-pink" href="'+encodeURI(drive)+'" target="_blank">Upload Your Assets â</a>'
+? '<a class="btn btn-pink" href="'+encodeURI(drive)+'" target="_blank">Upload Your Assets &rarr;</a>'
 : '<div class="err">Upload folder not set. Contact <a href="mailto:mario.guardado@pinesparty.com" style="color:#c0304a">Mario</a> for your link.</div>';
 
 document.getElementById('main').innerHTML =
@@ -110,11 +110,11 @@ document.getElementById('main').innerHTML =
 +'<div class="step"><div class="num">1</div><div>'
 +'<h2>Open the Kit</h2>'
 +'<p>Your kit includes a writing guide, blank template, and completed example &mdash; everything you need to prepare your eblast copy.</p>'
-+'<a class="btn btn-outline" href="'+KIT+'" target="_blank">Open Kit Folder â</a>'
++'<a class="btn btn-outline" href="'+KIT+'" target="_blank">Open Kit Folder &rarr;</a>'
 +'</div></div>'
 +'<div class="step"><div class="num">2</div><div>'
 +'<h2>Upload Your Assets</h2>'
-+'<p>Upload your logo, 1â2 photos, and completed copy template to your sponsor folder. We'll take it from there.</p>'
++'<p>Upload your logo, 1-2 photos, and completed copy template to your sponsor folder. We'll take it from there.</p>'
 +uploadHTML
 +'</div></div>'
 +'</div>'
@@ -156,7 +156,7 @@ document.getElementById('main').innerHTML =
 +'<div><div class="cal-label">Eblast Scheduling Calendar</div>'
 +'<div class="cal-sub">Track sponsor date requests &amp; export to Monday.com</div></div>'
 +'</div>'
-+'<div class="cal-arrow">âº</div>'
++'<div class="cal-arrow">&rsaquo;</div>'
 +'</a>'
 +'<div class="sec">Team</div>'
 +'<div class="contacts">'+contactsHTML()+'</div>';
