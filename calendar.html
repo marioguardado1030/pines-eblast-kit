@@ -15,6 +15,7 @@ h1{font-size:24px;font-weight:700}
 .hdr-sub{font-size:13px;opacity:.8;margin-top:4px}
 .nav-back{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:rgba(255,255,255,.75);text-decoration:none;margin-bottom:10px;letter-spacing:.04em}
 .nav-back:hover{color:#fff}
+.sp-chip{display:inline-block;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;margin-top:10px}
 .main{max-width:680px;margin:0 auto;padding:26px 20px 60px}
 .month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .month-label{font-size:17px;font-weight:700}
@@ -25,11 +26,14 @@ h1{font-size:24px;font-weight:700}
 .dow{text-align:center;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:4px 0}
 .day-row{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .day{min-height:54px;border-radius:8px;border:1.5px solid transparent;padding:5px 6px;cursor:pointer;position:relative;transition:border-color .12s,background .12s}
-.day:hover:not(.empty){border-color:var(--pink);background:#fff4f8}
+.day:hover:not(.empty):not(.blocked){border-color:var(--pink);background:#fff4f8}
 .day.empty{cursor:default}
+.day.blocked{background:#f0f0f0;cursor:not-allowed}
+.day.blocked .day-num{color:#bbb}
 .day-num{font-size:13px;font-weight:600;color:#2a2a2a}
 .day.empty .day-num{color:#ccc}
 .day.today{background:#fff4f8;border-color:#f0a0c0}
+/* admin states */
 .day.booked{background:#d31876;border-color:#b01060}
 .day.booked .day-num{color:#fff}
 .day.booked .day-count{color:rgba(255,255,255,.85)}
@@ -38,17 +42,24 @@ h1{font-size:24px;font-weight:700}
 .day-dot-row{display:flex;flex-wrap:wrap;gap:2px;margin-top:3px}
 .dot{width:6px;height:6px;border-radius:50%;background:var(--pink);opacity:.7}
 .day.booked .dot{background:#fff}
+/* sponsor selected state */
+.day.sp-selected{background:#d31876;border-color:#b01060}
+.day.sp-selected .day-num{color:#fff}
+.day.sp-selected::after{content:"â";position:absolute;bottom:4px;right:6px;font-size:11px;color:rgba(255,255,255,.9);font-weight:700}
+/* legend */
 .legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:18px}
 .leg-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gray)}
 .leg-swatch{width:14px;height:14px;border-radius:4px;border:1.5px solid transparent}
 .leg-swatch.av{background:#fff;border-color:#ddd}
 .leg-swatch.req{background:#fce8f0;border-color:#e8a0c0}
 .leg-swatch.bkd{background:#d31876;border-color:#b01060}
+.leg-swatch.blk{background:#f0f0f0;border-color:#ddd}
+/* admin detail panel */
 .detail{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:18px;display:none}
 .detail.open{display:block}
 .detail-date{font-size:15px;font-weight:700;margin-bottom:14px}
 .detail-sec{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:8px}
-.sponsor-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;min-height:0}
+.sponsor-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
 .sponsor-item{display:flex;align-items:center;justify-content:space-between;background:var(--light);border-radius:7px;padding:8px 12px}
 .sp-name{font-size:13px;font-weight:600}
 .sp-del{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;line-height:1;padding:0 2px}
@@ -63,6 +74,7 @@ h1{font-size:24px;font-weight:700}
 .s-btn.active-req{background:#fce8f0;border-color:#e8a0c0;color:var(--pink)}
 .s-btn.active-bkd{background:var(--pink);border-color:#b01060;color:#fff}
 .s-btn:hover{border-color:var(--pink)}
+/* summary */
 .summary{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:18px}
 .summary-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--pink);margin-bottom:14px}
 .top-date-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
@@ -72,116 +84,320 @@ h1{font-size:24px;font-weight:700}
 .td-badge{display:inline-block;background:#fce8f0;color:var(--pink);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;margin-left:8px}
 .td-badge.bkd{background:var(--pink);color:#fff}
 .empty-state{font-size:13px;color:var(--muted);padding:8px 0}
+/* export */
 .export-row{display:flex;gap:10px;flex-wrap:wrap}
 .exp-btn{display:inline-flex;align-items:center;gap:6px;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:opacity .15s}
 .exp-btn:hover{opacity:.85}
 .exp-pink{background:var(--pink);color:#fff}
 .exp-outline{background:#fff;color:var(--gray);border:1.5px solid #ddd}
+/* sponsor submit panel */
+.sp-panel{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:18px}
+.sp-panel-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--pink);margin-bottom:12px}
+.sp-selection{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;min-height:32px}
+.sp-sel-item{display:flex;align-items:center;gap:8px;background:var(--light);border-radius:7px;padding:8px 12px;font-size:13px;font-weight:600}
+.sp-sel-dot{width:8px;height:8px;border-radius:50%;background:var(--pink);flex-shrink:0}
+.sp-hint{font-size:12px;color:var(--muted);margin-bottom:16px}
+.sp-submit{width:100%;background:var(--pink);color:#fff;border:none;border-radius:8px;padding:13px 0;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .15s}
+.sp-submit:hover{opacity:.85}
+.sp-submit:disabled{opacity:.4;cursor:not-allowed}
+.sp-note{font-size:11px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.5}
 </style>
 </head>
 <body>
-<div class="hdr"><div class="hdr-in">
-<a class="nav-back" href="./pp-eblast-kit.html">← Back to Eblast Kit</a>
-<div class="eyebrow">Pines Party 2026 &mdash; Fire Island Pines</div>
-<h1>Eblast Scheduling Calendar</h1>
-<div class="hdr-sub">Track sponsor date requests &amp; book send dates.</div>
-</div></div>
-<div class="main">
-<div class="legend">
-<div class="leg-item"><div class="leg-swatch av"></div>Available</div>
-<div class="leg-item"><div class="leg-swatch req"></div>Requested</div>
-<div class="leg-item"><div class="leg-swatch bkd"></div>Booked</div>
+<div class="hdr">
+  <div class="hdr-in">
+    <a class="nav-back" id="backLink" href="./pp-eblast-kit.html">â Back to Eblast Kit</a>
+    <div class="eyebrow">Pines Party 2026 &mdash; Fire Island Pines</div>
+    <h1 id="pgTitle">Eblast Scheduling Calendar</h1>
+    <div class="hdr-sub" id="pgSub">Track sponsor date requests &amp; book send dates.</div>
+    <div id="spChip" class="sp-chip" style="display:none"></div>
+  </div>
 </div>
-<div class="month-nav">
-<button class="mnav-btn" onclick="prevMonth()">‹</button>
-<div class="month-label" id="monthLabel"></div>
-<button class="mnav-btn" onclick="nextMonth()">›</button>
-</div>
-<div class="cal-wrap">
-<div class="dow-row"><div class="dow">Sun</div><div class="dow">Mon</div><div class="dow">Tue</div><div class="dow">Wed</div><div class="dow">Thu</div><div class="dow">Fri</div><div class="dow">Sat</div></div>
-<div class="day-row" id="calGrid"></div>
-</div>
-<div class="detail" id="detail">
-<div class="detail-date" id="detailDate"></div>
-<div class="detail-sec">Sponsors Requesting This Date</div>
-<div class="sponsor-list" id="sponsorList"></div>
-<div class="add-sponsor-row">
-<input class="add-sp-input" id="spInput" type="text" placeholder="Add sponsor name…" onkeydown="if(event.key==='Enter')addSponsor()"/>
-<button class="add-sp-btn" onclick="addSponsor()">Add</button>
-</div>
-<div class="status-row">
-<button class="s-btn" id="btnReq" onclick="setStatus('requested')">Mark Requested</button>
-<button class="s-btn" id="btnBkd" onclick="setStatus('booked')">Mark Booked</button>
-<button class="s-btn" onclick="clearDay()">Clear</button>
-</div></div>
-<div class="summary"><div class="summary-title">Top Requested Dates</div><div id="summaryList"></div></div>
-<div class="export-row">
-<button class="exp-btn exp-pink" onclick="exportMonday()">Copy for Monday.com</button>
-<button class="exp-btn exp-outline" onclick="exportText()">Copy Plain Text</button>
-</div></div>
+<div class="main" id="mainWrap"></div>
+
 <script>
-var today=new Date();var curYear=today.getFullYear();var curMonth=today.getMonth();var selectedKey=null;
-function load(){try{return JSON.parse(localStorage.getItem("pp2026cal")||"{}");}catch(e){return{};}}
-function save(d){try{localStorage.setItem("pp2026cal",JSON.stringify(d));}catch(e){}}
-function dateKey(y,m,d){return y+"-"+String(m+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");}
-function fmtLong(k){var p=k.split("-");return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});}
-function fmtShort(k){var p=k.split("-");return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});}
-function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
-function renderCal(){var data=load();var months=["January","February","March","April","May","June","July","August","September","October","November","December"];
-document.getElementById("monthLabel").textContent=months[curMonth]+" "+curYear;
-var firstDay=new Date(curYear,curMonth,1).getDay();var dim=new Date(curYear,curMonth+1,0).getDate();
-var todayKey=dateKey(today.getFullYear(),today.getMonth(),today.getDate());
-var grid=document.getElementById("calGrid");grid.innerHTML="";
-for(var i=0;i<firstDay;i++){var e=document.createElement("div");e.className="day empty";e.innerHTML='<span class="day-num"></span>';grid.appendChild(e);}
-for(var d=1;d<=dim;d++){var k=dateKey(curYear,curMonth,d);var rec=data[k]||{};var st=rec.status||"";var sp=rec.sponsors||[];
-var cell=document.createElement("div");var cls="day";
-if(k===todayKey)cls+=" today";
-if(st==="booked")cls+=" booked";else if(st==="requested"||sp.length>0)cls+=" requested";
-if(k===selectedKey)cls+=" selected";cell.className=cls;
-var ch=sp.length>0?'<span class="day-count">'+sp.length+' req</span>':"";;
-var dh=sp.length>0&&sp.length<=5?'<div class="day-dot-row">'+sp.map(function(){return'<div class="dot"></div>';}).join("")+"</div>":"";
-cell.innerHTML='<span class="day-num">'+d+"</span>"+ch+dh;
-cell.onclick=(function(kk){return function(){selectDay(kk);};})(k);grid.appendChild(cell);}};
-function selectDay(k){selectedKey=k;renderCal();var data=load();var rec=data[k]||{};var sp=rec.sponsors||[];var st=rec.status||"";
-document.getElementById("detailDate").textContent=fmtLong(k);
-renderSpList(sp);
-document.getElementById("btnReq").className="s-btn"+(st==="requested"?" active-req":"");
-document.getElementById("btnBkd").className="s-btn"+(st==="booked"?" active-bkd":"");
-document.getElementById("detail").className="detail open";document.getElementById("spInput").value="";}
-function renderSpList(sp){var list=document.getElementById("sponsorList");
-if(sp.length===0){list.innerHTML='<div class="empty-state">No sponsors yet.</div>';return;}
-list.innerHTML=sp.map(function(s,i){return'<div class="sponsor-item"><span class="sp-name">'+esc(s)+'</span><button class="sp-del" onclick="removeSponsor('+i+')">×</button></div>';}).join("");}
-function addSponsor(){var name=(document.getElementById("spInput").value||"").trim();if(!name||!selectedKey)return;
-var data=load();if(!data[selectedKey])data[selectedKey]={sponsors:[],status:""};
-data[selectedKey].sponsors.push(name);if(!data[selectedKey].status)data[selectedKey].status="requested";
-save(data);document.getElementById("spInput").value="";selectDay(selectedKey);renderSummary();renderCal();}
-function removeSponsor(i){if(!selectedKey)return;var data=load();var rec=data[selectedKey];if(!rec)return;
-rec.sponsors.splice(i,1);if(rec.sponsors.length===0&&rec.status==="requested")rec.status="";
-save(data);selectDay(selectedKey);renderSummary();renderCal();}
-function setStatus(s){if(!selectedKey)return;var data=load();if(!data[selectedKey])data[selectedKey]={sponsors:[],status:""};
-data[selectedKey].status=data[selectedKey].status===s?"":s;save(data);selectDay(selectedKey);renderSummary();renderCal();}
-function clearDay(){if(!selectedKey)return;var data=load();delete data[selectedKey];save(data);
-document.getElementById("detail").className="detail";selectedKey=null;renderSummary();renderCal();}
-function renderSummary(){var data=load();
-var entries=Object.keys(data).map(function(k){var r=data[k];return{key:k,sponsors:r.sponsors||[],status:r.status||""};}).filter(function(e){return e.sponsors.length>0||e.status==="booked";});
-entries.sort(function(a,b){if(b.sponsors.length!==a.sponsors.length)return b.sponsors.length-a.sponsors.length;return a.key<b.key?-1:1;});
-var list=document.getElementById("summaryList");
-if(entries.length===0){list.innerHTML='<div class="empty-state">No dates tracked yet. Click a date to start.</div>';return;}
-list.innerHTML=entries.slice(0,10).map(function(e){
-var badge=e.status==="booked"?'<span class="td-badge bkd">Booked</span>':(e.sponsors.length>0?'<span class="td-badge">'+e.sponsors.length+' req</span>':"")
-;var sp=e.sponsors.length>0?'<span class="td-right">'+e.sponsors.map(esc).join(", ")+"</span>":"";
-return'<div class="top-date-row"><div class="td-left">'+fmtShort(e.key)+badge+"</div>"+sp+"</div>";}).join("");}
-function exportMonday(){var data=load();var entries=Object.keys(data).map(function(k){var r=data[k];return{key:k,sponsors:r.sponsors||[],status:r.status||""};}).filter(function(e){return e.sponsors.length>0||e.status==="booked";});
-entries.sort(function(a,b){return a.key<b.key?-1:1;});if(!entries.length){alert("No dates tracked.");return;}
-var lines=entries.map(function(e){return fmtShort(e.key)+"\t"+(e.status==="booked"?"Booked":"Requested")+"\t"+(e.sponsors.join(", ")||"--");});
-navigator.clipboard.writeText("Send Date\tStatus\tSponsors\n"+lines.join("\n")).then(function(){var b=document.querySelector(".exp-pink");b.textContent="Copied!";setTimeout(function(){b.textContent="Copy for Monday.com";},2500);});}
-function exportText(){var data=load();var entries=Object.keys(data).map(function(k){var r=data[k];return{key:k,sponsors:r.sponsors||[],status:r.status||""};}).filter(function(e){return e.sponsors.length>0||e.status==="booked";});
-entries.sort(function(a,b){return a.key<b.key?-1:1;});
-var lines=["PP2026 Eblast Schedule\n"];entries.forEach(function(e){lines.push((e.status==="booked"?"[BOOKED]":"[Requested]")+" "+fmtShort(e.key)+(e.sponsors.length?" -- "+e.sponsors.join(", "):""));});
-navigator.clipboard.writeText(lines.join("\n")).then(function(){var b=document.querySelector(".exp-outline");b.textContent="Copied!";setTimeout(function(){b.textContent="Copy Plain Text";},2500);});}
-function prevMonth(){curMonth--;if(curMonth<0){curMonth=11;curYear--;}document.getElementById("detail").className="detail";selectedKey=null;renderCal();}
-function nextMonth(){curMonth++;if(curMonth>11){curMonth=0;curYear++;}document.getElementById("detail").className="detail";selectedKey=null;renderCal();}
-renderCal();renderSummary();
+var today = new Date();
+var curYear = today.getFullYear();
+var curMonth = today.getMonth();
+var selectedKey = null;
+var spSelected = []; // sponsor mode selections
+
+// Parse URL params
+var params = new URLSearchParams(window.location.search);
+var SPONSOR = params.get('sponsor') || '';
+var BOOKED_PARAM = params.get('booked') || ''; // comma-sep date keys from admin
+var IS_SPONSOR = !!SPONSOR;
+
+// Booked dates from URL (sponsor mode)
+var urlBooked = BOOKED_PARAM ? BOOKED_PARAM.split(',').filter(Boolean) : [];
+
+// Admin storage
+function load(){try{return JSON.parse(localStorage.getItem('pp2026cal')||'{}');}catch(e){return{};}}
+function save(d){try{localStorage.setItem('pp2026cal',JSON.stringify(d));}catch(e){}}
+
+function dateKey(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
+function fmtLong(k){var p=k.split('-');return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});}
+function fmtShort(k){var p=k.split('-');return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function isBlocked(key) {
+  if (IS_SPONSOR) return urlBooked.indexOf(key) !== -1;
+  var data = load(); var rec = data[key]||{};
+  return rec.status === 'booked';
+}
+
+// ââ RENDER CALENDAR ââââââââââââââââââââââââââââââââââââââââââââââ
+function renderCal() {
+  var data = IS_SPONSOR ? {} : load();
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('monthLabel').textContent = months[curMonth]+' '+curYear;
+
+  var firstDay = new Date(curYear,curMonth,1).getDay();
+  var dim = new Date(curYear,curMonth+1,0).getDate();
+  var todayKey = dateKey(today.getFullYear(),today.getMonth(),today.getDate());
+  var grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+
+  for(var i=0;i<firstDay;i++){var e=document.createElement('div');e.className='day empty';e.innerHTML='<span class="day-num"></span>';grid.appendChild(e);}
+
+  for(var d=1;d<=dim;d++){
+    var key = dateKey(curYear,curMonth,d);
+    var blocked = isBlocked(key);
+    var cell = document.createElement('div');
+    var cls = 'day';
+
+    if(IS_SPONSOR){
+      if(blocked) cls += ' blocked';
+      else if(spSelected.indexOf(key)!==-1) cls += ' sp-selected';
+      else if(key===todayKey) cls += ' today';
+    } else {
+      var rec = data[key]||{};
+      var st = rec.status||'';
+      var sp = rec.sponsors||[];
+      if(key===todayKey) cls += ' today';
+      if(st==='booked') cls += ' booked';
+      else if(st==='requested'||sp.length>0) cls += ' requested';
+      if(key===selectedKey) cls += ' selected';
+    }
+    cell.className = cls;
+
+    var inner = '<span class="day-num">'+d+'</span>';
+    if(!IS_SPONSOR){
+      var rec2 = data[key]||{};
+      var sp2 = rec2.sponsors||[];
+      if(sp2.length>0) inner += '<span class="day-count">'+sp2.length+' req</span>';
+      if(sp2.length>0&&sp2.length<=5) inner += '<div class="day-dot-row">'+sp2.map(function(){return'<div class="dot"></div>';}).join('')+'</div>';
+    }
+    cell.innerHTML = inner;
+    if(!blocked) cell.onclick = (function(k){return function(){IS_SPONSOR?spSelectDay(k):selectDay(k);};})(key);
+    grid.appendChild(cell);
+  }
+}
+
+// ââ SPONSOR MODE âââââââââââââââââââââââââââââââââââââââââââââââââ
+function spSelectDay(key) {
+  var idx = spSelected.indexOf(key);
+  if(idx !== -1){ spSelected.splice(idx,1); }
+  else if(spSelected.length < 3){ spSelected.push(key); }
+  renderCal();
+  renderSpPanel();
+}
+
+function renderSpPanel() {
+  var panel = document.getElementById('spPanel');
+  var items = spSelected.length > 0
+    ? spSelected.map(function(k){return'<div class="sp-sel-item"><div class="sp-sel-dot"></div>'+fmtLong(k)+'</div>';}).join('')
+    : '<div class="empty-state">Click up to 3 dates above to request them.</div>';
+  document.getElementById('spSelList').innerHTML = items;
+  var btn = document.getElementById('spSubmitBtn');
+  btn.disabled = spSelected.length === 0;
+}
+
+function submitRequest() {
+  var dates = spSelected.map(fmtLong);
+  var body = 'Hi Mario,\n\n'+SPONSOR+' would like to request the following eblast send date'+(dates.length>1?'s':'')+':\n\n'
+    + dates.map(function(d){return'  â¢ '+d;}).join('\n')
+    + '\n\nPlease confirm availability.\n\nThank you!';
+  var mailto = 'mailto:mario.guardado@pinesparty.com'
+    +'?cc=tdejsiriudom@pinesparty.com,tj@pinesparty.com'
+    +'&subject='+encodeURIComponent('PP2026 Eblast Date Request â '+SPONSOR)
+    +'&body='+encodeURIComponent(body);
+  window.location.href = mailto;
+}
+
+// ââ ADMIN MODE âââââââââââââââââââââââââââââââââââââââââââââââââââ
+function selectDay(key) {
+  selectedKey = key; renderCal();
+  var data = load(); var rec = data[key]||{};
+  var sp = rec.sponsors||[]; var st = rec.status||'';
+  document.getElementById('detailDate').textContent = fmtLong(key);
+  renderSpList(sp);
+  document.getElementById('btnReq').className='s-btn'+(st==='requested'?' active-req':'');
+  document.getElementById('btnBkd').className='s-btn'+(st==='booked'?' active-bkd':'');
+  document.getElementById('detail').className='detail open';
+  document.getElementById('spInput').value='';
+}
+
+function renderSpList(sp){
+  var list=document.getElementById('sponsorList');
+  if(!sp||sp.length===0){list.innerHTML='<div class="empty-state">No sponsors yet.</div>';return;}
+  list.innerHTML=sp.map(function(s,i){return'<div class="sponsor-item"><span class="sp-name">'+esc(s)+'</span><button class="sp-del" onclick="removeSponsor('+i+')">&#215;</button></div>';}).join('');
+}
+
+function addSponsor(){
+  var name=(document.getElementById('spInput').value||'').trim();
+  if(!name||!selectedKey)return;
+  var data=load();
+  if(!data[selectedKey])data[selectedKey]={sponsors:[],status:''};
+  data[selectedKey].sponsors.push(name);
+  if(!data[selectedKey].status)data[selectedKey].status='requested';
+  save(data);document.getElementById('spInput').value='';
+  selectDay(selectedKey);renderSummary();renderCal();
+}
+
+function removeSponsor(i){
+  if(!selectedKey)return;
+  var data=load();var rec=data[selectedKey];if(!rec)return;
+  rec.sponsors.splice(i,1);
+  if(rec.sponsors.length===0&&rec.status==='requested')rec.status='';
+  save(data);selectDay(selectedKey);renderSummary();renderCal();
+}
+
+function setStatus(s){
+  if(!selectedKey)return;
+  var data=load();
+  if(!data[selectedKey])data[selectedKey]={sponsors:[],status:''};
+  data[selectedKey].status=data[selectedKey].status===s?'':s;
+  save(data);selectDay(selectedKey);renderSummary();renderCal();
+}
+
+function clearDay(){
+  if(!selectedKey)return;
+  var data=load();delete data[selectedKey];save(data);
+  document.getElementById('detail').className='detail';
+  selectedKey=null;renderSummary();renderCal();
+}
+
+function renderSummary(){
+  var data=load();
+  var entries=Object.keys(data).map(function(k){var r=data[k];return{key:k,sponsors:r.sponsors||[],status:r.status||''};})
+    .filter(function(e){return e.sponsors.length>0||e.status==='booked';});
+  entries.sort(function(a,b){if(b.sponsors.length!==a.sponsors.length)return b.sponsors.length-a.sponsors.length;return a.key<b.key?-1:1;});
+  var list=document.getElementById('summaryList');
+  if(!entries.length){list.innerHTML='<div class="empty-state">No dates tracked yet. Click a date to start.</div>';return;}
+  list.innerHTML=entries.slice(0,10).map(function(e){
+    var badge=e.status==='booked'?'<span class="td-badge bkd">Booked</span>':(e.sponsors.length>0?'<span class="td-badge">'+e.sponsors.length+' req</span>':'');
+    var sp=e.sponsors.length>0?'<span class="td-right">'+e.sponsors.map(esc).join(', ')+'</span>':'';
+    return'<div class="top-date-row"><div class="td-left">'+fmtShort(e.key)+badge+'</div>'+sp+'</div>';
+  }).join('');
+}
+
+function exportMonday(){
+  var data=load();
+  var entries=Object.keys(data).map(function(k){var r=data[k];return{key:k,sponsors:r.sponsors||[],status:r.status||''};})
+    .filter(function(e){return e.sponsors.length>0||e.status==='booked';});
+  entries.sort(function(a,b){return a.key<b.key?-1:1;});
+  if(!entries.length){alert('No dates tracked yet.');return;}
+  var lines=entries.map(function(e){return fmtShort(e.key)+'\t'+(e.status==='booked'?'Booked':'Requested')+'\t'+(e.sponsors.join(', ')||'--');});
+  navigator.clipboard.writeText('Send Date\tStatus\tSponsors\n'+lines.join('\n')).then(function(){
+    var b=document.querySelector('.exp-pink');b.textContent='Copied!';setTimeout(function(){b.textContent='Copy for Monday.com';},2500);
+  });
+}
+
+function exportText(){
+  var data=load();
+  var entries=Object.keys(data).map(function(k){var r=data[k];return{key:k,sponsors:r.sponsors||[],status:r.status||''};})
+    .filter(function(e){return e.sponsors.length>0||e.status==='booked';});
+  entries.sort(function(a,b){return a.key<b.key?-1:1;});
+  var lines=['PP2026 Eblast Schedule\n'];
+  entries.forEach(function(e){lines.push((e.status==='booked'?'[BOOKED]':'[Requested]')+' '+fmtShort(e.key)+(e.sponsors.length?' -- '+e.sponsors.join(', '):''));});
+  navigator.clipboard.writeText(lines.join('\n')).then(function(){
+    var b=document.querySelector('.exp-outline');b.textContent='Copied!';setTimeout(function(){b.textContent='Copy Plain Text';},2500);
+  });
+}
+
+function prevMonth(){curMonth--;if(curMonth<0){curMonth=11;curYear--;}if(!IS_SPONSOR){document.getElementById('detail').className='detail';selectedKey=null;}renderCal();}
+function nextMonth(){curMonth++;if(curMonth>11){curMonth=0;curYear++;}if(!IS_SPONSOR){document.getElementById('detail').className='detail';selectedKey=null;}renderCal();}
+
+// ââ INIT âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+function init() {
+  var wrap = document.getElementById('mainWrap');
+
+  if(IS_SPONSOR){
+    // Sponsor header
+    document.getElementById('pgTitle').textContent = SPONSOR+' â Select Your Dates';
+    document.getElementById('pgSub').textContent = 'Pick up to 3 preferred eblast send dates.';
+    var chip = document.getElementById('spChip');
+    chip.textContent = SPONSOR; chip.style.display = 'inline-block';
+    document.getElementById('backLink').style.display = 'none';
+
+    wrap.innerHTML =
+      '<div class="legend">'
+        +'<div class="leg-item"><div class="leg-swatch av"></div>Available</div>'
+        +'<div class="leg-item"><div class="leg-swatch bkd"></div>Selected</div>'
+        +'<div class="leg-item"><div class="leg-swatch blk"></div>Unavailable</div>'
+      +'</div>'
+      +'<div class="month-nav">'
+        +'<button class="mnav-btn" onclick="prevMonth()">&#8249;</button>'
+        +'<div class="month-label" id="monthLabel"></div>'
+        +'<button class="mnav-btn" onclick="nextMonth()">&#8250;</button>'
+      +'</div>'
+      +'<div class="cal-wrap"><div class="dow-row">'
+        +'<div class="dow">Sun</div><div class="dow">Mon</div><div class="dow">Tue</div>'
+        +'<div class="dow">Wed</div><div class="dow">Thu</div><div class="dow">Fri</div><div class="dow">Sat</div>'
+      +'</div><div class="day-row" id="calGrid"></div></div>'
+      +'<div class="sp-panel" id="spPanel">'
+        +'<div class="sp-panel-title">Your Selected Dates</div>'
+        +'<div class="sp-selection" id="spSelList"><div class="empty-state">Click up to 3 dates above to request them.</div></div>'
+        +'<div class="sp-hint">We\'ll confirm your preferred date as soon as possible.</div>'
+        +'<button class="sp-submit" id="spSubmitBtn" onclick="submitRequest()" disabled>Submit Date Request</button>'
+        +'<div class="sp-note">Submitting opens your email app with a pre-filled request to the PP2026 team.</div>'
+      +'</div>';
+
+  } else {
+    // Admin header stays default
+    wrap.innerHTML =
+      '<div class="legend">'
+        +'<div class="leg-item"><div class="leg-swatch av"></div>Available</div>'
+        +'<div class="leg-item"><div class="leg-swatch req"></div>Requested</div>'
+        +'<div class="leg-item"><div class="leg-swatch bkd"></div>Booked</div>'
+      +'</div>'
+      +'<div class="month-nav">'
+        +'<button class="mnav-btn" onclick="prevMonth()">&#8249;</button>'
+        +'<div class="month-label" id="monthLabel"></div>'
+        +'<button class="mnav-btn" onclick="nextMonth()">&#8250;</button>'
+      +'</div>'
+      +'<div class="cal-wrap"><div class="dow-row">'
+        +'<div class="dow">Sun</div><div class="dow">Mon</div><div class="dow">Tue</div>'
+        +'<div class="dow">Wed</div><div class="dow">Thu</div><div class="dow">Fri</div><div class="dow">Sat</div>'
+      +'</div><div class="day-row" id="calGrid"></div></div>'
+      +'<div class="detail" id="detail">'
+        +'<div class="detail-date" id="detailDate"></div>'
+        +'<div class="detail-sec">Sponsors Requesting This Date</div>'
+        +'<div class="sponsor-list" id="sponsorList"></div>'
+        +'<div class="add-sponsor-row">'
+          +'<input class="add-sp-input" id="spInput" type="text" placeholder="Add sponsor nameâ¦" onkeydown="if(event.key===\'Enter\')addSponsor()"/>'
+          +'<button class="add-sp-btn" onclick="addSponsor()">Add</button>'
+        +'</div>'
+        +'<div class="status-row">'
+          +'<button class="s-btn" id="btnReq" onclick="setStatus(\'requested\')">Mark Requested</button>'
+          +'<button class="s-btn" id="btnBkd" onclick="setStatus(\'booked\')">Mark Booked</button>'
+          +'<button class="s-btn" onclick="clearDay()">Clear</button>'
+        +'</div>'
+      +'</div>'
+      +'<div class="summary"><div class="summary-title">Top Requested Dates</div><div id="summaryList"></div></div>'
+      +'<div class="export-row">'
+        +'<button class="exp-btn exp-pink" onclick="exportMonday()">Copy for Monday.com</button>'
+        +'<button class="exp-btn exp-outline" onclick="exportText()">Copy Plain Text</button>'
+      +'</div>';
+
+    renderSummary();
+  }
+
+  renderCal();
+}
+
+init();
 </script>
 </body>
 </html>
