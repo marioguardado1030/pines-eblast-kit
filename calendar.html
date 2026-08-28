@@ -17,22 +17,6 @@ h1{font-size:24px;font-weight:700}
 .nav-back:hover{color:#fff}
 .sp-chip{display:inline-block;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;margin-top:10px}
 .main{max-width:680px;margin:0 auto;padding:26px 20px 60px}
-/* Loading & error */
-.loader-wrap{text-align:center;padding:60px 20px}
-.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--pink);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loader-text{font-size:13px;color:var(--muted)}
-.error-wrap{background:#fff;border:1px solid #f0c0c0;border-radius:12px;padding:24px;margin:20px 0;text-align:center}
-.error-icon{font-size:28px;margin-bottom:10px}
-.error-title{font-size:15px;font-weight:700;color:#c0304a;margin-bottom:6px}
-.error-msg{font-size:12px;color:var(--muted);margin-bottom:16px;word-break:break-all}
-.error-hint{font-size:11px;color:var(--muted);background:var(--light);border-radius:7px;padding:10px 14px;text-align:left;line-height:1.6}
-.retry-btn{background:var(--pink);color:#fff;border:none;border-radius:7px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;margin-top:14px}
-.retry-btn:hover{opacity:.85}
-/* Gas not configured warning */
-.config-warn{background:#fff8e0;border:1px solid #f0d080;border-radius:12px;padding:20px;margin-bottom:20px;font-size:13px;line-height:1.6}
-.config-warn strong{color:#7a5a00}
-/* Calendar */
 .month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .month-label{font-size:17px;font-weight:700}
 .mnav-btn{background:#fff;border:1.5px solid var(--border);border-radius:7px;padding:6px 14px;font-size:18px;cursor:pointer;color:var(--gray);line-height:1}
@@ -42,32 +26,24 @@ h1{font-size:24px;font-weight:700}
 .dow{text-align:center;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:4px 0}
 .day-row{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .day{min-height:54px;border-radius:8px;border:1.5px solid transparent;padding:5px 6px;cursor:pointer;position:relative;transition:border-color .12s,background .12s}
-.day:hover:not(.empty){border-color:var(--pink);background:#fff4f8}
-.day.empty{cursor:default;pointer-events:none}
+.day:hover:not(.empty):not(.blocked){border-color:var(--pink);background:#fff4f8}
+.day.empty{cursor:default}
 .day.blocked{background:#f0f0f0;cursor:not-allowed}
-.day.blocked:hover{border-color:transparent;background:#f0f0f0}
 .day.blocked .day-num{color:#bbb}
 .day-num{font-size:13px;font-weight:600;color:#2a2a2a}
 .day.empty .day-num{color:#ccc}
 .day.today{background:#fff4f8;border-color:#f0a0c0}
-/* Admin states */
 .day.booked{background:#d31876;border-color:#b01060}
 .day.booked .day-num{color:#fff}
 .day.booked .day-count{color:rgba(255,255,255,.85)}
-.day.booked:hover{background:#b01060;border-color:#900840}
 .day.requested{background:#fce8f0;border-color:#e8a0c0}
-/* Selected date highlight */
-.day.selected{outline:3px solid #2a2a2a;outline-offset:-2px}
-.day.booked.selected{outline:3px solid #fff;outline-offset:-3px}
 .day-count{font-size:10px;font-weight:700;color:var(--pink);margin-top:2px;display:block}
 .day-dot-row{display:flex;flex-wrap:wrap;gap:2px;margin-top:3px}
 .dot{width:6px;height:6px;border-radius:50%;background:var(--pink);opacity:.7}
 .day.booked .dot{background:#fff}
-/* Sponsor selected state */
 .day.sp-selected{background:#d31876;border-color:#b01060}
 .day.sp-selected .day-num{color:#fff}
-.day.sp-selected:hover{background:#b01060;border-color:#900840}
-/* Legend */
+.day.sp-selected::after{content:"â";position:absolute;bottom:4px;right:6px;font-size:11px;color:rgba(255,255,255,.9);font-weight:700}
 .legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:18px}
 .leg-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gray)}
 .leg-swatch{width:14px;height:14px;border-radius:4px;border:1.5px solid transparent}
@@ -75,7 +51,6 @@ h1{font-size:24px;font-weight:700}
 .leg-swatch.req{background:#fce8f0;border-color:#e8a0c0}
 .leg-swatch.bkd{background:#d31876;border-color:#b01060}
 .leg-swatch.blk{background:#f0f0f0;border-color:#ddd}
-/* Admin detail panel */
 .detail{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:18px;display:none}
 .detail.open{display:block}
 .detail-date{font-size:15px;font-weight:700;margin-bottom:14px}
@@ -90,16 +65,11 @@ h1{font-size:24px;font-weight:700}
 .add-sp-input:focus{border-color:var(--pink)}
 .add-sp-btn{background:var(--pink);color:#fff;border:none;border-radius:7px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer}
 .add-sp-btn:hover{opacity:.85}
-.status-row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
-.s-btn{flex:1;min-width:80px;border-radius:7px;padding:9px 0;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid #ddd;background:#fff;color:var(--gray);transition:all .12s}
-.s-btn.active-av{background:#e8ffe8;border-color:#80c080;color:#2a6a2a}
+.status-row{display:flex;gap:8px;margin-top:14px}
+.s-btn{flex:1;border-radius:7px;padding:9px 0;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid #ddd;background:#fff;color:var(--gray);transition:all .12s}
 .s-btn.active-req{background:#fce8f0;border-color:#e8a0c0;color:var(--pink)}
 .s-btn.active-bkd{background:var(--pink);border-color:#b01060;color:#fff}
 .s-btn:hover{border-color:var(--pink)}
-.s-btn.saving{opacity:.6;cursor:wait}
-/* Saving indicator */
-.save-status{font-size:11px;color:var(--muted);margin-top:10px;min-height:16px;transition:opacity .2s}
-/* Summary */
 .summary{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:18px}
 .summary-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--pink);margin-bottom:14px}
 .top-date-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
@@ -109,13 +79,11 @@ h1{font-size:24px;font-weight:700}
 .td-badge{display:inline-block;background:#fce8f0;color:var(--pink);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;margin-left:8px}
 .td-badge.bkd{background:var(--pink);color:#fff}
 .empty-state{font-size:13px;color:var(--muted);padding:8px 0}
-/* Export */
 .export-row{display:flex;gap:10px;flex-wrap:wrap}
 .exp-btn{display:inline-flex;align-items:center;gap:6px;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:opacity .15s}
 .exp-btn:hover{opacity:.85}
 .exp-pink{background:var(--pink);color:#fff}
 .exp-outline{background:#fff;color:var(--gray);border:1.5px solid #ddd}
-/* Sponsor submit panel */
 .sp-panel{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:18px}
 .sp-panel-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--pink);margin-bottom:12px}
 .sp-selection{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;min-height:32px}
@@ -126,676 +94,396 @@ h1{font-size:24px;font-weight:700}
 .sp-submit:hover{opacity:.85}
 .sp-submit:disabled{opacity:.4;cursor:not-allowed}
 .sp-note{font-size:11px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.5}
+.gas-loader{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(250,245,248,.92);z-index:100;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+.gas-loader.on{display:flex}
+.gas-spinner{width:36px;height:36px;border:3px solid #e8d0dc;border-top-color:#d31876;border-radius:50%;animation:spin .7s linear infinite}
+.gas-loader-txt{font-size:13px;color:#888;font-weight:600}
+@keyframes spin{to{transform:rotate(360deg)}}
+.gas-err{background:#fff0f3;border:1px solid #f0c0cc;border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:#b0304a;display:none;line-height:1.5}
+.gas-err.on{display:block}
+.setup-wrap{max-width:480px;margin:0 auto;padding:40px 20px}
+.setup-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:28px}
+.setup-eyebrow{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--pink);margin-bottom:12px}
+.setup-title{font-size:16px;font-weight:700;margin-bottom:8px}
+.setup-desc{font-size:13px;color:#666;margin-bottom:20px;line-height:1.6}
+.setup-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#888;display:block;margin-bottom:6px}
+.setup-input{width:100%;border:1.5px solid #ddd;border-radius:7px;padding:10px 12px;font-size:13px;outline:none;margin-bottom:16px;font-family:inherit}
+.setup-input:focus{border-color:var(--pink)}
+.setup-btn{width:100%;background:var(--pink);color:#fff;border:none;border-radius:8px;padding:13px 0;font-size:14px;font-weight:700;cursor:pointer}
+.setup-btn:hover{opacity:.85}
+.setup-note{font-size:11px;color:#aaa;text-align:center;margin-top:14px;line-height:1.6}
 </style>
 </head>
 <body>
-
 <div class="hdr">
   <div class="hdr-in">
-    <a class="nav-back" id="backLink" href="./pp-eblast-kit.html">&larr; Back to Eblast Kit</a>
-    <div class="eyebrow">Pines Party 2026 &mdash; Fire Island Pines</div>
+    <a class="nav-back" id="backLink" href="./pp-eblast-kit.html">â Back to Eblast Kit</a>
+    <div class="eyebrow">Pines Party 2026 â Fire Island Pines</div>
     <h1 id="pgTitle">Eblast Scheduling Calendar</h1>
     <div class="hdr-sub" id="pgSub">Track sponsor date requests &amp; book send dates.</div>
     <div id="spChip" class="sp-chip" style="display:none"></div>
   </div>
 </div>
-
 <div class="main" id="mainWrap"></div>
 
 <script>
-// =========================================================
-// CONFIG: GAS URL stored in localStorage (set via setup UI)
-// =========================================================
-function getGasUrl() {
-  try { return localStorage.getItem('PP2026_GAS_URL') || ''; } catch(e) { return ''; }
-}
-function setGasUrl(url) {
-  try { localStorage.setItem('PP2026_GAS_URL', url); } catch(e) {}
-}
-var GAS_URL = getGasUrl();
+var today=new Date();
+var curYear=today.getFullYear();
+var curMonth=today.getMonth();
+var selectedKey=null;
+var spSelected=[];
+var calData={};
+var GAS_URL='';
 
-// =========================================================
-// STATE
-// =========================================================
-var calData = {}; // { "2026-07-04": { status, sponsors:[], notes } }
-var isLoading = false;
-var loadError = null;
-var selectedKey = null;
-var spSelected = [];
+var params=new URLSearchParams(window.location.search);
+var SPONSOR=params.get('sponsor')||'';
+var BOOKED_PARAM=params.get('booked')||'';
+var IS_SPONSOR=!!SPONSOR;
+var urlBooked=BOOKED_PARAM?BOOKED_PARAM.split(',').filter(Boolean):[];
 
-var today = new Date();
-var curYear = today.getFullYear();
-var curMonth = today.getMonth();
+function loadLocal(){try{return JSON.parse(localStorage.getItem('pp2026cal')||'{}');}catch(e){return{};}}
+function saveLocal(d){try{localStorage.setItem('pp2026cal',JSON.stringify(d));}catch(e){}}
+function dateKey(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
+function fmtLong(k){var p=k.split('-');return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});}
+function fmtShort(k){var p=k.split('-');return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-var urlParams = new URLSearchParams(window.location.search);
-var SPONSOR = urlParams.get('sponsor') || '';
-var IS_SPONSOR = !!SPONSOR;
-
-// =========================================================
-// HELPERS
-// =========================================================
-function dateKey(y, m, d) {
-  return y + '-' + (m + 1 < 10 ? '0' : '') + (m + 1) + '-' + (d < 10 ? '0' : '') + d;
-}
-
-function fmtLong(k) {
-  var p = k.split('-');
-  return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString('en-US', {
-    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
-  });
-}
-
-function fmtShort(k) {
-  var p = k.split('-');
-  return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString('en-US', {
-    month: 'short', day: 'numeric', year: 'numeric'
-  });
-}
-
-function esc(s) {
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
-function gasConfigured() {
-  return GAS_URL && GAS_URL.indexOf('https://script.google.com') === 0;
-}
-
-function showSetupScreen() {
-  document.getElementById('main').innerHTML =
-    '<div style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:28px 24px;max-width:520px;margin:0 auto">' +
-    '<div style="font-size:20px;font-weight:700;margin-bottom:6px">One-time Setup</div>' +
-    '<div style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px">' +
-    'This calendar stores data in Google Sheets via a Google Apps Script backend. ' +
-    'Paste your deployed web app URL below to connect.' +
-    '</div>' +
-    '<div style="background:#faf5f8;border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px;font-size:12px;line-height:1.8">' +
-    '<strong style="display:block;margin-bottom:6px">Deploy the backend (one-time, 1 min):</strong>' +
-    '1. Open <a href="https://script.google.com/u/0/home/projects/1fshtKfrmZgZsQQyV3UUGgY_WendYkn5DWEtpyKHnHRLA_RH8-N--GAnW/edit" target="_blank" rel="noopener noreferrer" style="color:var(--pink)">Apps Script Editor</a><br>' +
-    '2. Click <strong>Deploy &rarr; New deployment</strong><br>' +
-    '3. Type: <strong>Web app</strong>, Execute as: <strong>Me</strong>, Access: <strong>Anyone</strong><br>' +
-    '4. Click <strong>Deploy</strong> &rarr; authorize &rarr; copy the URL<br>' +
-    '5. Paste it below' +
-    '</div>' +
-    '<label style="font-size:12px;font-weight:600;color:var(--gray);display:block;margin-bottom:5px">Google Apps Script Web App URL</label>' +
-    '<input id="gasUrlInput" type="text" placeholder="https://script.google.com/macros/s/.../exec" ' +
-    'style="width:100%;border:1.5px solid #ddd;border-radius:7px;padding:10px 12px;font-size:13px;outline:none;margin-bottom:10px" ' +
-    'onfocus="this.style.borderColor=\'var(--pink)\'" onblur="this.style.borderColor=\'#ddd\'"/>' +
-    '<button onclick="saveGasUrl()" style="background:var(--pink);color:#fff;border:none;border-radius:8px;padding:11px 24px;font-size:14px;font-weight:700;cursor:pointer;width:100%">Connect &amp; Load Calendar</button>' +
-    '</div>';
-}
-
-function saveGasUrl() {
-  var input = document.getElementById('gasUrlInput');
-  var url = (input ? input.value : '').trim();
-  if (!url || url.indexOf('https://script.google.com') !== 0) {
-    if (input) { input.style.borderColor = '#c0304a'; input.focus(); }
-    return;
-  }
-  setGasUrl(url);
-  GAS_URL = url;
-  init();
-}
-
-// =========================================================
-// GAS DATA LAYER
-// =========================================================
-function loadFromGAS(callback) {
-  if (!gasConfigured()) {
-    callback(null, {});
-    return;
-  }
-  isLoading = true;
-  loadError = null;
-  renderLoader();
-
-  var url = GAS_URL + '?_t=' + Date.now();
+function loadFromGAS(callback){
+  var url=GAS_URL+'?_t='+Date.now();
   fetch(url)
-    .then(function(res) {
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      return res.json();
-    })
-    .then(function(json) {
-      if (json.error) throw new Error(json.error);
-      var data = {};
-      (json.rows || []).forEach(function(row) {
-        if (!row.date) return;
-        data[row.date] = {
-          status: row.status || 'available',
-          sponsors: row.sponsors
-            ? row.sponsors.split(',').map(function(s) { return s.trim(); }).filter(Boolean)
-            : [],
-          notes: row.notes || ''
-        };
+    .then(function(res){if(!res.ok)throw new Error('HTTP '+res.status);return res.json();})
+    .then(function(json){
+      var data={};
+      (json.rows||[]).forEach(function(row){
+        if(!row.date)return;
+        data[row.date]={
+          status:row.status||'',
+          sponsors:row.sponsors?row.sponsors.split(',').map(function(s){return s.trim();}).filter(Boolean):[],
+          notes:row.notes||''
+        =;
       });
-      isLoading = false;
-      calData = data;
-      callback(null, data);
+      saveLocal(data);
+      callback(null,data);
     })
-    .catch(function(err) {
-      isLoading = false;
-      loadError = err.message || 'Network error';
-      callback(err, null);
-    });
+    .catch(function(err){callback(err,null);});
 }
 
-function saveToGAS(date, status, sponsors, notes, callback) {
-  if (!gasConfigured()) {
-    callback(new Error('GAS not configured'));
-    return;
-  }
-  var body = new URLSearchParams();
-  body.append('date', date);
-  body.append('status', status);
-  body.append('sponsors', Array.isArray(sponsors) ? sponsors.join(',') : (sponsors || ''));
-  body.append('notes', notes || '');
-
-  fetch(GAS_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: body.toString()
-  })
-    .then(function(res) { return res.json(); })
-    .then(function(json) {
-      if (!json.ok) throw new Error(json.error || 'Save failed');
-      callback(null);
-    })
-    .catch(function(err) {
-      callback(err);
-    });
+function saveToGAS(key,rec){
+  if(!GAS_URL)return;
+  var body='date='+encodeURIComponent(key)
+    +'&status='+encodeURIComponent(rec.status||'')
+    +'&sponsors='+encodeURIComponent((rec.sponsors||[]).join(','))
+    +'&notes='+encodeURIComponent(rec.notes||'');
+  fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:body})
+    .catch(function(e){console.warn('GAS save failed:',e);});
 }
 
-// =========================================================
-// LOADER / ERROR STATES
-// =========================================================
-function renderLoader() {
-  var wrap = document.getElementById('mainWrap');
-  if (!wrap) return;
-  wrap.innerHTML =
-    '<div class="loader-wrap">' +
-    '<div class="spinner"></div>' +
-    '<div class="loader-text">Loading calendar from Google Sheets...</div>' +
-    '</div>';
+function showSetupScreen(){
+  var wrap=document.getElementById('mainWrap');
+  if(!wrap)return;
+  wrap.innerHTML=
+    '<div class="setup-wrap">'
+    +'<div class="setup-card">'
+      +'<div class="se4up-eyebrow">Initial Setup</div>'
+      +'<div class="setup-title">Connect to Google Sheets</div>'
+      +'<div class="setup-desc">Paste your Google Apps Script deployment URL below. This connects the calendar to your Google Sheet so data persists across devices and browsers.</div>'
+      +'<label class="setup-label" for="setupUrlInput">Apps Script Deployment URL</label>'
+      +'<input class="setup-input" id="setupUrlInput" type="text" placeholder="https://script.google.com/macros/s/â¦/exec"/>'
+      +'<button class="setup-btn" onclick="saveSetup()">Connect &amp; Load Calendar</button>'
+   
+ÉÏ]Û\ÜÏHÙ]\[ÝHØ]Y[[Ý\ÝÜÙ\ÛKHT\ÈÛH\ÙYÈ]Ú[Ø]H[Ý\ÝÛÚY]]KÙ]Â
+ÉÏÙ]Ù]ÎÂÙ][Y[Ý]
+[Ý[Û
+^Ý\[YØÝ[Y[Ù][[Y[RY
+	ÜÙ]\\[]	ÊNÚY[
+Y[ØÝ\Ê
+NßK
+NÂB[Ý[ÛØ]TÙ]\
+
+^Â\]ÏJØÝ[Y[Ù][[Y[RY
+	ÜÙ]\\[]	ÊK[Y_	ÉÊK[J
+NÂY\]ß]Ë[^Ù	ÜØÜ\ÛÛÙÛKÛÛIÊOOOKLJ^Ø[\
+	ÔX\ÙH\ÝHH[YÛÛÙÛH\ÈØÜ\TÊNÜ]\ßB\\\]Ë\XÙJ×ØWÛXXÜÜ×Ö××J×Ü×ËË	ËÛXXÜÜËÜËÉÊNÂØØ[ÝÜYÙKÙ]][J	ÔÑÐT×ÕT	Ë\
+NÂÐT×ÕT]\ÂØØ][Û[ØY
+
+NÂB[Ý[ÛÚÝÓØY[ÊÛ^Â\[YØÝ[Y[Ù][[Y[RY
+	ÙØ\ÓØY\ÊNÂY[
+Y[Û\ÜÓ[YOIÙØ\Ë[ØY\ÊÊÛÉÈÛÎÉÊNÂB[Ý[ÛÚÝÑ\Ü\ÙÊ^Â\[YØÝ[Y[Ù][[Y[RY
+	ÙØ\Ñ\ÊNÂYY[
+\]\ÂY\ÙÊ^Ù[^ÛÛ[[\ÙÎÙ[Û\ÜÓ[YOIÙØ\ËY\ÛÎßB[Ù^Ù[Û\ÜÓ[YOIÙØ\ËY\ÎßBB[Ý[ÛZ[YZ[RJÜ\
+^ÂÜ\[\SB	Ï]Û\ÜÏHØ\Ë[ØY\YHØ\ÓØY\]Û\ÜÏHØ\Ë\Ü[\Ù]]Û\ÜÏHØ\Ë[ØY\]ØY[ÈØ[[\ÛHÛÛÙÛHÚY]ø )Ù]Ù]Â
+ÉÏ]Û\ÜÏHØ\ËY\YHØ\Ñ\Ù]Â
+ÉÏ]Û\ÜÏHYÙ[Â
+ÉÏ]Û\ÜÏHYËZ][H]Û\ÜÏHYË\ÝØ]Ú]Ù]]Z[XOÙ]Â
+ÉÏ]Û\ÜÏHYËZ][H]Û\ÜÏHYË\ÝØ]Ú\HÙ]\]Y\ÝYÙ]Â
+ÉÏ]Û\ÜÏHYËZ][H]Û\ÜÏHYË\ÝØ]ÚÙÙ]ÛÚÙYÙ]Â
+ÉÏÙ]Â
+ÉÏ]Û\ÜÏH[Û[]Â
+ÉÏ]ÛÛ\ÜÏH[]XÛÛXÚÏH][Û
+
+HÎNÏØ]ÛÂ
+ÉÏ]Û\ÜÏH[Û[X[YH[ÛX[Ù]Â
+ÉÏ]ÛÛ\ÜÏH[]XÛÛXÚÏH^[Û
+
+HÎLÏØ]ÛÂ
+ÉÏÙ]Â
+ÉÏ]Û\ÜÏHØ[]Ü\]Û\ÜÏHÝË\ÝÈÂ
+ÉÏ]Û\ÜÏHÝÈÝ[Ù]]Û\ÜÏHÝÈ[ÛÙ]]Û\ÜÏHÝÈYOÙ]Â
+ÉÏ]Û\ÜÏHÝÈÙYÙ]]Û\ÜÏHÝÈOÙ]]Û\ÜÏHÝÈOÙ]]Û\ÜÏHÝÈØ]Ù]Â
+ÉÏÙ]]Û\ÜÏH^K\ÝÈYHØ[ÜYÙ]Ù]Â
+ÉÏ]Û\ÜÏH]Z[YH]Z[Â
+ÉÏ]Û\ÜÏH]Z[Y]HYH]Z[]HÙ]Â
+ÉÏ]Û\ÜÏH]Z[\ÙXÈÜÛÛÜÈ\]Y\Ý[È\È]OÙ]Â
+ÉÏ]Û\ÜÏHÜÛÛÜ[\ÝYHÜÛÛÜ\ÝÙ]Â
+ÉÏ]Û\ÜÏHY\ÜÛÛÜ\ÝÈÂ
+ÉÏ[]Û\ÜÏHY\ÜZ[]YHÜ[]\OH^XÙZÛ\HYÜÛÛÜ[Yx )ÛÙ^YÝÛHY][Ù^OOOW	Ñ[\	ÊXYÜÛÛÜ
+HÏÂ
+ÉÏ]ÛÛ\ÜÏHY\ÜXÛÛXÚÏHYÜÛÛÜ
+HYØ]ÛÂ
+ÉÏÙ]Â
+ÉÏ]Û\ÜÏHÝ]\Ë\ÝÈÂ
+ÉÏ]ÛÛ\ÜÏHËXYH\HÛÛXÚÏHÙ]Ý]\Ê	Ü\]Y\ÝY	ÊHX\È\]Y\ÝYØ]ÛÂ
+ÉÏ]ÛÛ\ÜÏHËXYHÙÛÛXÚÏHÙ]Ý]\Ê	ØÛÚÙY	ÊHX\ÈÛÚÙYØ]ÛÂ
+ÉÏ]ÛÛ\ÜÏHËXÛÛXÚÏHÛX\^J
+HÛX\Ø]ÛÂ
+ÉÏÙ]Â
+ÉÏÙ]Â
+ÉÏ]Û\ÜÏHÝ[[X\H]Û\ÜÏHÝ[[X\K]]HÜ\]Y\ÝY]\ÏÙ]]YHÝ[[X\S\ÝÙ]Ù]Â
+ÉÏ]Û\ÜÏH^Ü\ÝÈÂ
+ÉÏ]ÛÛ\ÜÏH^X^\[ÈÛÛXÚÏH^Ü[Û^J
+HÛÜHÜ[Û^KÛÛOØ]ÛÂ
+ÉÏ]ÛÛ\ÜÏH^X^[Ý][HÛÛXÚÏH^Ü^
+
+HÛÜHZ[^Ø]ÛÂ
+ÉÏÙ]ÎÂB[Ý[ÛZ[ÜÛÛÜRJÜ\
+^ÂÜ\[\SB	Ï]Û\ÜÏHØ\Ë[ØY\YHØ\ÓØY\]Û\ÜÏHØ\Ë\Ü[\Ù]]Û\ÜÏHØ\Ë[ØY\]ØY[ÈØ[[\¸ )Ù]Ù]Â
+ÉÏ]Û\ÜÏHYÙ[Â
+ÉÏ]Û\ÜÏHYËZ][H]Û\ÜÏHYË\ÝØ]Ú]Ù]]Z[XOÙ]Â
+ÉÏ]Û\ÜÏHYËZ][H]Û\ÜÏHYË\ÝØ]ÚÙÙ]Ù[XÝYÙ]Â
+ÉÏ]Û\ÜÏHYËZ][H]Û\ÜÏHYË\ÝØ]ÚÈÙ][]Z[XOÙ]Â
+ÉÏÙ]Â
+ÉÏ]Û\ÜÏH[Û[]Â
+ÉÏ]ÛÛ\ÜÏH[]XÛÛXÚÏH][Û
+
+HÎNÏØ]ÛÂ
+ÉÏ]Û\ÜÏH[Û[X[YH[ÛX[Ù]Â
+ÉÏ]ÛÛ\ÜÏH[]XÛÛXÚÏH^[Û
+
+HÎLÏØ]ÛÂ
+ÉÏÙ]Â
+ÉÏ]Û\ÜÏHØ[]Ü\]Û\ÜÏHÝË\ÝÈÂ
+ÉÏ]Û\ÜÏHÝÈÝ[Ù]]Û\ÜÏHÝÈ[ÛÙ]]Û\ÜÏHÝÈYOÙ]Â
+ÉÏ]Û\ÜÏHÝÈÙYÙ]]Û\ÜÏHÝÈOÙ]]Û\ÜÏHÝÈOÙ]]Û\ÜÏHÝÈØat</div>'
+    +'</div><div class="day-row" id="calGrid"></div></div>'
+    +'<div class="sp-panel" id="spPanel">'
+      +'<div class="sp-panel-title">Your Selected Dates</div>'
+      +'<div class="sp-selection" id="spSelList"><div class="empty-state">Click up to 3 dates above to request them.</div></div>'
+      +'<div class="sp-hint">We\'ll confirm your preferred date as soon as possible.</div>'
+      +'<button class="sp-submit" id="spSubmitBtn" onclick="submitRequest()" disabled>Submit Date Request</button>'
+      +'<div class="sp-note">Submitting opens your email app with a pre-filled request to the PP2026 team.</div>'
+    +'</div>';
 }
 
-function renderErrorState() {
-  var wrap = document.getElementById('mainWrap');
-  if (!wrap) return;
-  wrap.innerHTML =
-    '<div class="error-wrap">' +
-    '<div class="error-icon">&#9888;</div>' +
-    '<div class="error-title">Could Not Load Calendar</div>' +
-    '<div class="error-msg">' + esc(loadError || 'Unknown error') + '</div>' +
-    '<div class="error-hint">' +
-    '<strong>Checklist:</strong><br>' +
-    '1. GAS web app is deployed (Extensions &gt; Apps Script &gt; Deploy)<br>' +
-    '2. Access is set to "Anyone"<br>' +
-    '3. The GAS_URL in calendar.html is updated with the correct web app URL' +
-    '</div>' +
-    '<button class="retry-btn" onclick="init()">Retry</button>' +
-    '</div>';
+function isBlocked(key){
+  if(IS_SPONSOR)return urlBooked.indexOf(key)!==-1;
+  return (calData[key]||{}).status==='booked';
 }
 
-// =========================================================
-// RENDER CALENDAR GRID
-// =========================================================
-function renderCal() {
-  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  var monthLabel = document.getElementById('monthLabel');
-  if (monthLabel) monthLabel.textContent = months[curMonth] + ' ' + curYear;
-
-  var firstDay = new Date(curYear, curMonth, 1).getDay();
-  var dim = new Date(curYear, curMonth + 1, 0).getDate();
-  var todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
-  var grid = document.getElementById('calGrid');
-  if (!grid) return;
-  grid.innerHTML = '';
-
-  // Empty cells before first day
-  for (var i = 0; i < firstDay; i++) {
-    var e = document.createElement('div');
-    e.className = 'day empty';
-    e.innerHTML = '<span class="day-num"></span>';
-    grid.appendChild(e);
-  }
-
-  for (var d = 1; d <= dim; d++) {
-    var key = dateKey(curYear, curMonth, d);
-    var rec = calData[key] || { status: 'available', sponsors: [], notes: '' };
-    var st = rec.status || 'available';
-    var sp = rec.sponsors || [];
-
-    var cell = document.createElement('div');
-    var cls = 'day';
-
-    if (IS_SPONSOR) {
-      // In sponsor mode: booked dates are blocked, selected dates highlighted
-      if (st === 'booked') {
-        cls += ' blocked';
-      } else if (spSelected.indexOf(key) !== -1) {
-        cls += ' sp-selected';
-      } else if (key === todayKey) {
-        cls += ' today';
-      }
+function renderCal(){
+  var grid=document.getElementById('calGrid');
+  var label=document.getElementById('monthLabel');
+  if(!grid||!label)return;
+  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  label.textContent=months[curMonth]+' '+curYear;
+  var firstDay=new Date(curYear,curMonth,1).getDay();
+  var dim=new Date(curYear,curMonth+1,0).getDate();
+  var todayKey=dateKey(today.getFullYear(),today.getMonth(),today.getDate());
+  grid.innerHTML='';
+  for(var i=0;i<firstDay;i++){var e=document.createElement('div');e.className='day empty';e.innerHTML='<span class="day-num"></span>';grid.appendChild(e);}
+  for(var d=1;d<=dim;d++){
+    var key=dateKey(curYear,curMonth,d);
+    var blocked=isBlocked(key);
+    var cell=document.createElement('div');
+    var cls='day';
+    if(IS_SPONSOR){
+      if(blocked)cls+=' blocked';
+      else if(spSelected.indexOf(key)!==-1)cls+=' sp-selected';
+      else if(key===todayKey)cls+=' today';
     } else {
-      // Admin mode: all dates clickable
-      if (key === todayKey) cls += ' today';
-      if (st === 'booked') cls += ' booked';
-      else if (st === 'requested' || sp.length > 0) cls += ' requested';
-      if (key === selectedKey) cls += ' selected';
+      var rec=calData[key]||{};
+      var st=rec.status||'';
+      var sp=rec.sponsors||[];
+      if(key===todayKey)cls+=' today';
+      if(st==='booked')cls+=' booked';
+      else if(st==='requested'||sp.length>0)cls+=' requested';
+      if(key===selectedKey)cls+=' selected';
     }
-
-    cell.className = cls;
-
-    var inner = '<span class="day-num">' + d + '</span>';
-    if (!IS_SPONSOR && sp.length > 0) {
-      inner += '<span class="day-count">' + sp.length + ' req</span>';
-      if (sp.length <= 5) {
-        inner += '<div class="day-dot-row">' +
-          sp.map(function() { return '<div class="dot"></div>'; }).join('') +
-          '</div>';
-      }
+    cell.className=cls;
+    var inner='<span class="day-num">'+d+'</span>';
+    if(!IS_SPONSOR){
+      var rec2=calData[key]||{};
+      var sp2=rec2.sponsors||[];
+      if(sp2.length>0)inner+='<span class="day-count">'+sp2.length+' req</span>';
+      if(sp2.length>0&&sp2.length<=5)inner+='<div class="day-dot-row">'+sp2.map(function(){return'<div class="dot"></div>';}).join('')+'</div>';
     }
-    cell.innerHTML = inner;
-
-    // Click handler: not blocked cells get click events
-    if (!IS_SPONSOR || st !== 'booked') {
-      cell.onclick = (function(k) {
-        return function() {
-          if (IS_SPONSOR) spSelectDay(k);
-          else selectDay(k);
-        };
-      })(key);
-    }
-
+    cell.innerHTML=inner;
+    if(!blocked)cell.onclick=(function(k){return function(){IS_SPONSOR?spSelectDay(k):selectDay(k);};})(key);
     grid.appendChild(cell);
   }
 }
 
-// =========================================================
-// ADMIN MODE
-// =========================================================
-function selectDay(key) {
-  selectedKey = key;
-  renderCal();
+function spSelectDay(key){
+  var idx=spSelected.indexOf(key);
+  if(idx!==-1)spSelected.splice(idx,1);
+  else if(spSelected.length<3)spSelected.push(key);
+  renderCal();renderSpPanel();
+}
 
-  var rec = calData[key] || { status: 'available', sponsors: [], notes: '' };
-  var sp = rec.sponsors || [];
-  var st = rec.status || 'available';
+function renderSpPanel(){
+  var items=spSelected.length>0
+    ?spSelected.map(function(k){return'<div class="sp-sel-item"><div class="sp-sel-dot"></div>'+fmtLong(k)+'</div>';}).join('')
+    :'<div class="empty-state">Click up to 3 dates above to request them.</div>';
+  document.getElementById('spSelList').innerHTML=items;
+  document.getElementById('spSubmitBtn').disabled=spSelected.length===0;
+}
 
-  document.getElementById('detailDate').textContent = fmtLong(key);
+function submitRequest(){
+  var dates=spSelected.map(fmtLong);
+  var body='Hi Mario,\n\n'+SPONSOR+' would like to request the following eblast send date'+(dates.length>1?'s':'')+':\n\n'
+    +dates.map(function(d){return'  â¢ '+d;}).join('\n')
+    +'\n\nPlease confirm availability.\n\nThank you!';
+  var mailto='mailto:mario.guardado@pinesparty.com'
+    +'?cc=tdejsiriudom@pinesparty.com,tj@pinesparty.com'
+    +'&subject='+encodeURIComponent('PP2026 Eblast Date Request â '+SPONSOR)
+    +'&body='+encodeURIComponent(body);
+  window.location.href=mailto;
+}
+
+function selectDay(key){
+  selectedKey=key;renderCal();
+  var rec=calData[key]||{};
+  var sp=rec.sponsors||[];var st=rec.status||'';
+  document.getElementById('detailDate').textContent=fmtLong(key);
   renderSpList(sp);
-  updateStatusButtons(st);
-  document.getElementById('saveStatus').textContent = '';
-  document.getElementById('detail').className = 'detail open';
-  document.getElementById('spInput').value = '';
+  document.getElementById('btnReq').className='s-btn'+(st==='requested'?' active-req':'');
+  document.getElementById('btnBkd').className='s-btn'+(st==='booked'?' active-bkd':'');
+  document.getElementById('detail').className='detail open';
+  document.getElementById('spInput').value='';
 }
 
-function updateStatusButtons(st) {
-  var btnAv = document.getElementById('btnAv');
-  var btnReq = document.getElementById('btnReq');
-  var btnBkd = document.getElementById('btnBkd');
-  if (!btnAv) return;
-  btnAv.className = 's-btn' + (st === 'available' || !st ? ' active-av' : '');
-  btnReq.className = 's-btn' + (st === 'requested' ? ' active-req' : '');
-  btnBkd.className = 's-btn' + (st === 'booked' ? ' active-bkd' : '');
+function renderSpList(sp){
+  var list=document.getElementById('sponsorList');
+  if(!sp||sp.length===0){list.innerHTML='<div class="empty-state">No sponsors yet.</div>';return;}
+  list.innerHTML=sp.map(function(s,i){return'<div class="sponsor-item"><span class="sp-name">'+esc(s)+'</span><button class="sp-del" onclick="removeSponsor('+i+')">&#215;</button></div>';}).join('');
 }
 
-function renderSpList(sp) {
-  var list = document.getElementById('sponsorList');
-  if (!list) return;
-  if (!sp || sp.length === 0) {
-    list.innerHTML = '<div class="empty-state">No sponsors yet.</div>';
-    return;
-  }
-  list.innerHTML = sp.map(function(s, i) {
-    return '<div class="sponsor-item">' +
-      '<span class="sp-name">' + esc(s) + '</span>' +
-      '<button class="sp-del" onclick="removeSponsor(' + i + ')">&#215;</button>' +
-      '</div>';
-  }).join('');
+function addSponsor(){
+  var name=(document.getElementById('spInput').value||'').trim();
+  if(!name||!selectedKey)return;
+  if(!calData[selectedKey])calData[selectedKey]={sponsors:[],status:'',notes:''};
+  calData[selectedKey].sponsors.push(name);
+  if(!calData[selectedKey].status)calData[selectedKey].status='requested';
+  saveLocal(calData);saveToGAS(selectedKey,calData[selectedKey]);
+  document.getElementById('spInput').value='';
+  selectDay(selectedKey);renderSummary();renderCal();
 }
 
-function setSaveStatus(msg, isError) {
-  var el = document.getElementById('saveStatus');
-  if (!el) return;
-  el.textContent = msg;
-  el.style.color = isError ? '#c0304a' : '#2a8a4a';
+function removeSponsor(i){
+  if(!selectedKey)return;
+  var rec=calData[selectedKey];if(!rec)return;
+  rec.sponsors.splice(i,1);
+  if(rec.sponsors.length===0&&rec.status==='requested')rec.status='';
+  saveLocal(calData);saveToGAS(selectedKey,rec);
+  selectDay(selectedKey);renderSummary();renderCal();
 }
 
-function setStatus(newStatus) {
-  if (!selectedKey) return;
-  var rec = calData[selectedKey] || { status: 'available', sponsors: [], notes: '' };
-  rec.status = newStatus;
-  calData[selectedKey] = rec;
-  updateStatusButtons(newStatus);
-  renderCal();
-  setSaveStatus('Saving...', false);
-  saveToGAS(selectedKey, rec.status, rec.sponsors, rec.notes, function(err) {
-    if (err) {
-      setSaveStatus('Save failed: ' + err.message, true);
-    } else {
-      setSaveStatus('Saved!', false);
-      setTimeout(function() { setSaveStatus('', false); }, 2000);
-    }
-  });
-  renderSummary();
+function setStatus(s){
+  if(!selectedKey)return;
+  if(!calData[selectedKey])calData[selectedKey]={sponsors:[],status:'',notes:''};
+  calData[selectedKey].status=calData[selectedKey].status===s?'':s;
+  saveLocal(calData);saveToGAS(selectedKey,calData[selectedKey]);
+  selectDay(selectedKey);renderSummary();renderCal();
 }
 
-function addSponsor() {
-  var input = document.getElementById('spInput');
-  var name = (input ? input.value || '' : '').trim();
-  if (!name || !selectedKey) return;
-  var rec = calData[selectedKey] || { status: 'available', sponsors: [], notes: '' };
-  rec.sponsors = rec.sponsors || [];
-  rec.sponsors.push(name);
-  if (rec.status === 'available' || !rec.status) rec.status = 'requested';
-  calData[selectedKey] = rec;
-  if (input) input.value = '';
-  renderSpList(rec.sponsors);
-  updateStatusButtons(rec.status);
-  renderCal();
-  setSaveStatus('Saving...', false);
-  saveToGAS(selectedKey, rec.status, rec.sponsors, rec.notes, function(err) {
-    if (err) {
-      setSaveStatus('Save failed: ' + err.message, true);
-    } else {
-      setSaveStatus('Saved!', false);
-      setTimeout(function() { setSaveStatus('', false); }, 2000);
-    }
-  });
-  renderSummary();
-}
-
-function removeSponsor(idx) {
-  if (!selectedKey) return;
-  var rec = calData[selectedKey];
-  if (!rec || !rec.sponsors) return;
-  rec.sponsors.splice(idx, 1);
-  if (rec.sponsors.length === 0 && rec.status === 'requested') rec.status = 'available';
-  calData[selectedKey] = rec;
-  renderSpList(rec.sponsors);
-  updateStatusButtons(rec.status);
-  renderCal();
-  setSaveStatus('Saving...', false);
-  saveToGAS(selectedKey, rec.status, rec.sponsors, rec.notes, function(err) {
-    if (err) {
-      setSaveStatus('Save failed: ' + err.message, true);
-    } else {
-      setSaveStatus('Saved!', false);
-      setTimeout(function() { setSaveStatus('', false); }, 2000);
-    }
-  });
-  renderSummary();
-}
-
-function clearDay() {
-  if (!selectedKey) return;
+function clearDay(){
+  if(!selectedKey)return;
   delete calData[selectedKey];
-  setSaveStatus('Saving...', false);
-  saveToGAS(selectedKey, 'available', [], '', function(err) {
-    if (err) setSaveStatus('Save failed: ' + err.message, true);
-    else setSaveStatus('Cleared!', false);
-  });
-  document.getElementById('detail').className = 'detail';
-  selectedKey = null;
-  renderSummary();
-  renderCal();
+  saveLocal(calData);saveToGAS(selectedKey,{sponsors:[],status:'',notes:''});
+  document.getElementById('detail').className='detail';
+  selectedKey=null;renderSummary();renderCal();
 }
 
-function renderSummary() {
-  var entries = Object.keys(calData).map(function(k) {
-    var r = calData[k];
-    return { key: k, sponsors: r.sponsors || [], status: r.status || 'available' };
-  }).filter(function(e) {
-    return e.sponsors.length > 0 || e.status === 'booked' || e.status === 'requested';
-  });
-
-  entries.sort(function(a, b) {
-    if (b.sponsors.length !== a.sponsors.length) return b.sponsors.length - a.sponsors.length;
-    return a.key < b.key ? -1 : 1;
-  });
-
-  var list = document.getElementById('summaryList');
-  if (!list) return;
-
-  if (!entries.length) {
-    list.innerHTML = '<div class="empty-state">No dates tracked yet. Click a date to start.</div>';
-    return;
-  }
-
-  list.innerHTML = entries.slice(0, 10).map(function(e) {
-    var badge = e.status === 'booked'
-      ? '<span class="td-badge bkd">Booked</span>'
-      : (e.sponsors.length > 0 ? '<span class="td-badge">' + e.sponsors.length + ' req</span>' : '');
-    var spText = e.sponsors.length > 0
-      ? '<span class="td-right">' + e.sponsors.map(esc).join(', ') + '</span>'
-      : '';
-    return '<div class="top-date-row">' +
-      '<div class="td-left">' + fmtShort(e.key) + badge + '</div>' +
-      spText + '</div>';
+function renderSummary(){
+  var entries=Object.keys(calData).map(function(k){var r=calData[k];return{key:k,sponsors:r.sponsors||[],status:r.status||''};})
+    .filter(function(e){return e.sponsors.length>0||e.status==='booked';});
+  entries.sort(function(a,b){if(b.sponsors.length!==a.sponsors.length)return b.sponsors.length-a.sponsors.length;return a.key<b.key?-1:1;});
+  var list=document.getElementById('summaryList');
+  if(!entries.length){list.innerHTML='<div class="empty-state">No dates tracked yet. Click a date to start.</div>';return;}
+  list.innerHTML=entries.slice(0,10).map(function(e){
+    var badge=e.status==='booked'?'<span class="td-badge bkd">Booked</span>':(e.sponsors.length>0?'<span class="td-badge">'+e.sponsors.length+' req</span>':'');
+    var sp=e.sponsors.length>0?'<span class="td-right">'+e.sponsors.map(esc).join(', ')+'</span>':'';
+    return'<div class="top-date-row"><div class="td-left">'+fmtShort(e.key)+badge+'</div>'+sp+'</div>';
   }).join('');
 }
 
-function exportMonday() {
-  var entries = Object.keys(calData).map(function(k) {
-    var r = calData[k];
-    return { key: k, sponsors: r.sponsors || [], status: r.status || 'available' };
-  }).filter(function(e) {
-    return e.sponsors.length > 0 || e.status === 'booked';
+function exportMonday(){
+  var entries=Object.keys(calData).map(function(k){var r=calData[k];return{key:k,sponsors:r.sponsors||[],status:r.status||''};})
+    .filter(function(e){return e.sponsors.length>0||e.status==='booked';});
+  entries.sort(function(a,b){return a.key<b.key?-1:1;});
+  if(!entries.length){alert('No dates tracked yet.');return;}
+  var lines=entries.map(function(e){return fmtShort(e.key)+'\t'+(e.status==='booked'?'Booked':'Requested')+'\t'+(e.sponsors.join(', ')||'--');});
+  navigator.clipboard.writeText('Send Date\tStatus\tSponsors\n'+lines.join('\n')).then(function(){
+    var b=document.querySelector('.exp-pink');b.textContent='Copied!';setTimeout(function(){b.textContent='Copy for Monday.com';},2500);
   });
-  entries.sort(function(a, b) { return a.key < b.key ? -1 : 1; });
-  if (!entries.length) { alert('No dates tracked yet.'); return; }
-  var lines = entries.map(function(e) {
-    return fmtShort(e.key) + '\t' +
-      (e.status === 'booked' ? 'Booked' : 'Requested') + '\t' +
-      (e.sponsors.join(', ') || '--');
+}
+
+function exportText(){
+  var entries=Object.keys(calData).map(function(k){var r=calData[k];return{key:k,sponsors:r.sponsors||[],status:r.status||''};})
+    .filter(function(e){return e.sponsors.length>0||e.status==='booked';});
+  entries.sort(function(a,b){return a.key<b.key?-1:1;});
+  var lines=['PP2026 Eblast Schedule\n'];
+  entries.forEach(function(e){lines.push((e.status==='booked'?'[BOOKED]':'[Requested]')+' '+fmtShort(e.key)+(e.sponsors.length?' -- '+e.sponsors.join(', '):''));});
+  navigator.clipboard.writeText(lines.join('\n')).then(function(){
+    var b=document.querySelector('.exp-outline');b.textContent='Copied!';setTimeout(function(){b.textContent='Copy Plain Text';},2500);
   });
-  navigator.clipboard.writeText('Send Date\tStatus\tSponsors\n' + lines.join('\n')).then(function() {
-    var b = document.getElementById('exportMondayBtn');
-    if (b) { b.textContent = 'Copied!'; setTimeout(function() { b.textContent = 'Export for Monday.com'; }, 2500); }
-  }).catch(function() { alert('Copy failed. Please try manually.'); });
 }
 
-function exportText() {
-  var entries = Object.keys(calData).map(function(k) {
-    var r = calData[k];
-    return { key: k, sponsors: r.sponsors || [], status: r.status || 'available' };
-  }).filter(function(e) {
-    return e.sponsors.length > 0 || e.status === 'booked';
-  });
-  entries.sort(function(a, b) { return a.key < b.key ? -1 : 1; });
-  var lines = ['PP2026 Eblast Schedule\n'];
-  entries.forEach(function(e) {
-    lines.push((e.status === 'booked' ? '[BOOKED]' : '[Requested]') + ' ' +
-      fmtShort(e.key) + (e.sponsors.length ? ' -- ' + e.sponsors.join(', ') : ''));
-  });
-  navigator.clipboard.writeText(lines.join('\n')).then(function() {
-    var b = document.getElementById('exportTextBtn');
-    if (b) { b.textContent = 'Copied!'; setTimeout(function() { b.textContent = 'Copy Plain Text'; }, 2500); }
-  }).catch(function() { alert('Copy failed. Please try manually.'); });
-}
+function prevMonth(){curMonth--;if(curMonth<0){curMonth=11;curYear--;}if(!IS_SPONSOR){document.getElementById('detail').className='detail';selectedKey=null;}renderCal();}
+function nextMonth(){curMonth++;if(curMonth>11){curMonth=0;curYear++;}if(!IS_SPONSOR){document.getElementById('detail').className='detail';selectedKey=null;}renderCal();}
 
-// =========================================================
-// SPONSOR MODE
-// =========================================================
-function spSelectDay(key) {
-  var idx = spSelected.indexOf(key);
-  if (idx !== -1) {
-    spSelected.splice(idx, 1);
-  } else if (spSelected.length < 3) {
-    spSelected.push(key);
-  }
-  renderCal();
-  renderSpPanel();
-}
+function init(){
+  GAS_URL=localStorage.getItem('PP2026_GAS_URL')||'';
 
-function renderSpPanel() {
-  var list = document.getElementById('spSelList');
-  var btn = document.getElementById('spSubmitBtn');
-  if (!list) return;
-  if (spSelected.length > 0) {
-    list.innerHTML = spSelected.map(function(k) {
-      return '<div class="sp-sel-item"><div class="sp-sel-dot"></div>' + fmtLong(k) + '</div>';
-    }).join('');
-  } else {
-    list.innerHTML = '<div class="empty-state">Click up to 3 dates above to request them.</div>';
-  }
-  if (btn) btn.disabled = spSelected.length === 0;
-}
+  if(!GAS_URL){showSetupScreen();return;}
 
-function submitRequest() {
-  var dates = spSelected.map(fmtLong);
-  var body = 'Hi Mario,\n\n' + SPONSOR + ' would like to request the following eblast send date' +
-    (dates.length > 1 ? 's' : '') + ':\n\n' +
-    dates.map(function(d) { return '  - ' + d; }).join('\n') +
-    '\n\nPlease confirm availability.\n\nThank you!';
-  var subject = 'PP2026 Eblast Date Request - ' + SPONSOR;
-  var mailto = 'mailto:mario.guardado@pinesparty.com' +
-    '?cc=tdejsiriudom%40pinesparty.com%2Ctj%40pinesparty.com' +
-    '&subject=' + encodeURIComponent(subject) +
-    '&body=' + encodeURIComponent(body);
-  window.location.href = mailto;
-}
+  var wrap=document.getElementById('mainWrap');
+  if(!wrap)return;
 
-// =========================================================
-// MONTH NAV
-// =========================================================
-function prevMonth() {
-  curMonth--;
-  if (curMonth < 0) { curMonth = 11; curYear--; }
-  if (!IS_SPONSOR && selectedKey) {
-    document.getElementById('detail').className = 'detail';
-    selectedKey = null;
-  }
-  renderCal();
-}
-
-function nextMonth() {
-  curMonth++;
-  if (curMonth > 11) { curMonth = 0; curYear++; }
-  if (!IS_SPONSOR && selectedKey) {
-    document.getElementById('detail').className = 'detail';
-    selectedKey = null;
-  }
-  renderCal();
-}
-
-// =========================================================
-// BUILD ADMIN UI SKELETON
-// =========================================================
-function buildAdminUI(wrap) {
-  wrap.innerHTML =
-    (gasConfigured() ? '' :
-      '<div class="config-warn"><strong>&#9888; GAS Not Configured:</strong> ' +
-      'Open calendar.html and replace <code>PASTE_YOUR_GAS_URL_HERE</code> with your deployed Google Apps Script URL. ' +
-      'Data will not persist until this is set up.</div>') +
-    '<div class="legend">' +
-      '<div class="leg-item"><div class="leg-swatch av"></div>Available</div>' +
-      '<div class="leg-item"><div class="leg-swatch req"></div>Requested</div>' +
-      '<div class="leg-item"><div class="leg-swatch bkd"></div>Booked</div>' +
-    '</div>' +
-    '<div class="month-nav">' +
-      '<button class="mnav-btn" onclick="prevMonth()">&#8249;</button>' +
-      '<div class="month-label" id="monthLabel"></div>' +
-      '<button class="mnav-btn" onclick="nextMonth()">&#8250;</button>' +
-    '</div>' +
-    '<div class="cal-wrap"><div class="dow-row">' +
-      '<div class="dow">Sun</div><div class="dow">Mon</div><div class="dow">Tue</div>' +
-      '<div class="dow">Wed</div><div class="dow">Thu</div><div class="dow">Fri</div><div class="dow">Sat</div>' +
-    '</div><div class="day-row" id="calGrid"></div></div>' +
-    '<div class="detail" id="detail">' +
-      '<div class="detail-date" id="detailDate"></div>' +
-      '<div class="detail-sec">Sponsors Requesting This Date</div>' +
-      '<div class="sponsor-list" id="sponsorList"></div>' +
-      '<div class="add-sponsor-row">' +
-        '<input class="add-sp-input" id="spInput" type="text" placeholder="Add sponsor name..." ' +
-          'onkeydown="if(event.key===\'Enter\')addSponsor()"/>' +
-        '<button class="add-sp-btn" onclick="addSponsor()">Add</button>' +
-      '</div>' +
-      '<div class="status-row">' +
-        '<button class="s-btn" id="btnAv" onclick="setStatus(\'available\')">Available</button>' +
-        '<button class="s-btn" id="btnReq" onclick="setStatus(\'requested\')">Requested</button>' +
-        '<button class="s-btn" id="btnBkd" onclick="setStatus(\'booked\')">Booked</button>' +
-        '<button class="s-btn" onclick="clearDay()">Clear</button>' +
-      '</div>' +
-      '<div class="save-status" id="saveStatus"></div>' +
-    '</div>' +
-    '<div class="summary"><div class="summary-title">Top Requested Dates</div>' +
-      '<div id="summaryList"></div></div>' +
-    '<div class="export-row">' +
-      '<button class="exp-btn exp-pink" id="exportMondayBtn" onclick="exportMonday()">Export for Monday.com</button>' +
-      '<button class="exp-btn exp-outline" id="exportTextBtn" onclick="exportText()">Copy Plain Text</button>' +
-    '</div>';
-}
-
-// =========================================================
-// BUILD SPONSOR UI SKELETON
-// =========================================================
-function buildSponsorUI(wrap) {
-  wrap.innerHTML =
-    '<div class="legend">' +
-      '<div class="leg-item"><div class="leg-swatch av"></div>Available</div>' +
-      '<div class="leg-item"><div class="leg-swatch bkd"></div>Selected</div>' +
-      '<div class="leg-item"><div class="leg-swatch blk"></div>Booked (unavailable)</div>' +
-    '</div>' +
-    '<div class="month-nav">' +
-      '<button class="mnav-btn" onclick="prevMonth()">&#8249;</button>' +
-      '<div class="month-label" id="monthLabel"></div>' +
-      '<button class="mnav-btn" onclick="nextMonth()">&#8250;</button>' +
-    '</div>' +
-    '<div class="cal-wrap"><div class="dow-row">' +
-      '<div class="dow">Sun</div><div class="dow">Mon</div><div class="dow">Tue</div>' +
-      '<div class="dow">Wed</div><div class="dow">Thu</div><div class="dow">Fri</div><div class="dow">Sat</div>' +
-    '</div><div class="day-row" id="calGrid"></div></div>' +
-    '<div class="sp-panel" id="spPanel">' +
-      '<div class="sp-panel-title">Your Selected Dates</div>' +
-      '<div class="sp-selection" id="spSelList">' +
-        '<div class="empty-state">Click up to 3 dates above to request them.</div>' +
-      '</div>' +
-      '<div class="sp-hint">We\'ll confirm your preferred date as soon as possible.</div>' +
-      '<button class="sp-submit" id="spSubmitBtn" onclick="submitRequest()" disabled>Submit Date Request</button>' +
-      '<div class="sp-note">Submitting opens your email app with a pre-filled request to the PP2026 team.</div>' +
-    '</div>';
-}
-
-// =========================================================
-// INIT
-// =========================================================
-function init() {
-  // Refresh GAS_URL from localStorage in case it was just set
-  GAS_URL = getGasUrl();
-
-  if (!gasConfigured()) {
-    showSetupScreen();
-    return;
-  }
-
-  var wrap = document.getElementById('mainWrap');
-  if (!wrap) return;
-
-  if (IS_SPONSOR) {
-    document.getElementById('pgTitle').textContent = SPONSOR + ' - Select Your Dates';
-    document.getElementById('pgSub').textContent = 'Pick up to 3 preferred eblast send dates.';
-    var chip = document.getElementById('spChip');
-    chip.textContent = SPONSOR;
-    chip.style.display = 'inline-block';
-    document.getElementById('backLink').style.display = 'none';
+  if(IS_SPONSOR){
+    document.getElementById('pgTitle').textContent=SPONSOR+' â Select Your Dates';
+    document.getElementById('pgSub').textContent='Pick up to 3 preferred eblast send dates.';
+    var chip=document.getElementById('spChip');
+    chip.textContent=SPONSOR;chip.style.display='inline-block';
+    document.getElementById('backLink').style.display='none';
     buildSponsorUI(wrap);
   } else {
     buildAdminUI(wrap);
   }
 
-  loadFromGAS(function(err) {
-    if (err) {
-      renderErrorState();
-      return;
+  // Overlay spinner â DOM structure (incl. #calGrid) already exists above
+  showLoading(true);
+
+  loadFromGAS(function(err,data){
+    showLoading(false);
+    if(err){
+      console.warn('GAS load error, using local cache:',err.message);
+      calData=loadLocal();
+      showError('Could not reach Google Sheets â showing cached data. Changes will sync when the connection restores.');
+    } else {
+      calData=data;
     }
     renderCal();
-    if (!IS_SPONSOR) renderSummary();
+    if(!IS_SPONSOR)renderSummary();
   });
 }
 
