@@ -24,6 +24,7 @@ h1{font-size:26px;font-weight:700}
 .btn:hover{opacity:.85}
 .btn-pink{background:var(--pink);color:#fff}
 .btn-outline{background:#fff;color:var(--pink);border:2px solid var(--pink)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
 .sec{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:26px 0 10px}
 .contacts{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 20px;display:flex;flex-direction:column;gap:12px}
 .crow{display:flex;align-items:center;gap:12px}
@@ -50,13 +51,24 @@ h1{font-size:26px;font-weight:700}
 .cbtn{background:var(--pink);color:#fff;border:none;border-radius:5px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer}
 .cbtn:hover{opacity:.85}
 .err{background:#fff4f4;border:1px solid #f0d0d0;border-radius:8px;padding:12px 14px;font-size:13px;color:#c0304a}
-.cal-link{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 18px;text-decoration:none;color:#2a2a2a;transition:border-color .15s}
-.cal-link:hover{border-color:var(--pink)}
-.cal-link-left{display:flex;align-items:center;gap:10px}
-.cal-icon{width:34px;height:34px;border-radius:8px;background:#fce8f0;display:flex;align-items:center;justify-content:center;font-size:16px}
-.cal-label{font-size:13px;font-weight:700}
-.cal-sub{font-size:11px;color:var(--muted);margin-top:1px}
-.cal-arrow{color:var(--pink);font-size:18px;font-weight:700}
+.directory{display:flex;flex-direction:column;gap:8px}
+.drow{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.drow-name{font-size:13px;font-weight:700}
+.tier{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:5px;margin-left:7px;vertical-align:middle}
+.tier-platinum{background:#e4e8ee;color:#48566b}
+.tier-gold{background:#f2e8d2;color:#a1791f}
+.tier-silver{background:#eae7e0;color:#847e73}
+.tier-bronze{background:#f0e2d6;color:#8a5837}
+.tier-na{background:#eceae4;color:#8a887f}
+.drow-actions{display:flex;gap:6px;flex-shrink:0}
+.mini{font-size:11.5px;font-weight:700;border:none;border-radius:6px;padding:7px 11px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.mini-p{background:var(--pink);color:#fff}
+.mini-s{background:#f2eef1;color:var(--gray)}
+.dates{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.date-opt{display:flex;align-items:center;gap:10px;background:#fff9fb;border:1.5px solid var(--border);border-radius:9px;padding:12px 14px;cursor:pointer}
+.date-opt input{width:17px;height:17px;accent-color:var(--pink)}
+.date-opt span{font-size:13.5px;font-weight:600}
+.date-count{font-size:11px;color:var(--muted);margin-bottom:12px}
 </style>
 </head>
 <body>
@@ -73,6 +85,7 @@ h1{font-size:26px;font-weight:700}
 <div class="main" id="main"></div>
 
 <script>
+// Kit folder (writing guide, template, example) — shared by every sponsor
 var KIT = 'https://drive.google.com/drive/folders/1f-x19JB9m2c3_YA4Ia2f7_in78xCXDcT?usp=drive_link';
 
 var TEAM = [
@@ -80,6 +93,53 @@ var TEAM = [
 {n:'Tim Dejsiriudom', e:'tdejsiriudom@pinesparty.com', i:'TD', cc:true},
 {n:'Tejesh Mistry', e:'tj@pinesparty.com', i:'TM', cc:true}
 ];
+
+// Checked against Mario's Google Calendar on 2026-09-22 — all 4 Tuesdays
+// are open (no conflicting events). Re-check before reusing this list later.
+var SEND_DATES = ['Tue 9/22', 'Tue 9/29', 'Tue 10/6', 'Tue 10/13'];
+var MAX_DATES = 2;
+
+// Real sponsor Drive upload folders, pulled from the PP2026 client-folders sheet
+// + live Drive lookups. Only sponsors with a single, confirmed folder are listed —
+// see the flagged sponsors note below for the rest.
+var SPONSORS = [
+{n:'Gilead Sciences', t:'platinum', id:'11Ml1Hef2VIvvjDqf_IOm4tfrBFq3FviA'},
+{n:'JustFor.Fans', t:'platinum', id:'1DL5E4DE8Wo9UxNZdIeznedY3fRm-LYSH'},
+{n:'Tryst Hospitality / MISTR', t:'platinum', id:'1U-PS6bFPb5dqA8RMz3Kuixy7jAYqRypx'},
+{n:'Visit Lauderdale', t:'platinum', id:'1BCDzQYRz7wRS7sppYY58TzPC-CMA6RtX'},
+{n:'Cuervo', t:'gold', id:'1CDxXPfqcS4Rc__q5rJrV4mUjAJQqa0BO'},
+{n:'High Noon (Gallo) / Lucky One Lemonade', t:'gold', id:'1LBTMmgVrScyk8AdQQE6H1uGINVCSfwdY'},
+{n:'New Amsterdam Vodka', t:'gold', id:'1NSfPgmwPCKIXTq9cGgO63iWwsq4HL1Ja'},
+{n:'Identiti Financial', t:'gold', id:'1cqjlZQss_--oRgoQE3HLcJmMzobsvXa0'},
+{n:'Pines Harbor Realty', t:'gold', id:'1KXMr2qQOMmX8isUbA-BW4uOQWdHp95ra'},
+{n:'Poxeidon', t:'gold', id:'16dn8S3zZ4AOpjF5cYsFO14MrqN5IXe0w'},
+{n:'Boardwalk Etiquette', t:'gold', id:'1hNIdjcFBoq_okwKRDq--1ZmmQoZ5tkfB'},
+{n:'H2O', t:'gold', id:'1D5LvNfjXp5NnQ-S1cXhJnJ1x9dn1UQ3p'},
+{n:'Jeff Wan', t:'gold', id:'1OA6yh7DHcml-OA6qycXn-v_VE23kEPJI'},
+{n:'Swiss Air', t:'gold', id:'178u_-k2XJocnK6UHgIraixfFuTUDunBN'},
+{n:'Threadcount', t:'gold', id:'1vxuxOdSrSDWL3MQvkict2Qg4BDSrx7fq'},
+{n:'LAFCO New York', t:'silver', id:'1EbA04zSVTDSTnsvUA9jm5HFu7kZulV2u'},
+{n:'PUMP!', t:'silver', id:'1uVfnzEOSTt3qo4jrFdHYfKmXqi5du6OK'},
+{n:'Vinnie Petrarca Fire Island Real Estate', t:'silver', id:'1KZB1XUXz-IbzoTC1viKVaBdBcnAsk8s1'},
+{n:'Bekin', t:'silver', id:'18UOwl4mJKKLmq3hm1zKE-NE3D3Y7GQiQ'},
+{n:'Long Island Cannabis Club', t:'silver', id:'1PlATYSR7zGuVzHgM5FZTRinBspj9o1Ua'},
+{n:'Curious Elixirs', t:'bronze', id:'1s4xR8994kMr_ueaDynAxyJ6g2gRCs_X3'},
+{n:'Red Bull', t:'bronze', id:'1nhD20pKi9xNS0Igsed6wQf00FU3pDnJO'},
+{n:'HOWL', t:'na', id:'1zmMYDX7Y22Flkq3o8NTZaP2uFCXGjhFu'},
+{n:'LUXY Ride', t:'na', id:'1cOTuv1R3mvXDT-z-DFg1UwCQsgntBqBi'},
+{n:'Li-Lac Chocolates', t:'na', id:'1f3sPB3ARmgBTKT5QhEokpqdwObhrArme'},
+{n:'Mark Allen', t:'na', id:'1buqWlOZtCRZqlLYpT0yJ5oCRVabr1xvH'},
+{n:'Pines Club', t:'na', id:'164TlekZQ2OJu_pGf70JT8_SJsesq7GEw'},
+{n:'Sip n Twirl', t:'na', id:'1Vz3XtpK-WXyFRRV1OI8JyG2hp-0_ZsJ7'},
+{n:'The Dunes', t:'na', id:'1HgBnkxgJGH5cGUPDkih43FB3UUYpScSS'}
+];
+// Flagged — not listed above, need manual confirmation before sending:
+// ViiV Healthcare (sheet says Silver, only Drive folder found is tagged Gold),
+// Chris Turk, GMHC, Guesthouse Lost River (multiple candidate folders),
+// Brownie, Davis Park Harbor Store (folder name doesn't match the registry).
+// Use "Generate Custom Link" below for these once you've confirmed the folder.
+
+var TIER_LABEL = {platinum:'Platinum', gold:'Gold', silver:'Silver', bronze:'Bronze', na:'Community'};
 
 function getParams() {
 var p = new URLSearchParams(window.location.search);
@@ -94,6 +154,14 @@ return '<div class="crow"><div class="av">'+c.i+'</div><div class="ci">'
 }).join('');
 }
 
+function driveUrl(id) { return 'https://drive.google.com/drive/folders/'+id; }
+
+function linkFor(name, driveLink) {
+return window.location.origin + window.location.pathname
++ '?sponsor=' + encodeURIComponent(name)
++ (driveLink ? '&drive=' + encodeURIComponent(driveLink) : '');
+}
+
 function renderClient(sponsor, drive) {
 document.getElementById('pgTitle').textContent = sponsor + ' - Eblast Kit';
 document.getElementById('pgSub').textContent = 'Your post-event eblast assets for Pines Party 2026.';
@@ -104,6 +172,10 @@ chip.style.display = 'inline-block';
 var uploadHTML = drive
 ? '<a class="btn btn-pink" href="'+encodeURI(drive)+'" target="_blank">Upload Your Assets &rarr;</a>'
 : '<div class="err">Upload folder not set. Contact <a href="mailto:mario.guardado@pinesparty.com" style="color:#c0304a">Mario</a> for your link.</div>';
+
+var dateOptsHTML = SEND_DATES.map(function(d, i){
+return '<label class="date-opt"><input type="checkbox" class="dateChk" value="'+d+'" onchange="onDateToggle()"/><span>'+d+'</span></label>';
+}).join('');
 
 document.getElementById('main').innerHTML =
 '<div class="steps">'
@@ -117,21 +189,73 @@ document.getElementById('main').innerHTML =
 +'<p>Upload your logo, 1-2 photos, and completed copy template to your sponsor folder. We\'ll take it from there.</p>'
 +uploadHTML
 +'</div></div>'
++'<div class="step"><div class="num">3</div><div>'
++'<h2>Pick Your Send Date</h2>'
++'<p>Choose up to '+MAX_DATES+' dates that work for your eblast to go out. We\'ll confirm the final date with you by email.</p>'
++'<div class="date-count" id="dateCount">0 of '+MAX_DATES+' selected</div>'
++'<div class="dates">'+dateOptsHTML+'</div>'
++'<button class="btn btn-pink" id="reqBtn" disabled onclick="requestDates(\''+sponsor.replace(/'/g, "\\'")+'\')">Request These Dates &rarr;</button>'
++'</div></div>'
 +'</div>'
 +'<div class="sec">Questions? Contact us</div>'
 +'<div class="contacts">'+contactsHTML()+'</div>';
 }
 
+function onDateToggle() {
+var checked = document.querySelectorAll('.dateChk:checked');
+var boxes = document.querySelectorAll('.dateChk');
+boxes.forEach(function(b){ b.disabled = (checked.length >= MAX_DATES && !b.checked); });
+document.getElementById('dateCount').textContent = checked.length + ' of ' + MAX_DATES + ' selected';
+document.getElementById('reqBtn').disabled = checked.length === 0;
+}
+
+function requestDates(sponsor) {
+var checked = Array.prototype.slice.call(document.querySelectorAll('.dateChk:checked')).map(function(b){ return b.value; });
+if (!checked.length) return;
+var to = TEAM[0].e;
+var cc = TEAM.filter(function(t){ return t.cc; }).map(function(t){ return t.e; }).join(',');
+var subject = 'PP2026 Eblast Date Request \u2014 ' + sponsor;
+var body = sponsor + ' would like to request the following send date(s) for their PP2026 eblast:\n\n'
++ checked.map(function(d){ return '- ' + d; }).join('\n')
++ '\n\nPlease confirm which date works.';
+var mailto = 'mailto:' + encodeURIComponent(to) + '?cc=' + encodeURIComponent(cc)
++ '&subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+window.location.href = mailto;
+}
+
+function directoryHTML() {
+return SPONSORS.map(function(s){
+var link = linkFor(s.n, driveUrl(s.id));
+return '<div class="drow">'
++'<div class="drow-name">'+s.n+'<span class="tier tier-'+s.t+'">'+TIER_LABEL[s.t]+'</span></div>'
++'<div class="drow-actions">'
++'<button class="mini mini-p" onclick="copyDirect(this,\''+link.replace(/'/g, "\\'")+'\')">Copy Link</button>'
++'<a class="mini mini-s" href="'+driveUrl(s.id)+'" target="_blank">Drive</a>'
++'</div></div>';
+}).join('');
+}
+
+function copyDirect(btn, url) {
+navigator.clipboard.writeText(url).then(function(){
+var orig = btn.textContent;
+btn.textContent = 'Copied!';
+setTimeout(function(){ btn.textContent = orig; }, 1500);
+});
+}
+
 function renderAdmin() {
 document.getElementById('main').innerHTML =
-'<div class="card"><div class="card-title">Generate Sponsor Link</div>'
+'<div class="card"><div class="card-title">Sponsor Directory ('+SPONSORS.length+')</div>'
++'<div class="hint" style="margin-bottom:12px">Confirmed sponsors with a live Drive upload folder. Copy a sponsor\'s link and send it to them directly.</div>'
++'<div class="directory">'+directoryHTML()+'</div>'
++'</div>'
++'<div class="card"><div class="card-title">Generate Custom Link</div>'
++'<div class="hint" style="margin-bottom:14px">For a sponsor not yet in the directory above, or one flagged for a folder mismatch.</div>'
 +'<div class="field"><label>Sponsor Name</label>'
-+'<input id="inS" type="text" placeholder="e.g. Identiti Financial"/>'
-+'<div class="hint">Appears in the header when the sponsor opens their page.</div>'
++'<input id="inS" type="text" placeholder="e.g. Chris Turk"/>'
 +'</div>'
 +'<div class="field"><label>Sponsor Upload Folder (Google Drive URL)</label>'
 +'<input id="inD" type="text" placeholder="https://drive.google.com/drive/folders/..."/>'
-+'<div class="hint">Each sponsor gets their own Drive folder. Paste it here.</div>'
 +'</div>'
 +'<div class="row">'
 +'<button class="abtn abtn-p" onclick="generate()">Generate Link</button>'
@@ -143,21 +267,6 @@ document.getElementById('main').innerHTML =
 +'<button class="cbtn" onclick="copyLink()">Copy Link</button>'
 +'</div>'
 +'</div>'
-+'<div class="card" style="padding:16px 20px;font-size:13px;color:var(--muted);line-height:1.9">'
-+'<strong style="color:#2a2a2a">How it works</strong><br>'
-+'1. Enter the sponsor name and their Drive upload folder URL.<br>'
-+'2. Generate the link and copy it.<br>'
-+'3. Send to the sponsor. They see their name, kit access, and their unique upload button.'
-+'</div>'
-+'<div class="sec">Scheduling</div>'
-+'<a class="cal-link" href="./calendar.html">'
-+'<div class="cal-link-left">'
-+'<div class="cal-icon">&#128197;</div>'
-+'<div><div class="cal-label">Eblast Scheduling Calendar</div>'
-+'<div class="cal-sub">Track sponsor date requests &amp; export to Monday.com</div></div>'
-+'</div>'
-+'<div class="cal-arrow">&rsaquo;</div>'
-+'</a>'
 +'<div class="sec">Team</div>'
 +'<div class="contacts">'+contactsHTML()+'</div>';
 }
@@ -166,12 +275,7 @@ function generate() {
 var s = (document.getElementById('inS').value||'').trim();
 var d = (document.getElementById('inD').value||'').trim();
 if (!s) { document.getElementById('inS').focus(); return; }
-var calData = JSON.parse(localStorage.getItem('pp2026cal') || '{}');
-var bookedKeys = Object.keys(calData).filter(function(k){ return (calData[k].status||'')==='booked'; });
-var url = window.location.origin + window.location.pathname
-+ '?sponsor=' + encodeURIComponent(s)
-+ (d ? '&drive=' + encodeURIComponent(d) : '')
-+ (bookedKeys.length ? '&booked=' + bookedKeys.join(',') : '');
+var url = linkFor(s, d);
 document.getElementById('outUrl').textContent = url;
 document.getElementById('out').style.display = 'block';
 }
@@ -179,7 +283,7 @@ document.getElementById('out').style.display = 'block';
 function copyLink() {
 var url = document.getElementById('outUrl').textContent;
 navigator.clipboard.writeText(url).then(function(){
-var b = document.querySelector('.cbtn');
+var b = document.querySelector('#out .cbtn');
 b.textContent = 'Copied!';
 setTimeout(function(){ b.textContent = 'Copy Link'; }, 2000);
 });
