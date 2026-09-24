@@ -3,121 +3,13 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>PP2026 Sponsor Asset Submission</title>
-<style>
-:root{--pink:#d31876;--gray:#444;--light:#faf5f8;--border:#e8d0dc;--muted:#888}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Helvetica Neue',Arial,sans-serif;background:var(--light);color:#2a2a2a;min-height:100vh}
-.hdr{background:var(--pink);color:#fff;padding:30px 28px 24px}
-.hdr-in{max-width:580px;margin:0 auto}
-.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;opacity:.7;margin-bottom:8px}
-h1{font-size:24px;font-weight:700}
-.hdr-sub{font-size:13px;opacity:.8;margin-top:5px}
-.main{max-width:580px;margin:0 auto;padding:24px}
-.notice{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:18px;font-size:13px;color:var(--gray);line-height:1.6}
-.notice a{color:var(--pink);font-weight:700;text-decoration:none}
-.notice a:hover{text-decoration:underline}
-.directory{display:flex;flex-direction:column;gap:8px}
-.drow{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 14px}
-.drow-name{font-size:13px;font-weight:700}
-.tier{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:5px;margin-left:7px;vertical-align:middle}
-.tier-platinum{background:#e4e8ee;color:#48566b}
-.tier-gold{background:#f2e8d2;color:#a1791f}
-.tier-silver{background:#eae7e0;color:#847e73}
-.tier-bronze{background:#f0e2d6;color:#8a5837}
-.tier-community{background:#eceae4;color:#8a887f}
-.mini{font-size:11.5px;font-weight:700;border:none;border-radius:6px;padding:7px 14px;cursor:pointer;text-decoration:none;white-space:nowrap;background:var(--pink);color:#fff;flex-shrink:0}
-.mini:hover{opacity:.85}
-.sec{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:26px 0 10px}
-.contacts{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 20px;display:flex;flex-direction:column;gap:12px}
-.crow{display:flex;align-items:center;gap:12px}
-.av{width:32px;height:32px;border-radius:50%;background:var(--pink);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.ci strong{display:block;font-size:13px;font-weight:700}
-.ci a{font-size:12px;color:var(--pink);text-decoration:none}
-.ci a:hover{text-decoration:underline}
-</style>
+<title>PP2026 Sponsor Eblast Kit</title>
+<!-- One connected site: the sponsor directory, date calendar and admin
+     tracker all live in pp-eblast-kit.html. This URL forwards there. -->
+<meta http-equiv="refresh" content="0; url=pp-eblast-kit.html"/>
+<script>location.replace('pp-eblast-kit.html' + location.search);</script>
 </head>
-<body>
-
-<div class="hdr">
-<div class="hdr-in">
-<div class="eyebrow">Pines Party 2026 &mdash; Fire Island Pines</div>
-<h1>Submit Your Assets</h1>
-<div class="hdr-sub">Upload your logo, photos, and copy directly to your sponsor folder.</div>
-</div>
-</div>
-
-<div class="main">
-<div class="notice">Looking for the full eblast kit (writing guide + send-date picker)? <a href="./pp-eblast-kit.html">Open the Sponsor Eblast Kit &rarr;</a></div>
-<div class="directory" id="directory"></div>
-<div class="sec">Questions? Contact us</div>
-<div class="contacts" id="contacts"></div>
-</div>
-
-<script>
-var TEAM = [
-{n:'Mario Guardado', e:'mario.guardado@pinesparty.com', i:'MG'},
-{n:'Tim Dejsiriudom', e:'tdejsiriudom@pinesparty.com', i:'TD'},
-{n:'Tejesh Mistry', e:'tj@pinesparty.com', i:'TM'}
-];
-
-var TIER_LABEL = {platinum:'Platinum', gold:'Gold', silver:'Silver', bronze:'Bronze', community:'Community'};
-
-// Same confirmed sponsor Drive folders as pp-eblast-kit.html's Sponsor Directory —
-// sourced from Sponsorships > Sponsor By Sponsorship Level > {TIER} SPONSORS.
-var SPONSORS = [
-{n:'Gilead Sciences', t:'platinum', id:'1QgyQBLodMU1LW_FaLO34rhWBj_FPyzC0'},
-{n:'JustFor.Fans', t:'platinum', id:'1q_BjGHOTjjzb7Av_na2ojXCJWRiVf_lm'},
-{n:'Tryst Hospitality / MISTR', t:'platinum', id:'1a7AmqcYD71xkAWtH9P1W69pNdtRMHZpw'},
-{n:'Visit Lauderdale', t:'platinum', id:'1g8_VjxtvT3PhJQUosA5JNnE8KvHWrRKP'},
-{n:'Cuervo', t:'gold', id:'1fW3GFed8xRZDv-FDAgqSUitn0zELloP7'},
-{n:'High Noon (Gallo) / Lucky One Lemonade', t:'gold', id:'10Ycudgq3dHywAhEUASuEnHyLd5innEI5'},
-{n:'New Amsterdam Vodka', t:'gold', id:'1NSfPgmwPCKIXTq9cGgO63iWwsq4HL1Ja'},
-{n:'Identiti Financial', t:'gold', id:'1RUZKX4S3KUtrvkBmgg6_N_jQJq3cwpSM'},
-{n:'Pines Harbor Realty', t:'gold', id:'1fbIeaayTS8qnYIX16KfdGpnshzz4220o'},
-{n:'Poxeidon', t:'gold', id:'1Uzci9tYIVzSDjB2jhgfbehyXwnDICRbB'},
-{n:'Boardwalk Etiquette', t:'gold', id:'1XNznMEimyhEaKhKQP24Nty7CG3MnGH-6'},
-{n:'H2O', t:'gold', id:'1VrHZJ6zpPE4w3XZjjR4vKeujKFllND5p'},
-{n:'Jeff Wan', t:'gold', id:'1I_aqoNmhf594MxYsx9i_VIEvfov9stjW'},
-{n:'Swiss Air', t:'gold', id:'1Eiy2SxARTvnmqrUc7sEAA8rRKE1JGQTk'},
-{n:'Threadcount', t:'gold', id:'1g7YS9VU9cGiB72nG2dJkdt05GUiK8iVL'},
-{n:'ViiV Healthcare', t:'gold', id:'1cFAsKpytVsi0ALvkmQ-fgwrx11tMlEip'},
-{n:'Chris Turk', t:'silver', id:'1_b6z9cqDHBJz8162bfj4JleFCPcsCM6j'},
-{n:'Bekin', t:'silver', id:'1a1MzqRmsU-MI-XUdG_7yDSsFWmP0xXrN'},
-{n:'Long Island Cannabis Club', t:'silver', id:'1ptGvJpZzJnC6m2Bg7L2F_3WGwTT-n_Gt'},
-{n:'LUXY Ride', t:'silver', id:'1cOTuv1R3mvXDT-z-DFg1UwCQsgntBqBi'},
-{n:'Brownie', t:'silver', id:'1AltkEpnUZ9EpyfZxJdk1Qds94U4Djcbk'},
-{n:'PUMP!', t:'silver', id:'1Lt3EqKrjg8ZLeGafs0tABovxNm6DiYkz'},
-{n:'Vinnie Petrarca Fire Island Real Estate', t:'silver', id:'14re68NevJjlTiVkeKnW18t90-pGU90Rm'},
-{n:'HOWL', t:'silver', id:'1zmMYDX7Y22Flkq3o8NTZaP2uFCXGjhFu'},
-{n:'LAFCO New York', t:'silver', id:'1O9jBoETOOtgT6rbZjYvbO7jF93dBI-Ea'},
-{n:'Red Bull', t:'bronze', id:'1792YbwaATjDCbSAKyLVamezWRVoRUw1V'},
-{n:'GMHC', t:'bronze', id:'1Z7aaR372gjgizYHieNcNZaPMEmDjCkt7'},
-{n:'Davis Park Harbor Store', t:'bronze', id:'1nPEVMgioVkv5XPY8mg652iQGPP5L-x5S'},
-{n:'Guesthouse Lost River', t:'bronze', id:'1yrOeW-G-4HSfemc_WhakwQdIG2_-8oza'},
-{n:'Sip n Twirl', t:'bronze', id:'1Vz3XtpK-WXyFRRV1OI8JyG2hp-0_ZsJ7'},
-{n:'Mark Allen', t:'bronze', id:'1buqWlOZtCRZqlLYpT0yJ5oCRVabr1xvH'},
-{n:'Curious Elixirs', t:'bronze', id:'1xWXq4UnCZGMXhsQkGEFvqmCg1C7gevG9'},
-{n:'The Dunes', t:'bronze', id:'1HgBnkxgJGH5cGUPDkih43FB3UUYpScSS'},
-{n:'Li-Lac Chocolates', t:'bronze', id:'1f3sPB3ARmgBTKT5QhEokpqdwObhrArme'},
-{n:'Pines Club', t:'bronze', id:'164TlekZQ2OJu_pGf70JT8_SJsesq7GEw'},
-{n:'The Owen-Micchane Family', t:'community', id:'10BZLSzZYBUns8sG_vwWlSZIRP82sFTC4'}
-];
-
-function driveUrl(id) { return 'https://drive.google.com/drive/folders/'+id; }
-
-document.getElementById('directory').innerHTML = SPONSORS.map(function(s){
-return '<div class="drow">'
-+'<div class="drow-name">'+s.n+'<span class="tier tier-'+s.t+'">'+TIER_LABEL[s.t]+'</span></div>'
-+'<a class="mini" href="'+driveUrl(s.id)+'" target="_blank">Upload Assets &rarr;</a>'
-+'</div>';
-}).join('');
-
-document.getElementById('contacts').innerHTML = TEAM.map(function(c){
-return '<div class="crow"><div class="av">'+c.i+'</div><div class="ci">'
-+'<strong>'+c.n+'</strong>'
-+'<a href="mailto:'+c.e+'">'+c.e+'</a></div></div>';
-}).join('');
-</script>
+<body style="font-family:Arial,sans-serif;padding:24px">
+<a href="pp-eblast-kit.html">Continue to the PP2026 Sponsor Eblast Kit &rarr;</a>
 </body>
 </html>
