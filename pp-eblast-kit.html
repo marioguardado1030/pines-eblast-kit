@@ -140,7 +140,7 @@ var GAS_URL = 'https://script.google.com/macros/s/AKfycbwQtFMeccr1ydVFcF5_YonjzM
 function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 var DATE_MIN = ymd(new Date());
 var DATE_MAX = '2027-06-30';
-var MAX_EBLAST_DATES = 4;
+var MAX_EBLAST_DATES = 2;
 var MAX_STORY_DATES = 2;
 
 // Real sponsor Drive upload folders — sourced directly from the authoritative
@@ -212,6 +212,28 @@ return '<div class="crow"><div class="av">'+c.i+'</div><div class="ci">'
 }
 
 function driveUrl(id) { return 'https://drive.google.com/drive/folders/'+id; }
+
+// Ready-to-send sponsor email, opened in Gmail compose on the pinesparty
+// account. To: is left blank (add the sponsor contact); Tim + Mario's
+// personal inbox are CC'd per team rules.
+var MAIL_FROM = 'mario.guardado@pinesparty.com';
+var MAIL_CC = 'tdejsiriudom@pinesparty.com,mario.guardado1030@gmail.com';
+function sponsorEmailUrl(name) {
+var su = 'Pines Party 2026: Your Sponsor Eblast Kit';
+var body = 'Hi ' + name + ' team,\n\n'
++ 'Thank you again for supporting Pines Party 2026. We\'ve set up a page for you with everything you need for your post-event eblast and social story:\n\n'
++ sponsorLink(name) + '\n\n'
++ 'On your page you can:\n'
++ '1. Open the writing kit (guide, template and example) and write your eblast copy\n'
++ '2. Upload your logo, photos and copy to your folder\n'
++ '3. Request up to 2 eblast send dates\n'
++ '4. Request up to 2 story/shoutout dates\n\n'
++ 'We\'ll confirm your dates by email once they\'re approved. We\'ll also add your event photos to your folder, so you can find them from the same page.\n\n'
++ 'Any questions, just reply here.\n\n'
++ 'Thanks,\nMario';
+return 'https://mail.google.com/mail/?authuser=' + encodeURIComponent(MAIL_FROM) + '&view=cm&fs=1'
++ '&cc=' + encodeURIComponent(MAIL_CC) + '&su=' + encodeURIComponent(su) + '&body=' + encodeURIComponent(body);
+}
 
 function sponsorLink(name) {
 return window.location.origin + window.location.pathname + '?s=' + slug(name);
@@ -440,6 +462,7 @@ return '<div class="drow">'
 +'<div class="drow-name">'+s.n+'<span class="tier tier-'+s.t+'">'+TIER_LABEL[s.t]+'</span></div>'
 +'<div class="drow-actions">'
 +'<button class="mini mini-p" onclick="copyDirect(this,\''+link.replace(/'/g, "\\'")+'\')">Copy Link</button>'
++'<a class="mini mini-p" href="'+sponsorEmailUrl(s.n)+'" target="_blank">Email</a>'
 +'<a class="mini mini-s" href="'+link+'" target="_blank">View</a>'
 +'<a class="mini mini-s" href="'+driveUrl(s.id)+'" target="_blank">Drive</a>'
 +'</div></div>';
@@ -538,7 +561,7 @@ function renderAdmin() {
 document.getElementById('main').innerHTML =
 trackerHTML()
 +'<div class="card"><div class="card-title">Sponsor Directory ('+SPONSORS.length+')</div>'
-+'<div class="hint" style="margin-bottom:12px">Confirmed sponsors with a live Drive upload folder. Copy a sponsor\'s link and send it to them directly.</div>'
++'<div class="hint" style="margin-bottom:12px">Copy Link = the sponsor\'s page. Email = a ready-to-send email with their link, opened in pinesparty Gmail (add their contact in To). View = see their page. Drive = their folder (also where event photos go).</div>'
 +'<div class="directory">'+directoryHTML()+'</div>'
 +'</div>'
 +'<div class="card"><div class="card-title">Generate Custom Link</div>'
