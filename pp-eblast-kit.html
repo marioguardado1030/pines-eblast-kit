@@ -187,8 +187,19 @@ var SPONSORS = [
 
 var TIER_LABEL = {platinum:'Platinum', gold:'Gold', silver:'Silver', bronze:'Bronze', community:'Community'};
 
+function slug(name) { return name.toLowerCase().replace(/&/g,'and').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+function findSponsor(key) {
+for (var i = 0; i < SPONSORS.length; i++) if (slug(SPONSORS[i].n) === slug(key)) return SPONSORS[i];
+return null;
+}
+
+// Sponsor page: ?s=<slug> (drive folder comes from the registry above).
+// Old ?sponsor=&drive= links still work.
 function getParams() {
 var p = new URLSearchParams(window.location.search);
+var key = p.get('s') || p.get('sponsor') || '';
+var reg = key ? findSponsor(key) : null;
+if (reg) return {sponsor: reg.n, drive: driveUrl(reg.id)};
 return {sponsor: p.get('sponsor')||'', drive: p.get('drive')||''};
 }
 
@@ -202,6 +213,10 @@ return '<div class="crow"><div class="av">'+c.i+'</div><div class="ci">'
 
 function driveUrl(id) { return 'https://drive.google.com/drive/folders/'+id; }
 
+function sponsorLink(name) {
+return window.location.origin + window.location.pathname + '?s=' + slug(name);
+}
+
 function linkFor(name, driveLink) {
 return window.location.origin + window.location.pathname
 + '?sponsor=' + encodeURIComponent(name)
@@ -211,9 +226,15 @@ return window.location.origin + window.location.pathname
 // ---------- Backend ----------
 var CAL = { eblast: [], story: [] }, CAL_OK = false;
 
+// Reads: GET with a timeout and one retry.
+function getJSON(ms) {
+var ctl = window.AbortController ? new AbortController() : null;
+var t = setTimeout(function(){ if (ctl) ctl.abort(); }, ms);
+return fetch(GAS_URL + '?_t=' + Date.now(), ctl ? {signal: ctl.signal} : {})
+.then(function(r){ clearTimeout(t); return r.json(); });
+}
 function loadCalendar() {
-return fetch(GAS_URL + '?_t=' + Date.now())
-.then(function(r){ return r.json(); })
+return getJSON(20000).catch(function(){ return getJSON(20000); })
 .then(function(d){
 if (!d || !d.rows) throw new Error((d && d.error) || 'Bad response');
 CAL.eblast = d.rows || []; CAL.story = d.story || []; CAL_OK = true;
@@ -221,12 +242,26 @@ return CAL;
 });
 }
 
+// Writes: fire-and-forget (no-cors). Apps Script's POST reply redirect is
+// unreliable in browsers, so every write is confirmed by re-reading the sheet.
 function post(params) {
 var body = Object.keys(params).map(function(k){
 return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
 }).join('&');
-return fetch(GAS_URL, {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: body})
-.then(function(r){ return r.json(); });
+return fetch(GAS_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: body});
+}
+function sleep(ms) { return new Promise(function(r){ setTimeout(r, ms); }); }
+// Re-read until check(CAL) passes (or give up after ~15s).
+function confirmWrite(check) {
+var tries = 0;
+function go() {
+return loadCalendar().then(function(){
+if (check()) return true;
+if (++tries >= 4) return false;
+return sleep(2500).then(go);
+});
+}
+return sleep(1200).then(go);
 }
 
 function isLocked(st) { return st === 'booked' || st === 'approved' || st === 'blocked'; }
@@ -374,16 +409,20 @@ var picked = PICK[type].slice();
 if (!picked.length) { setMsg(type, 'bad', 'Tap at least one date on the calendar first.'); return; }
 var btn = document.getElementById('go-'+type);
 btn.disabled = true; btn.innerHTML = 'Sending&hellip;';
+function mineOn(ds) { var r = rowFor(type, ds); return r && (hasSponsor(r, SPONSOR) || r.sponsors === SPONSOR); }
+function takenOn(ds) { var r = rowFor(type, ds); return r && isLocked(r.status) && r.sponsors !== SPONSOR; }
 post({action:'request', type:type, sponsor:SPONSOR, dates:picked.join(',')})
-.then(function(res){
-if (!res || !res.ok) throw new Error((res && res.error) || 'Request failed');
+.then(function(){
+return confirmWrite(function(){ return picked.every(function(ds){ return mineOn(ds) || takenOn(ds); }); });
+})
+.then(function(done){
+if (!done) throw new Error('unconfirmed');
 PICK[type] = [];
-return loadCalendar().then(function(){
 drawCal(type);
-var html = 'Request received for: <strong>' + res.saved.map(fmtDate).join(', ') + '</strong>. We\'ll confirm your date by email.';
-if (res.conflicts && res.conflicts.length) html += '<br>Just taken by another sponsor: ' + res.conflicts.map(fmtDate).join(', ') + '.';
-setMsg(type, res.saved.length ? 'ok' : 'bad', res.saved.length ? html : 'Those dates were just taken by another sponsor. Please pick different dates.');
-});
+var saved = picked.filter(mineOn), conflicts = picked.filter(takenOn);
+var html = 'Request received for: <strong>' + saved.map(fmtDate).join(', ') + '</strong>. We\'ll confirm your date by email.';
+if (conflicts.length) html += '<br>Just taken by another sponsor: ' + conflicts.map(fmtDate).join(', ') + '.';
+setMsg(type, saved.length ? 'ok' : 'bad', saved.length ? html : 'Those dates were just taken by another sponsor. Please pick different dates.');
 })
 .catch(function(){
 setMsg(type, 'bad', 'Something went wrong saving your request. Please try again, or email <a href="mailto:'+TEAM[0].e+'">'+TEAM[0].e+'</a> with your dates.');
@@ -396,11 +435,12 @@ btn.innerHTML = type === 'story' ? 'Request Story Slot(s) &rarr;' : 'Request Ebl
 
 function directoryHTML() {
 return SPONSORS.map(function(s){
-var link = linkFor(s.n, driveUrl(s.id));
+var link = sponsorLink(s.n);
 return '<div class="drow">'
 +'<div class="drow-name">'+s.n+'<span class="tier tier-'+s.t+'">'+TIER_LABEL[s.t]+'</span></div>'
 +'<div class="drow-actions">'
 +'<button class="mini mini-p" onclick="copyDirect(this,\''+link.replace(/'/g, "\\'")+'\')">Copy Link</button>'
++'<a class="mini mini-s" href="'+link+'" target="_blank">View</a>'
 +'<a class="mini mini-s" href="'+driveUrl(s.id)+'" target="_blank">Drive</a>'
 +'</div></div>';
 }).join('');
@@ -471,11 +511,18 @@ if (!ADMIN.key) { setMsg('admin', 'bad', 'Enter the admin key first.'); document
 var d = btn.getAttribute('data-d'), s = btn.getAttribute('data-s') || '';
 if (action === 'release' && !confirmRelease(d)) return;
 btn.disabled = true;
-post({action:action, type:ADMIN.type, date:d, sponsor:s, key:ADMIN.key})
-.then(function(res){
-if (!res || !res.ok) throw new Error((res && res.error) || 'Failed');
+var t = ADMIN.type;
+post({action:action, type:t, date:d, sponsor:s, key:ADMIN.key})
+.then(function(){
+return confirmWrite(function(){
+var r = rowFor(t, d);
+return action === 'approve' ? (r && isLocked(r.status) && r.sponsors === s) : !r;
+});
+})
+.then(function(done){
+drawTracker();
+if (!done) throw new Error('Not saved. Check the admin key and try again.');
 setMsg('admin', 'ok', (action==='approve' ? 'Approved '+esc(s)+' for ' : 'Released ') + fmtDate(d) + '.');
-return loadCalendar().then(drawTracker);
 })
 .catch(function(err){ btn.disabled = false; setMsg('admin', 'bad', esc(err.message)); });
 }
