@@ -140,7 +140,7 @@ var GAS_URL = 'https://script.google.com/macros/s/AKfycbwQtFMeccr1ydVFcF5_YonjzM
 function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 var DATE_MIN = ymd(new Date());
 var DATE_MAX = '2027-06-30';
-var MAX_EBLAST_DATES = 2;
+var MAX_EBLAST_DATES = 4;
 var MAX_STORY_DATES = 2;
 
 // Real sponsor Drive upload folders — sourced directly from the authoritative
@@ -226,7 +226,7 @@ var body = 'Hi ' + name + ' team,\n\n'
 + 'On your page you can:\n'
 + '1. Open the writing kit (guide, template and example) and write your eblast copy\n'
 + '2. Upload your logo, photos and copy to your folder\n'
-+ '3. Request up to 2 eblast send dates\n'
++ '3. Request up to 4 eblast send dates, in order of preference\n'
 + '4. Request up to 2 story/shoutout dates\n\n'
 + 'We\'ll confirm your dates by email once they\'re approved. We\'ll also add your event photos to your folder, so you can find them from the same page.\n\n'
 + 'Any questions, just reply here.\n\n'
@@ -341,7 +341,7 @@ document.getElementById('main').innerHTML =
 +'</div></div>'
 +'<div class="step"><div class="num">3</div><div style="flex:1;min-width:0">'
 +'<h2>Request Your Eblast Send Date</h2>'
-+'<p>Tap up to '+MAX_EBLAST_DATES+' dates, in order of preference. Greyed-out dates are already taken. We\'ll confirm one date by email &mdash; a request is not a booking.</p>'
++'<p>Tap up to '+MAX_EBLAST_DATES+' dates, in order of preference. Greyed-out dates are already taken. We\'ll confirm your send date(s) by email &mdash; a request is not a booking.</p>'
 +pickerHTML('eblast')
 +'<button class="btn btn-pink" id="go-eblast" onclick="submitDates(\'eblast\')">Request Eblast Date(s) &rarr;</button>'
 +'<div class="msg" id="msg-eblast"></div>'
@@ -483,7 +483,7 @@ try { ADMIN.key = localStorage.getItem('ppAdminKey') || ''; } catch (e) {}
 
 function trackerHTML() {
 return '<div class="card"><div class="card-title">Date Requests</div>'
-+'<div class="hint" style="margin-bottom:12px">Sponsor requests from the live calendar. Approve one date per sponsor &mdash; it greys out for everyone else and clears that sponsor\'s other requests.</div>'
++'<div class="hint" style="margin-bottom:12px">Sponsor requests from the live calendar. Approve one date per eblast (up to two per sponsor) &mdash; it greys out for everyone else. Once a sponsor has two approved, their other requests clear.</div>'
 +'<div class="field"><label>Admin key</label><input id="admKey" type="password" placeholder="Needed to approve or release" value="'+esc(ADMIN.key)+'" onchange="saveKey(this.value)"/></div>'
 +'<div class="tabs"><button class="tab" id="tab-eblast" onclick="setTab(\'eblast\')">Eblasts</button>'
 +'<button class="tab" id="tab-story" onclick="setTab(\'story\')">Stories</button>'
