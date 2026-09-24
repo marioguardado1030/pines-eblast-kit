@@ -94,10 +94,13 @@ var TEAM = [
 {n:'Tejesh Mistry', e:'tj@pinesparty.com', i:'TM', cc:true}
 ];
 
-// Checked against Mario's Google Calendar on 2026-09-22 — all 4 Tuesdays
-// are open (no conflicting events). Re-check before reusing this list later.
-var SEND_DATES = ['Tue 9/22', 'Tue 9/29', 'Tue 10/6', 'Tue 10/13'];
-var MAX_DATES = 2;
+// Sponsors pick from any date in this window — requests go to the team by
+// email for manual approval (no live conflict-checking yet; that needs the
+// Apps Script backend deployed as a Web App, still pending).
+var DATE_MIN = new Date().toISOString().slice(0,10);
+var DATE_MAX = '2027-06-30';
+var MAX_EBLAST_DATES = 4;
+var MAX_STORY_DATES = 2;
 
 // Real sponsor Drive upload folders — sourced directly from the authoritative
 // Drive tree: Sponsorships > Sponsor By Sponsorship Level > {TIER} SPONSORS,
@@ -175,9 +178,14 @@ var uploadHTML = drive
 ? '<a class="btn btn-pink" href="'+encodeURI(drive)+'" target="_blank">Upload Your Assets &rarr;</a>'
 : '<div class="err">Upload folder not set. Contact <a href="mailto:mario.guardado@pinesparty.com" style="color:#c0304a">Mario</a> for your link.</div>';
 
-var dateOptsHTML = SEND_DATES.map(function(d, i){
-return '<label class="date-opt"><input type="checkbox" class="dateChk" value="'+d+'" onchange="onDateToggle()"/><span>'+d+'</span></label>';
-}).join('');
+function dateInputsHTML(prefix, count) {
+var out = '';
+for (var i = 1; i <= count; i++) {
+out += '<div class="field"><label>Choice '+i+(i===1?' (required)':' (optional)')+'</label>'
++ '<input type="date" class="'+prefix+'Date" min="'+DATE_MIN+'" max="'+DATE_MAX+'"'+(i===1?' required':'')+'/></div>';
+}
+return out;
+}
 
 document.getElementById('main').innerHTML =
 '<div class="steps">'
@@ -192,33 +200,32 @@ document.getElementById('main').innerHTML =
 +uploadHTML
 +'</div></div>'
 +'<div class="step"><div class="num">3</div><div>'
-+'<h2>Pick Your Send Date</h2>'
-+'<p>Choose up to '+MAX_DATES+' dates that work for your eblast to go out. We\'ll confirm the final date with you by email.</p>'
-+'<div class="date-count" id="dateCount">0 of '+MAX_DATES+' selected</div>'
-+'<div class="dates">'+dateOptsHTML+'</div>'
-+'<button class="btn btn-pink" id="reqBtn" disabled onclick="requestDates(\''+sponsor.replace(/'/g, "\\'")+'\')">Request These Dates &rarr;</button>'
++'<h2>Request Your Eblast Send Date</h2>'
++'<p>Give us up to '+MAX_EBLAST_DATES+' dates that work, ranked in order of preference. We\'ll confirm the one we assign by email &mdash; a submitted date is a request, not a booking.</p>'
++dateInputsHTML('eblast', MAX_EBLAST_DATES)
++'<button class="btn btn-pink" onclick="requestDates(\''+sponsor.replace(/'/g, "\\'")+'\', \'eblast\')">Request Eblast Date(s) &rarr;</button>'
++'</div></div>'
++'<div class="step"><div class="num">4</div><div>'
++'<h2>Request a Social Story / Shoutout Slot</h2>'
++'<p>Optional. Give us up to '+MAX_STORY_DATES+' dates you\'d like your Instagram story or shoutout to go out &mdash; during the eblast send window or another priority time.</p>'
++dateInputsHTML('story', MAX_STORY_DATES)
++'<button class="btn btn-outline" onclick="requestDates(\''+sponsor.replace(/'/g, "\\'")+'\', \'story\')">Request Story Slot(s) &rarr;</button>'
 +'</div></div>'
 +'</div>'
 +'<div class="sec">Questions? Contact us</div>'
 +'<div class="contacts">'+contactsHTML()+'</div>';
 }
 
-function onDateToggle() {
-var checked = document.querySelectorAll('.dateChk:checked');
-var boxes = document.querySelectorAll('.dateChk');
-boxes.forEach(function(b){ b.disabled = (checked.length >= MAX_DATES && !b.checked); });
-document.getElementById('dateCount').textContent = checked.length + ' of ' + MAX_DATES + ' selected';
-document.getElementById('reqBtn').disabled = checked.length === 0;
-}
-
-function requestDates(sponsor) {
-var checked = Array.prototype.slice.call(document.querySelectorAll('.dateChk:checked')).map(function(b){ return b.value; });
-if (!checked.length) return;
+function requestDates(sponsor, kind) {
+var inputs = Array.prototype.slice.call(document.querySelectorAll('.'+kind+'Date'));
+var picked = inputs.map(function(i){ return i.value; }).filter(Boolean);
+if (!picked.length) { if (inputs[0]) inputs[0].focus(); return; }
+var label = kind === 'story' ? 'Social Story/Shoutout' : 'Eblast Send Date';
 var to = TEAM[0].e;
 var cc = TEAM.filter(function(t){ return t.cc; }).map(function(t){ return t.e; }).join(',');
-var subject = 'PP2026 Eblast Date Request \u2014 ' + sponsor;
-var body = sponsor + ' would like to request the following send date(s) for their PP2026 eblast:\n\n'
-+ checked.map(function(d){ return '- ' + d; }).join('\n')
+var subject = 'PP2026 ' + label + ' Request \u2014 ' + sponsor;
+var body = sponsor + ' would like to request the following ' + label.toLowerCase() + '(s), in order of preference:\n\n'
++ picked.map(function(d, i){ return (i+1) + '. ' + d; }).join('\n')
 + '\n\nPlease confirm which date works.';
 var mailto = 'mailto:' + encodeURIComponent(to) + '?cc=' + encodeURIComponent(cc)
 + '&subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
