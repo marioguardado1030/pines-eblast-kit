@@ -218,11 +218,26 @@ function driveUrl(id) { return 'https://drive.google.com/drive/folders/'+id; }
 // personal inbox are CC'd per team rules.
 var MAIL_FROM = 'mario.guardado@pinesparty.com';
 var MAIL_CC = 'tdejsiriudom@pinesparty.com,mario.guardado1030@gmail.com';
-function sponsorEmailUrl(name) {
-var su = 'Pines Party 2026: Your Sponsor Eblast Kit';
-var body = 'Hi ' + name + ' team,\n\n'
-+ 'Thank you for supporting Pines Party 2026. We\'ve set up a page for you with everything you need for your post-event eblast and social story:\n\n'
-+ sponsorLink(name) + '\n\n'
+var LINK_TITLE = 'Pines Party Eblast + Social Media Scheduling and Resources';
+function sponsorEmailHTML(name) {
+var n = esc(name);
+return '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#222">'
++ '<p>Hi ' + n + ' team,</p>'
++ '<p>Thank you for supporting Pines Party 2026. We\'ve set up a page with everything you need for your post-event eblast and Instagram story:</p>'
++ '<p><a href="' + sponsorLink(name) + '"><b>' + LINK_TITLE + '</b></a></p>'
++ '<p>On your page you can:</p>'
++ '<ol><li>Open the writing kit (guide, template and example) and write your eblast copy</li>'
++ '<li>Upload your logo, photos and copy to your folder</li>'
++ '<li>Request up to 4 eblast send dates, in order of preference</li>'
++ '<li>Request up to 2 Instagram story dates</li></ol>'
++ '<p>We\'ll confirm your dates by email once they\'re approved. We\'ll also add your event photos to your folder, so you can find them from the same page.</p>'
++ '<p>Thanks again for your support, and please reach out with any questions.</p>'
++ '<p>Best,<br>Mario</p></div>';
+}
+function sponsorEmailText(name) {
+return 'Hi ' + name + ' team,\n\n'
++ 'Thank you for supporting Pines Party 2026. We\'ve set up a page with everything you need for your post-event eblast and Instagram story:\n\n'
++ LINK_TITLE + ': ' + sponsorLink(name) + '\n\n'
 + 'On your page you can:\n'
 + '1. Open the writing kit (guide, template and example) and write your eblast copy\n'
 + '2. Upload your logo, photos and copy to your folder\n'
@@ -230,9 +245,32 @@ var body = 'Hi ' + name + ' team,\n\n'
 + '4. Request up to 2 Instagram story dates\n\n'
 + 'We\'ll confirm your dates by email once they\'re approved. We\'ll also add your event photos to your folder, so you can find them from the same page.\n\n'
 + 'Thanks again for your support, and please reach out with any questions.\n\n'
-+ 'Thanks,\nMario';
++ 'Best,\nMario';
+}
+// Gmail compose (pinesparty) with subject + CC. The body can't carry a
+// titled link via URL, so the button copies the formatted email to the
+// clipboard first; paste it into the body (Cmd+V).
+function sponsorEmailUrl(name) {
+var su = 'Pines Party 2026: Your Sponsor Eblast Kit';
 return 'https://mail.google.com/mail/?authuser=' + encodeURIComponent(MAIL_FROM) + '&view=cm&fs=1'
-+ '&cc=' + encodeURIComponent(MAIL_CC) + '&su=' + encodeURIComponent(su) + '&body=' + encodeURIComponent(body);
++ '&cc=' + encodeURIComponent(MAIL_CC) + '&su=' + encodeURIComponent(su);
+}
+function draftEmail(btn, i) {
+var name = SPONSORS[i].n, html = sponsorEmailHTML(name), text = sponsorEmailText(name);
+try {
+if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
+navigator.clipboard.write([new ClipboardItem({
+'text/html': new Blob([html], {type: 'text/html'}),
+'text/plain': new Blob([text], {type: 'text/plain'})
+})]);
+} else if (navigator.clipboard) {
+navigator.clipboard.writeText(text);
+}
+} catch (e) {}
+window.open(sponsorEmailUrl(name), '_blank');
+var orig = btn.textContent;
+btn.textContent = 'Copied: paste in Gmail';
+setTimeout(function(){ btn.textContent = orig; }, 4000);
 }
 
 function sponsorLink(name) {
@@ -456,13 +494,13 @@ btn.innerHTML = type === 'story' ? 'Request Story Slot(s) &rarr;' : 'Request Ebl
 }
 
 function directoryHTML() {
-return SPONSORS.map(function(s){
+return SPONSORS.map(function(s, i){
 var link = sponsorLink(s.n);
 return '<div class="drow">'
 +'<div class="drow-name">'+s.n+'<span class="tier tier-'+s.t+'">'+TIER_LABEL[s.t]+'</span></div>'
 +'<div class="drow-actions">'
 +'<button class="mini mini-p" onclick="copyDirect(this,\''+link.replace(/'/g, "\\'")+'\')">Copy Link</button>'
-+'<a class="mini mini-p" href="'+sponsorEmailUrl(s.n)+'" target="_blank">Email</a>'
++'<button class="mini mini-p" onclick="draftEmail(this,'+i+')">Email</button>'
 +'<a class="mini mini-s" href="'+link+'" target="_blank">View</a>'
 +'<a class="mini mini-s" href="'+driveUrl(s.id)+'" target="_blank">Drive</a>'
 +'</div></div>';
@@ -561,7 +599,7 @@ function renderAdmin() {
 document.getElementById('main').innerHTML =
 trackerHTML()
 +'<div class="card"><div class="card-title">Sponsor Directory ('+SPONSORS.length+')</div>'
-+'<div class="hint" style="margin-bottom:12px">Copy Link = the sponsor\'s page. Email = creates a draft in pinesparty Gmail with their link (add their contact in To, review, send once approved). Nothing sends automatically. View = see their page. Drive = their folder (also where event photos go).</div>'
++'<div class="hint" style="margin-bottom:12px">Copy Link = the sponsor\'s page. Email = copies their email (with the titled link) and opens a pinesparty Gmail draft: paste the body (Cmd+V), add their contact in To, review, send once approved. Nothing sends automatically. View = see their page. Drive = their folder (also where event photos go).</div>'
 +'<div class="directory">'+directoryHTML()+'</div>'
 +'</div>'
 +'<div class="card"><div class="card-title">Generate Custom Link</div>'
