@@ -59,7 +59,7 @@ h1{font-size:26px;font-weight:700}
 .tier-gold{background:#f2e8d2;color:#a1791f}
 .tier-silver{background:#eae7e0;color:#847e73}
 .tier-bronze{background:#f0e2d6;color:#8a5837}
-.tier-na{background:#eceae4;color:#8a887f}
+.tier-community{background:#eceae4;color:#8a887f}
 .drow-actions{display:flex;gap:6px;flex-shrink:0}
 .mini{font-size:11.5px;font-weight:700;border:none;border-radius:6px;padding:7px 11px;cursor:pointer;text-decoration:none;white-space:nowrap}
 .mini-p{background:var(--pink);color:#fff}
@@ -99,47 +99,49 @@ var TEAM = [
 var SEND_DATES = ['Tue 9/22', 'Tue 9/29', 'Tue 10/6', 'Tue 10/13'];
 var MAX_DATES = 2;
 
-// Real sponsor Drive upload folders, pulled from the PP2026 client-folders sheet
-// + live Drive lookups. Only sponsors with a single, confirmed folder are listed —
-// see the flagged sponsors note below for the rest.
+// Real sponsor Drive upload folders — sourced directly from the authoritative
+// Drive tree: Sponsorships > Sponsor By Sponsorship Level > {TIER} SPONSORS,
+// one subfolder per sponsor. All 34 confirmed, no flags.
 var SPONSORS = [
-{n:'Gilead Sciences', t:'platinum', id:'11Ml1Hef2VIvvjDqf_IOm4tfrBFq3FviA'},
-{n:'JustFor.Fans', t:'platinum', id:'1DL5E4DE8Wo9UxNZdIeznedY3fRm-LYSH'},
-{n:'Tryst Hospitality / MISTR', t:'platinum', id:'1U-PS6bFPb5dqA8RMz3Kuixy7jAYqRypx'},
-{n:'Visit Lauderdale', t:'platinum', id:'1BCDzQYRz7wRS7sppYY58TzPC-CMA6RtX'},
-{n:'Cuervo', t:'gold', id:'1CDxXPfqcS4Rc__q5rJrV4mUjAJQqa0BO'},
-{n:'High Noon (Gallo) / Lucky One Lemonade', t:'gold', id:'1LBTMmgVrScyk8AdQQE6H1uGINVCSfwdY'},
+{n:'Gilead Sciences', t:'platinum', id:'1QgyQBLodMU1LW_FaLO34rhWBj_FPyzC0'},
+{n:'JustFor.Fans', t:'platinum', id:'1q_BjGHOTjjzb7Av_na2ojXCJWRiVf_lm'},
+{n:'Tryst Hospitality / MISTR', t:'platinum', id:'1a7AmqcYD71xkAWtH9P1W69pNdtRMHZpw'},
+{n:'Visit Lauderdale', t:'platinum', id:'1g8_VjxtvT3PhJQUosA5JNnE8KvHWrRKP'},
+{n:'Cuervo', t:'gold', id:'1fW3GFed8xRZDv-FDAgqSUitn0zELloP7'},
+{n:'High Noon (Gallo) / Lucky One Lemonade', t:'gold', id:'10Ycudgq3dHywAhEUASuEnHyLd5innEI5'},
 {n:'New Amsterdam Vodka', t:'gold', id:'1NSfPgmwPCKIXTq9cGgO63iWwsq4HL1Ja'},
-{n:'Identiti Financial', t:'gold', id:'1cqjlZQss_--oRgoQE3HLcJmMzobsvXa0'},
-{n:'Pines Harbor Realty', t:'gold', id:'1KXMr2qQOMmX8isUbA-BW4uOQWdHp95ra'},
-{n:'Poxeidon', t:'gold', id:'16dn8S3zZ4AOpjF5cYsFO14MrqN5IXe0w'},
-{n:'Boardwalk Etiquette', t:'gold', id:'1hNIdjcFBoq_okwKRDq--1ZmmQoZ5tkfB'},
-{n:'H2O', t:'gold', id:'1D5LvNfjXp5NnQ-S1cXhJnJ1x9dn1UQ3p'},
-{n:'Jeff Wan', t:'gold', id:'1OA6yh7DHcml-OA6qycXn-v_VE23kEPJI'},
-{n:'Swiss Air', t:'gold', id:'178u_-k2XJocnK6UHgIraixfFuTUDunBN'},
-{n:'Threadcount', t:'gold', id:'1vxuxOdSrSDWL3MQvkict2Qg4BDSrx7fq'},
-{n:'LAFCO New York', t:'silver', id:'1EbA04zSVTDSTnsvUA9jm5HFu7kZulV2u'},
-{n:'PUMP!', t:'silver', id:'1uVfnzEOSTt3qo4jrFdHYfKmXqi5du6OK'},
-{n:'Vinnie Petrarca Fire Island Real Estate', t:'silver', id:'1KZB1XUXz-IbzoTC1viKVaBdBcnAsk8s1'},
-{n:'Bekin', t:'silver', id:'18UOwl4mJKKLmq3hm1zKE-NE3D3Y7GQiQ'},
-{n:'Long Island Cannabis Club', t:'silver', id:'1PlATYSR7zGuVzHgM5FZTRinBspj9o1Ua'},
-{n:'Curious Elixirs', t:'bronze', id:'1s4xR8994kMr_ueaDynAxyJ6g2gRCs_X3'},
-{n:'Red Bull', t:'bronze', id:'1nhD20pKi9xNS0Igsed6wQf00FU3pDnJO'},
-{n:'HOWL', t:'na', id:'1zmMYDX7Y22Flkq3o8NTZaP2uFCXGjhFu'},
-{n:'LUXY Ride', t:'na', id:'1cOTuv1R3mvXDT-z-DFg1UwCQsgntBqBi'},
-{n:'Li-Lac Chocolates', t:'na', id:'1f3sPB3ARmgBTKT5QhEokpqdwObhrArme'},
-{n:'Mark Allen', t:'na', id:'1buqWlOZtCRZqlLYpT0yJ5oCRVabr1xvH'},
-{n:'Pines Club', t:'na', id:'164TlekZQ2OJu_pGf70JT8_SJsesq7GEw'},
-{n:'Sip n Twirl', t:'na', id:'1Vz3XtpK-WXyFRRV1OI8JyG2hp-0_ZsJ7'},
-{n:'The Dunes', t:'na', id:'1HgBnkxgJGH5cGUPDkih43FB3UUYpScSS'}
+{n:'Identiti Financial', t:'gold', id:'1RUZKX4S3KUtrvkBmgg6_N_jQJq3cwpSM'},
+{n:'Pines Harbor Realty', t:'gold', id:'1fbIeaayTS8qnYIX16KfdGpnshzz4220o'},
+{n:'Poxeidon', t:'gold', id:'1Uzci9tYIVzSDjB2jhgfbehyXwnDICRbB'},
+{n:'Boardwalk Etiquette', t:'gold', id:'1XNznMEimyhEaKhKQP24Nty7CG3MnGH-6'},
+{n:'H2O', t:'gold', id:'1VrHZJ6zpPE4w3XZjjR4vKeujKFllND5p'},
+{n:'Jeff Wan', t:'gold', id:'1I_aqoNmhf594MxYsx9i_VIEvfov9stjW'},
+{n:'Swiss Air', t:'gold', id:'1Eiy2SxARTvnmqrUc7sEAA8rRKE1JGQTk'},
+{n:'Threadcount', t:'gold', id:'1g7YS9VU9cGiB72nG2dJkdt05GUiK8iVL'},
+{n:'ViiV Healthcare', t:'gold', id:'1cFAsKpytVsi0ALvkmQ-fgwrx11tMlEip'},
+{n:'Chris Turk', t:'silver', id:'1_b6z9cqDHBJz8162bfj4JleFCPcsCM6j'},
+{n:'Bekin', t:'silver', id:'1a1MzqRmsU-MI-XUdG_7yDSsFWmP0xXrN'},
+{n:'Long Island Cannabis Club', t:'silver', id:'1ptGvJpZzJnC6m2Bg7L2F_3WGwTT-n_Gt'},
+{n:'LUXY Ride', t:'silver', id:'1cOTuv1R3mvXDT-z-DFg1UwCQsgntBqBi'},
+{n:'Brownie', t:'silver', id:'1AltkEpnUZ9EpyfZxJdk1Qds94U4Djcbk'},
+{n:'PUMP!', t:'silver', id:'1Lt3EqKrjg8ZLeGafs0tABovxNm6DiYkz'},
+{n:'Vinnie Petrarca Fire Island Real Estate', t:'silver', id:'14re68NevJjlTiVkeKnW18t90-pGU90Rm'},
+{n:'HOWL', t:'silver', id:'1zmMYDX7Y22Flkq3o8NTZaP2uFCXGjhFu'},
+{n:'LAFCO New York', t:'silver', id:'1O9jBoETOOtgT6rbZjYvbO7jF93dBI-Ea'},
+{n:'Red Bull', t:'bronze', id:'1792YbwaATjDCbSAKyLVamezWRVoRUw1V'},
+{n:'GMHC', t:'bronze', id:'1Z7aaR372gjgizYHieNcNZaPMEmDjCkt7'},
+{n:'Davis Park Harbor Store', t:'bronze', id:'1nPEVMgioVkv5XPY8mg652iQGPP5L-x5S'},
+{n:'Guesthouse Lost River', t:'bronze', id:'1yrOeW-G-4HSfemc_WhakwQdIG2_-8oza'},
+{n:'Sip n Twirl', t:'bronze', id:'1Vz3XtpK-WXyFRRV1OI8JyG2hp-0_ZsJ7'},
+{n:'Mark Allen', t:'bronze', id:'1buqWlOZtCRZqlLYpT0yJ5oCRVabr1xvH'},
+{n:'Curious Elixirs', t:'bronze', id:'1xWXq4UnCZGMXhsQkGEFvqmCg1C7gevG9'},
+{n:'The Dunes', t:'bronze', id:'1HgBnkxgJGH5cGUPDkih43FB3UUYpScSS'},
+{n:'Li-Lac Chocolates', t:'bronze', id:'1f3sPB3ARmgBTKT5QhEokpqdwObhrArme'},
+{n:'Pines Club', t:'bronze', id:'164TlekZQ2OJu_pGf70JT8_SJsesq7GEw'},
+{n:'The Owen-Micchane Family', t:'community', id:'10BZLSzZYBUns8sG_vwWlSZIRP82sFTC4'}
 ];
-// Flagged — not listed above, need manual confirmation before sending:
-// ViiV Healthcare (sheet says Silver, only Drive folder found is tagged Gold),
-// Chris Turk, GMHC, Guesthouse Lost River (multiple candidate folders),
-// Brownie, Davis Park Harbor Store (folder name doesn't match the registry).
-// Use "Generate Custom Link" below for these once you've confirmed the folder.
 
-var TIER_LABEL = {platinum:'Platinum', gold:'Gold', silver:'Silver', bronze:'Bronze', na:'Community'};
+var TIER_LABEL = {platinum:'Platinum', gold:'Gold', silver:'Silver', bronze:'Bronze', community:'Community'};
 
 function getParams() {
 var p = new URLSearchParams(window.location.search);
