@@ -312,8 +312,14 @@ return 'Hi ' + greetName(sp) + ',\n\n'
 }
 // Opens a Gmail draft on the pinesparty account with To, CC, Subject and Body filled in.
 // Gmail saves it to Drafts automatically. Nothing sends until you hit Send.
+// Subject reflects what we owe: eblast and/or social (Instagram stories).
+function emailSubject(sp) {
+var eb = !!sp.eb, so = !!(socSplit(sp) || /post/i.test(sp.soc || ''));
+var what = eb && so ? 'Your Eblast Kit and Instagram Story Generator' : eb ? 'Your Eblast Kit' : so ? 'Your Instagram Story Generator' : 'Your Sponsor Page';
+return 'Pines Party 2026: ' + what;
+}
 function sponsorEmailUrl(sp) {
-var su = 'Pines Party 2026: Your Sponsor Eblast Kit';
+var su = emailSubject(sp);
 return 'https://mail.google.com/mail/?authuser=' + encodeURIComponent(MAIL_FROM) + '&view=cm&fs=1'
 + '&to=' + encodeURIComponent((sp.em || '').replace(/\s+/g,''))
 + '&cc=' + encodeURIComponent(MAIL_CC) + '&su=' + encodeURIComponent(su)
