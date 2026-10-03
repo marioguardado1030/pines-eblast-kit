@@ -185,7 +185,7 @@ var MAX_STORY_DATES = 2;
 // n = display name AND the ?s= slug key: do not rename existing entries or sent links break.
 // eb = eblasts owed (0 = none), soc = social owed, old = not a 2026 sponsor (kept for its folder).
 var SPONSORS = [
-{n:'Gilead Sciences', t:'platinum', id:'1QgyQBLodMU1LW_FaLO34rhWBj_FPyzC0', eb:2, soc:'Posts (count not stated)', act:'Harbor', lead:'Patrick Forrett', note:'Coordinate with their agency, Boombox. Was missing from the July tracker.', flag:true},
+{n:'Gilead Sciences', t:'platinum', id:'1QgyQBLodMU1LW_FaLO34rhWBj_FPyzC0', eb:2, soc:'Posts (count not stated)', act:'Harbor', lead:'Patrick Forrett', note:'Coordinate with their agency, Boombox. Was missing from the July tracker. The full sponsor list says Gold; CGE and the shot list say Platinum (signed, $18K).', flag:true},
 {n:'JustFor.Fans', t:'platinum', id:'1q_BjGHOTjjzb7Av_na2ojXCJWRiVf_lm', eb:2, soc:'4', act:'Beach', lead:'Nick Ammaturo', note:'Platinum Standard. Count conflict: sheet = 2 eblasts, outreach promised 1. Still open.', flag:true},
 {n:'Tryst Hospitality / MISTR', t:'platinum', id:'1a7AmqcYD71xkAWtH9P1W69pNdtRMHZpw', eb:2, soc:'4 customized', bag:'350 aluminum water bottles', act:'Beach', lead:'Allan Baum, Nick Ammaturo', note:'Contract: eblasts after Sep 7.'},
 {n:'Visit Lauderdale', t:'platinum', id:'1g8_VjxtvT3PhJQUosA5JNnE8KvHWrRKP', eb:2, soc:'4', bag:'Gift-bag distribution to FIP homes', act:'Beach + Harbor + Closing', lead:'Allan Baum, Amy Kule', note:'Platinum Standard. 2 Adirondack chairs.'},
@@ -195,8 +195,8 @@ var SPONSORS = [
 {n:'H2O', t:'gold', id:'1VrHZJ6zpPE4w3XZjjR4vKeujKFllND5p', eb:2, soc:'3', prod:'2 water-shuttle crossings', act:'Beach Cabana', lead:'Allan Baum, Nick Ammaturo', note:'Custom deal, above Gold standard. Draft built 8/8.'},
 {n:'Poxeidon', aka:'Werkroom', t:'gold', id:'1Uzci9tYIVzSDjB2jhgfbehyXwnDICRbB', id2:'1Kc9haxos75Tvtveuf9LYvFz455xMAl4k', eb:1, soc:'1', bag:'300 swim shorts + 350 Werkroom coasters', act:'Pool Party', lead:'Allan Baum', note:'Same sponsor as Werkroom. Eblast promotes products + VIP discount code. Option A final 8/14.'},
 {n:'Swiss Air', t:'gold', id:'1Eiy2SxARTvnmqrUc7sEAA8rRKE1JGQTk', eb:1, soc:'2', bag:'Beach towels', lead:'Allan Baum', note:'SWISS must approve all content.'},
-{n:'Boardwalk Etiquette', t:'gold', id:'1XNznMEimyhEaKhKQP24Nty7CG3MnGH-6', eb:0, soc:'1 post + 1 shout-out', bag:'350 co-branded t-shirts', lead:'Allan Baum'},
-{n:'Pines Harbor Realty', t:'gold', id:'1fbIeaayTS8qnYIX16KfdGpnshzz4220o', eb:0, soc:'"Silver Package"', act:'Beach Cabana', lead:'Allan Baum', note:'No eblast (Allan, 9/28). Confirm what "Silver Package" social covers.', flag:true},
+{n:'Boardwalk Etiquette', t:'gold', id:'1XNznMEimyhEaKhKQP24Nty7CG3MnGH-6', eb:0, soc:'1 post + 1 shout-out', bag:'350 co-branded t-shirts', lead:'Allan Baum', note:'Product-only ($0 cash). CGE has the contract wording; the full list just says "Gold Standard."'},
+{n:'Pines Harbor Realty', t:'gold', id:'1fbIeaayTS8qnYIX16KfdGpnshzz4220o', eb:0, soc:'"Silver Package"', act:'Beach Cabana', lead:'Allan Baum', note:'No eblast (Allan, 9/28). CGE says "Silver Package"; the full list says "Gold Standard." Confirm the social.', flag:true},
 {n:'Jeff Wan', t:'gold', id:'1I_aqoNmhf594MxYsx9i_VIEvfov9stjW', eb:0, bag:'Card cases + passport cases (350)', lead:'Nick Ammaturo', note:'No eblast (Allan, 9/28).'},
 {n:'Threadcount', t:'gold', id:'1g7YS9VU9cGiB72nG2dJkdt05GUiK8iVL', eb:0, lead:'Patrick Forrett', note:'Threadcount Wines (Elouan). No obligations on sheet.'},
 {n:'MPM Studio / De.bauchere', aka:'MPM Studio, de.bachere', t:'gold', id:'1XKsl5oeunP_HUgeVkc1snX8FGxVF658v', id2:'1A_nLejjbjeQJeii3bPMtKf7aSe-genUB', eb:0, bag:'VIP gift bag product', act:'Branded inflatables', lead:'Nick Ammaturo', note:'One Gold agreement (in-kind, ~$20K). It promises recognition, a journal ad and installations, but no eblast or social.'},
@@ -212,6 +212,8 @@ var SPONSORS = [
 {n:'AHF Pharmacy', t:'silver', id:'1OWXm3g775Yoh66V7yvaSfSeXUai3g5Pp', eb:0, act:'Harbor', lead:'Patrick Forrett', note:''},
 {n:"Edy's Grocer", t:'silver', id:'1wGRzqH85fntltZtoXyf57wCNdjzIq-OK', eb:0, prod:'$5,000 in-kind product', lead:'Nick Ammaturo', note:''},
 {n:'Pines Pantry', t:'silver', id:'14PCzAXp1OV1e6Iqj0SWDzA3FtXzC8F-L', eb:0, lead:'Allan Baum', note:''},
+{n:'Atlantis', t:'silver', id:'1x4np-9jt-f4_RB8REXX-hP8uk2yo3obP', eb:0, lead:'Allan Baum', note:'CGE says DECLINED, but Chris sent their sponsor letter 7/5 and the full list says Silver. The July tracker had an eblast after Sep 8. Confirm.', flag:true},
+{n:'Brownie', t:'silver', id:'1AltkEpnUZ9EpyfZxJdk1Qds94U4Djcbk', eb:0, note:'The full list says Silver (2 rows); CGE says DECLINED. No 2026 email found. Confirm.', flag:true},
 {n:'Quatela Chimeri PLLC', t:'silver', id:null, eb:0, lead:'Nick Ammaturo', note:'No folder. Logos are loose in the Silver folder.'},
 {n:'GMHC', t:'bronze', id:'1Z7aaR372gjgizYHieNcNZaPMEmDjCkt7', eb:0, act:'Harbor', lead:'Nick Ammaturo'},
 {n:'Guesthouse Lost River', t:'bronze', id:'1yrOeW-G-4HSfemc_WhakwQdIG2_-8oza', eb:0, bag:'Promo items', lead:'Allan Baum'},
@@ -227,11 +229,11 @@ var SPONSORS = [
 {n:'Once Upon a Coconut', t:'bronze', id:null, eb:0, bag:'Products TBD', lead:'Allan Baum', note:'No 2026 folder (2025 folders only).'},
 {n:'Todd Snyder', t:'bronze', id:'1oHmFtAPj2FkAmveTgPFG-u9her6KKOCH', eb:0, lead:'Allan Baum, Bruce Robert Harris', note:''},
 {n:'Red Bull', t:'vipbag', id:'1792YbwaATjDCbSAKyLVamezWRVoRUw1V', eb:0, prod:'50 assorted cases', lead:'Allan Baum', note:'July tracker had event-day/post-event posts with attendees (per Allan), but the sheet doesn\'t. Confirm.', flag:true},
+{n:'Hello Bubble', t:'vipbag', id:null, eb:0, bag:'Gift bag items', note:'VIP bag + auction donor (full list, 7/31 gift bag list). No Drive folder.'},
 {n:'Smood Beauty', t:'vipbag', id:null, eb:0, bag:'350 Gel-Cream + promo cards', lead:'Allan Baum', note:'No Drive folder.'},
-// Not 2026 sponsors per the sheet; kept only so their folders stay reachable.
-{n:'LUXY Ride', t:'silver', id:'1cOTuv1R3mvXDT-z-DFg1UwCQsgntBqBi', eb:0, old:'Not on the 2026 sheet'},
-{n:'Brownie', t:'silver', id:'1AltkEpnUZ9EpyfZxJdk1Qds94U4Djcbk', eb:0, old:'DECLINED on the 2026 sheet'},
-{n:'Davis Park Harbor Store', t:'bronze', id:'1nPEVMgioVkv5XPY8mg652iQGPP5L-x5S', eb:0, old:'Not on the 2026 sheet'}
+// Not on either 2026 sheet and no 2026 email; kept only so their folders stay reachable.
+{n:'LUXY Ride', t:'silver', id:'1cOTuv1R3mvXDT-z-DFg1UwCQsgntBqBi', eb:0, old:'Not on either 2026 sheet'},
+{n:'Davis Park Harbor Store', t:'bronze', id:'1nPEVMgioVkv5XPY8mg652iQGPP5L-x5S', eb:0, old:'Not on either 2026 sheet'}
 ];
 
 var TIER_LABEL = {platinum:'Platinum', gold:'Gold', silver:'Silver', bronze:'Bronze', community:'Community', vipbag:'VIP Bag'};
@@ -642,7 +644,7 @@ function searchOb(v) { OB.q = v.trim().toLowerCase(); drawOb(); }
 
 function obligationsHTML() {
 return '<div class="card"><div class="card-title">Sponsor Obligations</div>'
-+'<div class="ob-sub"><b>Owed</b> comes from the CGE PP Sponsors 2026 sheet (written agreements only, checked 10/3). Silver, Bronze and product-only sponsors owe no eblast unless their agreement says so (Allan + Tim, 9/28). <b>Status</b> is live from the date calendar. <b>Email</b> appears only for sponsors owed an eblast. Every sponsor keeps a <b>Drive</b> folder for event photos.</div>'
++'<div class="ob-sub"><b>Owed</b> comes from the CGE PP Sponsors 2026 sheet (Chris: most current; written agreements only). The roster was cross-checked against the full 2026 sponsor list, the shot list and email on 10/3. Silver, Bronze and product-only sponsors owe no eblast unless their agreement says so (Allan + Tim, 9/28). <b>Status</b> is live from the date calendar. <b>Email</b> appears only for sponsors owed an eblast. Every sponsor keeps a <b>Drive</b> folder for event photos.</div>'
 +'<div class="stats" id="obStats"></div>'
 +'<div class="ob-bar"><input class="ob-search" placeholder="Search sponsor, lead, product, activation&hellip;" oninput="searchOb(this.value)"/></div>'
 +'<div class="ob-bar" id="obChips"></div>'
