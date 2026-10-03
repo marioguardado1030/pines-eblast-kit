@@ -138,6 +138,12 @@ table.ob tr.old td{color:#999}
 td.acts{min-width:150px}
 td.acts .mini{padding:5px 8px;font-size:11px;margin:0 2px 3px 0;display:inline-block}
 .mini.off{opacity:.4;pointer-events:none}
+button.dt{border:none;cursor:pointer;font-family:inherit}
+button.dt-r:hover{outline:1.5px solid #9a6a12}
+button.dt-b:hover,button.dt-x:hover{outline:1.5px solid #888}
+td.ct{font-size:11.5px;min-width:180px}
+a.em{display:block;color:var(--pink);text-decoration:none;word-break:break-all}
+a.em:hover{text-decoration:underline}
 .ob-foot{font-size:11px;color:var(--muted);margin-top:8px}
 </style>
 </head>
@@ -185,52 +191,52 @@ var MAX_STORY_DATES = 2;
 // n = display name AND the ?s= slug key: do not rename existing entries or sent links break.
 // eb = eblasts owed (0 = none), soc = social owed, old = not a 2026 sponsor (kept for its folder).
 var SPONSORS = [
-{n:'Gilead Sciences', ph:'11Ml1Hef2VIvvjDqf_IOm4tfrBFq3FviA', t:'platinum', id:'1QgyQBLodMU1LW_FaLO34rhWBj_FPyzC0', eb:2, soc:'Posts (count not stated)', act:'Harbor', lead:'Patrick Forrett', note:'Coordinate with their agency, Boombox. Was missing from the July tracker. The full sponsor list says Gold; CGE and the shot list say Platinum (signed, $18K).', flag:true},
-{n:'JustFor.Fans', ph:'1DL5E4DE8Wo9UxNZdIeznedY3fRm-LYSH', t:'platinum', id:'1q_BjGHOTjjzb7Av_na2ojXCJWRiVf_lm', eb:2, soc:'4', act:'Beach', lead:'Nick Ammaturo', note:'Platinum Standard. Count conflict: sheet = 2 eblasts, outreach promised 1. Still open.', flag:true},
-{n:'Tryst Hospitality / MISTR', ph:'1U-PS6bFPb5dqA8RMz3Kuixy7jAYqRypx', t:'platinum', id:'1a7AmqcYD71xkAWtH9P1W69pNdtRMHZpw', eb:2, soc:'4 customized', bag:'350 aluminum water bottles', act:'Beach', lead:'Allan Baum, Nick Ammaturo', note:'Contract: eblasts after Sep 7.'},
-{n:'Visit Lauderdale', ph:'1BCDzQYRz7wRS7sppYY58TzPC-CMA6RtX', t:'platinum', id:'1g8_VjxtvT3PhJQUosA5JNnE8KvHWrRKP', eb:2, soc:'4', bag:'Gift-bag distribution to FIP homes', act:'Beach + Harbor + Closing', lead:'Allan Baum, Amy Kule', note:'Platinum Standard. 2 Adirondack chairs.'},
-{n:'Cuervo', ph:'1CDxXPfqcS4Rc__q5rJrV4mUjAJQqa0BO', t:'gold', id:'1fW3GFed8xRZDv-FDAgqSUitn0zELloP7', eb:1, soc:'2 posts + 2 shout-outs', prod:'408 units Tradicional Blanco', lead:'Allan Baum', note:'Sheet says "Gold Standard," but it\'s product-only ($0 cash), and per Allan those don\'t always get an eblast. Confirm.', flag:true},
-{n:'High Noon (Gallo) / Lucky One Lemonade', ph:'1LBTMmgVrScyk8AdQQE6H1uGINVCSfwdY', t:'gold', id:'10Ycudgq3dHywAhEUASuEnHyLd5innEI5', eb:1, soc:'2 posts + 2 shout-outs', prod:'High Noon 250×24pk · Lucky One 75×8pk · New Amsterdam 60×12btl', bag:'Promo items', lead:'Allan Baum', note:'One row covers New Amsterdam Vodka too.'},
-{n:'Identiti Financial', ph:'1cqjlZQss_--oRgoQE3HLcJmMzobsvXa0', t:'gold', id:'1RUZKX4S3KUtrvkBmgg6_N_jQJq3cwpSM', eb:1, soc:'2 posts + 2 shout-outs', act:'Beach Cabana + Harbor', lead:'Nick Ammaturo, Allan Baum', note:'Gold Standard. Copy received 7/10, draft built 9/15.'},
-{n:'H2O', t:'gold', id:'1VrHZJ6zpPE4w3XZjjR4vKeujKFllND5p', eb:2, soc:'3', prod:'2 water-shuttle crossings', act:'Beach Cabana', lead:'Allan Baum, Nick Ammaturo', note:'Custom deal, above Gold standard. Draft built 8/8.'},
-{n:'Poxeidon', ph:'16dn8S3zZ4AOpjF5cYsFO14MrqN5IXe0w', aka:'Werkroom', t:'gold', id:'1Uzci9tYIVzSDjB2jhgfbehyXwnDICRbB', id2:'1Kc9haxos75Tvtveuf9LYvFz455xMAl4k', eb:1, soc:'1', bag:'300 swim shorts + 350 Werkroom coasters', act:'Pool Party', lead:'Allan Baum', note:'Same sponsor as Werkroom. Eblast promotes products + VIP discount code. Option A final 8/14.'},
-{n:'Swiss Air', ph:'178u_-k2XJocnK6UHgIraixfFuTUDunBN', t:'gold', id:'1Eiy2SxARTvnmqrUc7sEAA8rRKE1JGQTk', eb:1, soc:'2', bag:'Beach towels', lead:'Allan Baum', note:'SWISS must approve all content.'},
-{n:'Boardwalk Etiquette', ph:'1hNIdjcFBoq_okwKRDq--1ZmmQoZ5tkfB', t:'gold', id:'1XNznMEimyhEaKhKQP24Nty7CG3MnGH-6', eb:0, soc:'1 post + 1 shout-out', bag:'350 co-branded t-shirts', lead:'Allan Baum', note:'Product-only ($0 cash). CGE has the contract wording; the full list just says "Gold Standard."'},
-{n:'Pines Harbor Realty', ph:'1KXMr2qQOMmX8isUbA-BW4uOQWdHp95ra', t:'gold', id:'1fbIeaayTS8qnYIX16KfdGpnshzz4220o', eb:0, soc:'"Silver Package"', act:'Beach Cabana', lead:'Allan Baum', note:'No eblast (Allan, 9/28). CGE says "Silver Package"; the full list says "Gold Standard." Confirm the social.', flag:true},
-{n:'Jeff Wan', ph:'1OA6yh7DHcml-OA6qycXn-v_VE23kEPJI', t:'gold', id:'1I_aqoNmhf594MxYsx9i_VIEvfov9stjW', eb:0, bag:'Card cases + passport cases (350)', lead:'Nick Ammaturo', note:'No eblast (Allan, 9/28).'},
-{n:'Threadcount', ph:'1vxuxOdSrSDWL3MQvkict2Qg4BDSrx7fq', t:'gold', id:'1g7YS9VU9cGiB72nG2dJkdt05GUiK8iVL', eb:0, lead:'Patrick Forrett', note:'Threadcount Wines (Elouan). No obligations on sheet.'},
+{n:'Gilead Sciences', ct:'George Gates', em:'george.gates@gilead.com', ph:'11Ml1Hef2VIvvjDqf_IOm4tfrBFq3FviA', t:'platinum', id:'1QgyQBLodMU1LW_FaLO34rhWBj_FPyzC0', eb:2, soc:'Posts (count not stated)', act:'Harbor', lead:'Patrick Forrett', note:'Coordinate with their agency, Boombox. Was missing from the July tracker. The full sponsor list says Gold; CGE and the shot list say Platinum (signed, $18K).', flag:true},
+{n:'JustFor.Fans', ct:'Jack Aaronson, Anthony Meade', em:'dominic@justfor.fans, jack@aaronsongroup.com, events@justfor.fans', ph:'1DL5E4DE8Wo9UxNZdIeznedY3fRm-LYSH', t:'platinum', id:'1q_BjGHOTjjzb7Av_na2ojXCJWRiVf_lm', eb:2, soc:'4', act:'Beach', lead:'Nick Ammaturo', note:'Platinum Standard. Count conflict: sheet = 2 eblasts, outreach promised 1. Still open.', flag:true},
+{n:'Tryst Hospitality / MISTR', ct:'Jonathan Grunin, Armando Macias', em:'jonathan@trysthospitality.com, armando@mistr.com', ph:'1U-PS6bFPb5dqA8RMz3Kuixy7jAYqRypx', t:'platinum', id:'1a7AmqcYD71xkAWtH9P1W69pNdtRMHZpw', eb:2, soc:'4 customized', bag:'350 aluminum water bottles', act:'Beach', lead:'Allan Baum, Nick Ammaturo', note:'Contract: eblasts after Sep 7.'},
+{n:'Visit Lauderdale', ct:'Roger Dudley, Attiyya Atkins', em:'RDUDLEY@broward.org, aatkins@broward.org', ph:'1BCDzQYRz7wRS7sppYY58TzPC-CMA6RtX', t:'platinum', id:'1g8_VjxtvT3PhJQUosA5JNnE8KvHWrRKP', eb:2, soc:'4', bag:'Gift-bag distribution to FIP homes', act:'Beach + Harbor + Closing', lead:'Allan Baum, Amy Kule', note:'Platinum Standard. 2 Adirondack chairs.'},
+{n:'Cuervo', ct:'Jaime Salas', em:'Jsalas@proximospirits.com', ph:'1CDxXPfqcS4Rc__q5rJrV4mUjAJQqa0BO', t:'gold', id:'1fW3GFed8xRZDv-FDAgqSUitn0zELloP7', eb:1, soc:'2 posts + 2 shout-outs', prod:'408 units Tradicional Blanco', lead:'Allan Baum', note:'Sheet says "Gold Standard," but it\'s product-only ($0 cash), and per Allan those don\'t always get an eblast. Confirm.', flag:true},
+{n:'High Noon (Gallo) / Lucky One Lemonade', ct:'Jorge Espinosa, Emma Bovberg', em:'Emma.Bovberg@ejgallo.com, jorge.espinosa@ejgallo.com', ph:'1LBTMmgVrScyk8AdQQE6H1uGINVCSfwdY', t:'gold', id:'10Ycudgq3dHywAhEUASuEnHyLd5innEI5', eb:1, soc:'2 posts + 2 shout-outs', prod:'High Noon 250×24pk · Lucky One 75×8pk · New Amsterdam 60×12btl', bag:'Promo items', lead:'Allan Baum', note:'One row covers New Amsterdam Vodka too.'},
+{n:'Identiti Financial', ct:'Matthew Erickson', em:'matthew.erickson@identiti-nyc.com', ph:'1cqjlZQss_--oRgoQE3HLcJmMzobsvXa0', t:'gold', id:'1RUZKX4S3KUtrvkBmgg6_N_jQJq3cwpSM', eb:1, soc:'2 posts + 2 shout-outs', act:'Beach Cabana + Harbor', lead:'Nick Ammaturo, Allan Baum', note:'Gold Standard. Copy received 7/10, draft built 9/15.'},
+{n:'H2O', ct:'Rob Maag', em:'rob@h2olimo.org', t:'gold', id:'1VrHZJ6zpPE4w3XZjjR4vKeujKFllND5p', eb:2, soc:'3', prod:'2 water-shuttle crossings', act:'Beach Cabana', lead:'Allan Baum, Nick Ammaturo', note:'Custom deal, above Gold standard. Draft built 8/8.'},
+{n:'Poxeidon', ct:'Vito Meijia, Andres Isaquita', em:'vito@thewerkroom.shop, andres@thewerkroom.shop', ph:'16dn8S3zZ4AOpjF5cYsFO14MrqN5IXe0w', aka:'Werkroom', t:'gold', id:'1Uzci9tYIVzSDjB2jhgfbehyXwnDICRbB', id2:'1Kc9haxos75Tvtveuf9LYvFz455xMAl4k', eb:1, soc:'1', bag:'300 swim shorts + 350 Werkroom coasters', act:'Pool Party', lead:'Allan Baum', note:'Same sponsor as Werkroom. Eblast promotes products + VIP discount code. Option A final 8/14.'},
+{n:'Swiss Air', ct:'Allison Joan O’Reilly', em:'allison-joan.oreilly@dlh.de', ph:'178u_-k2XJocnK6UHgIraixfFuTUDunBN', t:'gold', id:'1Eiy2SxARTvnmqrUc7sEAA8rRKE1JGQTk', eb:1, soc:'2', bag:'Beach towels', lead:'Allan Baum', note:'SWISS must approve all content.'},
+{n:'Boardwalk Etiquette', ct:'Justin B', em:'jborgstahl@gmail.com', ph:'1hNIdjcFBoq_okwKRDq--1ZmmQoZ5tkfB', t:'gold', id:'1XNznMEimyhEaKhKQP24Nty7CG3MnGH-6', eb:0, soc:'1 post + 1 shout-out', bag:'350 co-branded t-shirts', lead:'Allan Baum', note:'Product-only ($0 cash). CGE has the contract wording; the full list just says "Gold Standard."'},
+{n:'Pines Harbor Realty', ct:'Alex Keomurjian', em:'alex@pinesharbor.com', ph:'1KXMr2qQOMmX8isUbA-BW4uOQWdHp95ra', t:'gold', id:'1fbIeaayTS8qnYIX16KfdGpnshzz4220o', eb:0, soc:'"Silver Package"', act:'Beach Cabana', lead:'Allan Baum', note:'No eblast (Allan, 9/28). CGE says "Silver Package"; the full list says "Gold Standard." Confirm the social.', flag:true},
+{n:'Jeff Wan', ct:'Jeff Wan', em:'jeff@jeffwan.com', ph:'1OA6yh7DHcml-OA6qycXn-v_VE23kEPJI', t:'gold', id:'1I_aqoNmhf594MxYsx9i_VIEvfov9stjW', eb:0, bag:'Card cases + passport cases (350)', lead:'Nick Ammaturo', note:'No eblast (Allan, 9/28).'},
+{n:'Threadcount', ct:'Alex Zimmerman', em:'alex.zimmerman@coppercane.com', ph:'1vxuxOdSrSDWL3MQvkict2Qg4BDSrx7fq', t:'gold', id:'1g7YS9VU9cGiB72nG2dJkdt05GUiK8iVL', eb:0, lead:'Patrick Forrett', note:'Threadcount Wines (Elouan). No obligations on sheet.'},
 {n:'MPM Studio / De.bauchere', aka:'MPM Studio, de.bachere', t:'gold', id:'1XKsl5oeunP_HUgeVkc1snX8FGxVF658v', id2:'1A_nLejjbjeQJeii3bPMtKf7aSe-genUB', eb:0, bag:'VIP gift bag product', act:'Branded inflatables', lead:'Nick Ammaturo', note:'One Gold agreement (in-kind, ~$20K). It promises recognition, a journal ad and installations, but no eblast or social.'},
-{n:'LAFCO New York', ph:'1EbA04zSVTDSTnsvUA9jm5HFu7kZulV2u', t:'silver', id:'1O9jBoETOOtgT6rbZjYvbO7jF93dBI-Ea', eb:0, bag:'Sachets + fragrance samples', act:'Harbor', lead:'Allan Baum', note:'Bonus eblast, not contracted. Built by Scott, approved 9/16, didn\'t go out 9/22.', flag:true},
-{n:'ViiV Healthcare', ph:'1zulivaWZTPT3pYnMIk03Vag26hGwAMBm', t:'silver', id:'1cFAsKpytVsi0ALvkmQ-fgwrx11tMlEip', eb:0, bag:'Inclusion in VIP bags', act:'Harbor', lead:'Patrick Forrett', note:'Tier corrected to Silver (was Gold here).'},
-{n:'Chris Turk', t:'silver', id:'1_b6z9cqDHBJz8162bfj4JleFCPcsCM6j', eb:0, act:'Closing + Harbor', lead:'Allan Baum, Nick Ammaturo'},
-{n:'Bekin', ph:'18UOwl4mJKKLmq3hm1zKE-NE3D3Y7GQiQ', t:'silver', id:'1a1MzqRmsU-MI-XUdG_7yDSsFWmP0xXrN', eb:0, lead:'Allan Baum, Nick Ammaturo'},
+{n:'LAFCO New York', ct:'Jon Bresler', em:'jonb@lafco.com', ph:'1EbA04zSVTDSTnsvUA9jm5HFu7kZulV2u', t:'silver', id:'1O9jBoETOOtgT6rbZjYvbO7jF93dBI-Ea', eb:0, bag:'Sachets + fragrance samples', act:'Harbor', lead:'Allan Baum', note:'Bonus eblast, not contracted. Built by Scott, approved 9/16, didn\'t go out 9/22.', flag:true},
+{n:'ViiV Healthcare', ct:'George Maquieira', em:'gmaquieira@spimarketing.com', ph:'1zulivaWZTPT3pYnMIk03Vag26hGwAMBm', t:'silver', id:'1cFAsKpytVsi0ALvkmQ-fgwrx11tMlEip', eb:0, bag:'Inclusion in VIP bags', act:'Harbor', lead:'Patrick Forrett', note:'Tier corrected to Silver (was Gold here).'},
+{n:'Chris Turk', ct:'Chris Turk', em:'christurkswim@gmail.com', t:'silver', id:'1_b6z9cqDHBJz8162bfj4JleFCPcsCM6j', eb:0, act:'Closing + Harbor', lead:'Allan Baum, Nick Ammaturo'},
+{n:'Bekin', ct:'Josh Dawson', em:'josh@bekin.io', ph:'18UOwl4mJKKLmq3hm1zKE-NE3D3Y7GQiQ', t:'silver', id:'1a1MzqRmsU-MI-XUdG_7yDSsFWmP0xXrN', eb:0, lead:'Allan Baum, Nick Ammaturo'},
 {n:'Long Island Cannabis Club', ph:'1PlATYSR7zGuVzHgM5FZTRinBspj9o1Ua', t:'silver', id:'1ptGvJpZzJnC6m2Bg7L2F_3WGwTT-n_Gt', eb:0, lead:'Nick Ammaturo'},
-{n:'PUMP!', ph:'1uVfnzEOSTt3qo4jrFdHYfKmXqi5du6OK', t:'silver', id:'1Lt3EqKrjg8ZLeGafs0tABovxNm6DiYkz', eb:0, bag:'350 discount cards + 200 fans + 50 bandanas', act:'Pool Party (LORE)', lead:'Bruce Robert Harris', note:'Presenting sponsor of LORE.'},
-{n:'Vinnie Petrarca Fire Island Real Estate', ph:'1KZB1XUXz-IbzoTC1viKVaBdBcnAsk8s1', t:'silver', id:'14re68NevJjlTiVkeKnW18t90-pGU90Rm', eb:0, bag:'Promo item', act:'Randy Wilson cabana', lead:'Allan Baum'},
-{n:'HOWL', t:'silver', id:'1zmMYDX7Y22Flkq3o8NTZaP2uFCXGjhFu', eb:0, bag:'Promo item + product (350)', lead:'Nick Ammaturo'},
+{n:'PUMP!', ct:'María Fernanda Tous', em:'pr@wearpump.com', ph:'1uVfnzEOSTt3qo4jrFdHYfKmXqi5du6OK', t:'silver', id:'1Lt3EqKrjg8ZLeGafs0tABovxNm6DiYkz', eb:0, bag:'350 discount cards + 200 fans + 50 bandanas', act:'Pool Party (LORE)', lead:'Bruce Robert Harris', note:'Presenting sponsor of LORE.'},
+{n:'Vinnie Petrarca Fire Island Real Estate', ct:'Vinnie Petrarca', em:'vinnie@vpfireislandpines.com', ph:'1KZB1XUXz-IbzoTC1viKVaBdBcnAsk8s1', t:'silver', id:'14re68NevJjlTiVkeKnW18t90-pGU90Rm', eb:0, bag:'Promo item', act:'Randy Wilson cabana', lead:'Allan Baum'},
+{n:'HOWL', ct:'David Song', em:'david@song.dance', t:'silver', id:'1zmMYDX7Y22Flkq3o8NTZaP2uFCXGjhFu', eb:0, bag:'Promo item + product (350)', lead:'Nick Ammaturo'},
 {n:'The Owen-Micchane Family', t:'silver', id:'10BZLSzZYBUns8sG_vwWlSZIRP82sFTC4', eb:0, lead:'Nick Ammaturo', note:'Halftime Show Community Sponsor. Owed a commemorative prop after the event.'},
-{n:'AHF Pharmacy', t:'silver', id:'1OWXm3g775Yoh66V7yvaSfSeXUai3g5Pp', eb:0, act:'Harbor', lead:'Patrick Forrett', note:''},
-{n:"Edy's Grocer", t:'silver', id:'1wGRzqH85fntltZtoXyf57wCNdjzIq-OK', eb:0, prod:'$5,000 in-kind product', lead:'Nick Ammaturo', note:''},
-{n:'Pines Pantry', t:'silver', id:'14PCzAXp1OV1e6Iqj0SWDzA3FtXzC8F-L', eb:0, lead:'Allan Baum', note:''},
-{n:'Atlantis', t:'silver', id:'1x4np-9jt-f4_RB8REXX-hP8uk2yo3obP', eb:0, lead:'Allan Baum', note:'CGE says DECLINED, but Chris sent their sponsor letter 7/5 and the full list says Silver. The July tracker had an eblast after Sep 8. Confirm.', flag:true},
-{n:'Brownie', t:'silver', id:'1AltkEpnUZ9EpyfZxJdk1Qds94U4Djcbk', eb:0, note:'The full list says Silver (2 rows); CGE says DECLINED. No 2026 email found. Confirm.', flag:true},
-{n:'Quatela Chimeri PLLC', t:'silver', id:null, eb:0, lead:'Nick Ammaturo', note:'No folder. Logos are loose in the Silver folder.'},
-{n:'GMHC', t:'bronze', id:'1Z7aaR372gjgizYHieNcNZaPMEmDjCkt7', eb:0, act:'Harbor', lead:'Nick Ammaturo'},
-{n:'Guesthouse Lost River', t:'bronze', id:'1yrOeW-G-4HSfemc_WhakwQdIG2_-8oza', eb:0, bag:'Promo items', lead:'Allan Baum'},
-{n:'Sip n Twirl', t:'bronze', id:'1Vz3XtpK-WXyFRRV1OI8JyG2hp-0_ZsJ7', eb:0, bag:'350 promo items', lead:'Allan Baum'},
-{n:'Mark Allen', t:'bronze', id:'1buqWlOZtCRZqlLYpT0yJ5oCRVabr1xvH', eb:0, bag:'Promo item', lead:'Allan Baum'},
-{n:'Curious Elixirs', ph:'1s4xR8994kMr_ueaDynAxyJ6g2gRCs_X3', t:'bronze', id:'1xWXq4UnCZGMXhsQkGEFvqmCg1C7gevG9', eb:0, prod:'No.1 + No.4 minis, No.6 12oz', act:'Non-alc cabana', lead:'Allan Baum'},
-{n:'The Dunes', t:'bronze', id:'1HgBnkxgJGH5cGUPDkih43FB3UUYpScSS', eb:0, bag:'300 promo items', lead:'Allan Baum, Bruce Robert Harris'},
-{n:'Li-Lac Chocolates', t:'bronze', id:'1f3sPB3ARmgBTKT5QhEokpqdwObhrArme', eb:0, bag:'350 × $20 gift cards', lead:'Allan Baum', note:'Logo on Beach Party video scroll.'},
-{n:'Pines Club', t:'bronze', id:'164TlekZQ2OJu_pGf70JT8_SJsesq7GEw', eb:0, lead:'Allan Baum'},
-{n:'BAWDY', t:'bronze', id:'1W-xyFIEZBe-2l18XxfegIWUcFuUXWVA6', eb:0, bag:'1000 butt masks', lead:'Allan Baum', note:''},
-{n:'Boys of Froot Falls', t:'bronze', id:null, eb:0, prod:'Rental week (auction)', lead:'Allan Baum', note:'Auction only. No folder; logo is loose in the Bronze folder.'},
+{n:'AHF Pharmacy', ct:'Eddie Dillard', em:'edwin.dillard@ahf.org', t:'silver', id:'1OWXm3g775Yoh66V7yvaSfSeXUai3g5Pp', eb:0, act:'Harbor', lead:'Patrick Forrett', note:''},
+{n:'Edy\'s Grocer', ct:'', em:'edysgrocer@gmail.com', t:'silver', id:'1wGRzqH85fntltZtoXyf57wCNdjzIq-OK', eb:0, prod:'$5,000 in-kind product', lead:'Nick Ammaturo', note:''},
+{n:'Pines Pantry', ct:'Eric Schrader, Emma Schrader', em:'eric@pinespantry.com, emma@pinespantry.com', t:'silver', id:'14PCzAXp1OV1e6Iqj0SWDzA3FtXzC8F-L', eb:0, lead:'Allan Baum', note:''},
+{n:'Atlantis', ct:'Rich Campbell', em:'rich@atlantisevents.com', t:'silver', id:'1x4np-9jt-f4_RB8REXX-hP8uk2yo3obP', eb:0, lead:'Allan Baum', note:'CGE says DECLINED, but Chris sent their sponsor letter 7/5 and the full list says Silver. The July tracker had an eblast after Sep 8. Confirm.', flag:true},
+{n:'Brownie', ct:'Jeremy Brownie', em:'jeremy@brownieny.com', t:'silver', id:'1AltkEpnUZ9EpyfZxJdk1Qds94U4Djcbk', eb:0, note:'The full list says Silver (2 rows); CGE says DECLINED. No 2026 email found. Confirm.', flag:true},
+{n:'Quatela Chimeri PLLC', ct:'Joseph Quatela', em:'jaquatela@gmail.com', t:'silver', id:null, eb:0, lead:'Nick Ammaturo', note:'No folder. Logos are loose in the Silver folder.'},
+{n:'GMHC', ct:'Jose Mateo', em:'josem@gmhc.org', t:'bronze', id:'1Z7aaR372gjgizYHieNcNZaPMEmDjCkt7', eb:0, act:'Harbor', lead:'Nick Ammaturo'},
+{n:'Guesthouse Lost River', ct:'Jesse & Gary Halpern-Robinson', em:'info@guesthouselostriver.com', t:'bronze', id:'1yrOeW-G-4HSfemc_WhakwQdIG2_-8oza', eb:0, bag:'Promo items', lead:'Allan Baum'},
+{n:'Sip n Twirl', ct:'PJ McAteer', em:'mack696@aol.com', t:'bronze', id:'1Vz3XtpK-WXyFRRV1OI8JyG2hp-0_ZsJ7', eb:0, bag:'350 promo items', lead:'Allan Baum'},
+{n:'Mark Allen', ct:'Mark Pasetsky', em:'mark@markallenco.com', t:'bronze', id:'1buqWlOZtCRZqlLYpT0yJ5oCRVabr1xvH', eb:0, bag:'Promo item', lead:'Allan Baum'},
+{n:'Curious Elixirs', ct:'Rachel Reynolds, Noemi Flores', em:'rachel@goodbusiness.works, noemi.flores@goodbusiness.works', ph:'1s4xR8994kMr_ueaDynAxyJ6g2gRCs_X3', t:'bronze', id:'1xWXq4UnCZGMXhsQkGEFvqmCg1C7gevG9', eb:0, prod:'No.1 + No.4 minis, No.6 12oz', act:'Non-alc cabana', lead:'Allan Baum'},
+{n:'The Dunes', ct:'Nick Aleck', em:'nick@dunesresort.com', t:'bronze', id:'1HgBnkxgJGH5cGUPDkih43FB3UUYpScSS', eb:0, bag:'300 promo items', lead:'Allan Baum, Bruce Robert Harris'},
+{n:'Li-Lac Chocolates', ct:'Chris Taylor, David', em:'david@li-lacchocolates.com, chris@li-lacchocolates.com', t:'bronze', id:'1f3sPB3ARmgBTKT5QhEokpqdwObhrArme', eb:0, bag:'350 × $20 gift cards', lead:'Allan Baum', note:'Logo on Beach Party video scroll.'},
+{n:'Pines Club', ct:'Dan Spinello', em:'danspinello@gmail.com', t:'bronze', id:'164TlekZQ2OJu_pGf70JT8_SJsesq7GEw', eb:0, lead:'Allan Baum'},
+{n:'BAWDY', ct:'Sylwia Wiesenberg', em:'sylwia@bawdybeauty.com', t:'bronze', id:'1W-xyFIEZBe-2l18XxfegIWUcFuUXWVA6', eb:0, bag:'1000 butt masks', lead:'Allan Baum', note:''},
+{n:'Boys of Froot Falls', ct:'Kevin Cuenca', em:'kevincuenca@icloud.com', t:'bronze', id:null, eb:0, prod:'Rental week (auction)', lead:'Allan Baum', note:'Auction only. No folder; logo is loose in the Bronze folder.'},
 {n:'Five Boroughs Brewing', t:'bronze', id:null, eb:0, lead:'Patrick Forrett', note:'No folder; logo is loose in the Bronze folder.'},
-{n:'Once Upon a Coconut', t:'bronze', id:null, eb:0, bag:'Products TBD', lead:'Allan Baum', note:'No 2026 folder (2025 folders only).'},
-{n:'Todd Snyder', t:'bronze', id:'1oHmFtAPj2FkAmveTgPFG-u9her6KKOCH', eb:0, lead:'Allan Baum, Bruce Robert Harris', note:''},
-{n:'Red Bull', ph:'1nhD20pKi9xNS0Igsed6wQf00FU3pDnJO', t:'vipbag', id:'1792YbwaATjDCbSAKyLVamezWRVoRUw1V', eb:0, prod:'50 assorted cases', lead:'Allan Baum', note:'July tracker had event-day/post-event posts with attendees (per Allan), but the sheet doesn\'t. Confirm.', flag:true},
+{n:'Once Upon a Coconut', ct:'Ray Burbige', em:'ray@onceuponacoconut.com, marc@onceuponacoconut.com, blaise@onceuponacoconut.com', t:'bronze', id:null, eb:0, bag:'Products TBD', lead:'Allan Baum', note:'No 2026 folder (2025 folders only).'},
+{n:'Todd Snyder', ct:'Philip Gutman', em:'phillip.gutman@toddsnyder.com', t:'bronze', id:'1oHmFtAPj2FkAmveTgPFG-u9her6KKOCH', eb:0, lead:'Allan Baum, Bruce Robert Harris', note:''},
+{n:'Red Bull', ct:'Andrew Niebling, Alex Tyson', em:'Andrew.Niebling@redbull.com, Alex.Tyson@redbull.com', ph:'1nhD20pKi9xNS0Igsed6wQf00FU3pDnJO', t:'vipbag', id:'1792YbwaATjDCbSAKyLVamezWRVoRUw1V', eb:0, prod:'50 assorted cases', lead:'Allan Baum', note:'July tracker had event-day/post-event posts with attendees (per Allan), but the sheet doesn\'t. Confirm.', flag:true},
 {n:'Hello Bubble', t:'vipbag', id:null, eb:0, bag:'Gift bag items', note:'VIP bag + auction donor (full list, 7/31 gift bag list). No Drive folder.'},
-{n:'Smood Beauty', t:'vipbag', id:null, eb:0, bag:'350 Gel-Cream + promo cards', lead:'Allan Baum', note:'No Drive folder.'},
+{n:'Smood Beauty', ct:'Andrew', em:'pr@smoodbeauty.com', t:'vipbag', id:null, eb:0, bag:'350 Gel-Cream + promo cards', lead:'Allan Baum', note:'No Drive folder.'},
 // Not on either 2026 sheet and no 2026 email; kept only so their folders stay reachable.
 {n:'LUXY Ride', t:'silver', id:'1cOTuv1R3mvXDT-z-DFg1UwCQsgntBqBi', eb:0, old:'Not on either 2026 sheet'},
 {n:'Davis Park Harbor Store', ph:'1t9eH6Lv9ev633pwFf4-2RS8FJMcqawfm', t:'bronze', id:'1nPEVMgioVkv5XPY8mg652iQGPP5L-x5S', eb:0, old:'Not on either 2026 sheet'}
@@ -276,25 +282,15 @@ function driveUrl(id) { return 'https://drive.google.com/drive/folders/'+id; }
 var MAIL_FROM = 'mario.guardado@pinesparty.com';
 var MAIL_CC = 'tdejsiriudom@pinesparty.com,mario.guardado1030@gmail.com';
 var LINK_TITLE = 'Pines Party Eblast + Social Media Scheduling and Resources';
-function sponsorEmailHTML(name) {
-var n = esc(name);
-return '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#222">'
-+ '<p>Hi ' + n + ' team,</p>'
-+ '<p>Thank you for supporting Pines Party 2026. We\'ve set up a page with everything you need for your post-event eblast and Instagram story:</p>'
-+ '<p><a href="' + sponsorLink(name) + '"><b>' + LINK_TITLE + '</b></a></p>'
-+ '<p>On your page you can:</p>'
-+ '<ol><li>Open the writing kit (guide, template and example) and write your eblast copy</li>'
-+ '<li>Upload your logo, photos and copy to your folder</li>'
-+ '<li>Request up to 4 eblast send dates, in order of preference</li>'
-+ '<li>Request up to 2 Instagram story dates</li></ol>'
-+ '<p>We\'ll confirm your dates by email once they\'re approved. We\'ll also add your event photos to your folder, so you can find them from the same page.</p>'
-+ '<p>Thanks again for your support, and please reach out with any questions.</p>'
-+ '<p>Best,<br>Mario</p></div>';
+function greetName(sp) {
+var first = (sp.ct || '').split(/,|;|&|\//).map(function(x){ return x.trim().split(/\s+/)[0]; }).filter(Boolean);
+if (!first.length) return sp.n + ' team';
+return first.length === 1 ? first[0] : first.slice(0,-1).join(', ') + ' and ' + first[first.length-1];
 }
-function sponsorEmailText(name) {
-return 'Hi ' + name + ' team,\n\n'
+function sponsorEmailText(sp) {
+return 'Hi ' + greetName(sp) + ',\n\n'
 + 'Thank you for supporting Pines Party 2026. We\'ve set up a page with everything you need for your post-event eblast and Instagram story:\n\n'
-+ LINK_TITLE + ': ' + sponsorLink(name) + '\n\n'
++ LINK_TITLE + ':\n' + sponsorLink(sp.n) + '\n\n'
 + 'On your page you can:\n'
 + '1. Open the writing kit (guide, template and example) and write your eblast copy\n'
 + '2. Upload your logo, photos and copy to your folder\n'
@@ -304,31 +300,16 @@ return 'Hi ' + name + ' team,\n\n'
 + 'Thanks again for your support, and please reach out with any questions.\n\n'
 + 'Best,\nMario';
 }
-// Gmail compose (pinesparty) with subject + CC. The body can't carry a
-// titled link via URL, so the button copies the formatted email to the
-// clipboard first; paste it into the body (Cmd+V).
-function sponsorEmailUrl(name) {
+// Opens a Gmail draft on the pinesparty account with To, CC, Subject and Body filled in.
+// Gmail saves it to Drafts automatically. Nothing sends until you hit Send.
+function sponsorEmailUrl(sp) {
 var su = 'Pines Party 2026: Your Sponsor Eblast Kit';
 return 'https://mail.google.com/mail/?authuser=' + encodeURIComponent(MAIL_FROM) + '&view=cm&fs=1'
-+ '&cc=' + encodeURIComponent(MAIL_CC) + '&su=' + encodeURIComponent(su);
++ '&to=' + encodeURIComponent((sp.em || '').replace(/\s+/g,''))
++ '&cc=' + encodeURIComponent(MAIL_CC) + '&su=' + encodeURIComponent(su)
++ '&body=' + encodeURIComponent(sponsorEmailText(sp));
 }
-function draftEmail(btn, i) {
-var name = SPONSORS[i].n, html = sponsorEmailHTML(name), text = sponsorEmailText(name);
-try {
-if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
-navigator.clipboard.write([new ClipboardItem({
-'text/html': new Blob([html], {type: 'text/html'}),
-'text/plain': new Blob([text], {type: 'text/plain'})
-})]);
-} else if (navigator.clipboard) {
-navigator.clipboard.writeText(text);
-}
-} catch (e) {}
-window.open(sponsorEmailUrl(name), '_blank');
-var orig = btn.textContent;
-btn.textContent = 'Copied: paste in Gmail';
-setTimeout(function(){ btn.textContent = orig; }, 4000);
-}
+function draftEmail(btn, i) { window.open(sponsorEmailUrl(SPONSORS[i]), '_blank'); }
 
 function sponsorLink(name) {
 return window.location.origin + window.location.pathname + '?s=' + slug(name);
@@ -571,74 +552,89 @@ btn.innerHTML = type === 'story' ? 'Request Story Slot(s) &rarr;' : 'Request Ebl
 });
 }
 
-// ---------- Team view: obligations tracker ----------
+// ---------- Team view: obligations tracker + calendar ----------
 var OB = { q:'', f:'all' };
-var OB_FILTERS = [['all','All'],['owed','Eblast owed'],['flag','Needs check'],['platinum','Platinum'],['gold','Gold'],['silver','Silver'],['bronze','Bronze'],['vipbag','VIP Bag'],['nofolder','No folder'],['old','Not 2026']];
+var OB_FILTERS = [['all','All'],['owed','Eblast owed'],['req','Has requests'],['flag','Needs check'],['platinum','Platinum'],['gold','Gold'],['silver','Silver'],['bronze','Bronze'],['vipbag','VIP Bag'],['nofolder','No folder'],['old','Not 2026']];
+var TODAY = ymd(new Date());
 
-// Live eblast dates per sponsor from the calendar backend.
-function ebDates(name) {
-var b = [], r = [];
-(CAL.eblast || []).forEach(function(row){
+// Live calendar rows for one sponsor and type ('eblast' | 'story').
+function calFor(type, name) {
+var out = {booked:[], req:[]};
+(CAL[type] || []).forEach(function(row){
 if (!hasSponsor(row, name) && row.sponsors !== name) return;
-if (isLocked(row.status) && row.status !== 'blocked') b.push(row.date); else if (!isLocked(row.status)) r.push(row.date);
+if (row.status === 'blocked') return;
+(isLocked(row.status) ? out.booked : out.req).push(row);
 });
-return {b:b.sort(), r:r.sort()};
+out.booked.sort(function(a,b){ return a.date < b.date ? -1 : 1; });
+out.req.sort(function(a,b){ return a.date < b.date ? -1 : 1; });
+return out;
 }
 function shortDate(s) { var p = s.split('-'); return (+p[1])+'/'+(+p[2]); }
-
-function obStatus(s) {
-if (s.old) return '<span class="dt dt-x">'+esc(s.old)+'</span>';
-if (!CAL_OK) return s.eb ? '<span class="dash">loading&hellip;</span>' : '<span class="dash">&mdash;</span>';
-var d = ebDates(s.n), h = '';
-d.b.forEach(function(x){ h += '<span class="dt dt-b">Booked '+shortDate(x)+'</span>'; });
-d.r.forEach(function(x){ h += '<span class="dt dt-r">Req '+shortDate(x)+'</span>'; });
-if (s.eb) {
-var left = s.eb - d.b.length;
-if (left > 0) h += '<span class="dt dt-n">'+left+' to book</span>';
-} else if (d.b.length || d.r.length) {
-h += '<span class="dt dt-n">Not owed: check</span>';
+function rankOf(row, name) {
+var hit = (row.notes||'').split(';').map(function(x){ return x.trim().match(/^(.*) #(\d+)$/); }).filter(function(m){ return m && m[1] === name; })[0];
+return hit ? '#'+hit[2]+' ' : '';
 }
+
+// Status cell: booked dates (Scheduled, then Sent/Posted once the date passes) and
+// requested dates with inline approve. Click a booked date twice to release it.
+function statusCell(type, s, owed) {
+if (s.old) return '<span class="dt dt-x">'+esc(s.old)+'</span>';
+if (!CAL_OK) return '<span class="dash">loading&hellip;</span>';
+var c = calFor(type, s.n), h = '', done = type === 'eblast' ? 'Sent' : 'Posted';
+c.booked.forEach(function(r){
+var past = r.date < TODAY;
+h += '<button class="dt '+(past?'dt-x':'dt-b')+'" title="Click twice to release" data-t="'+type+'" data-d="'+r.date+'" onclick="obAct(\'release\',this)">'+(past?done:'Scheduled')+' '+shortDate(r.date)+'</button>';
+});
+c.req.forEach(function(r){
+h += '<button class="dt dt-r" title="Click to approve this date" data-t="'+type+'" data-d="'+r.date+'" data-s="'+esc(s.n)+'" onclick="obAct(\'approve\',this)">'+rankOf(r, s.n)+'Req '+shortDate(r.date)+' &#10003;</button>';
+});
+if (owed) { var left = owed - c.booked.length; if (left > 0) h += '<span class="dt dt-n">'+left+' to book</span>'; }
+else if (type === 'eblast' && (c.booked.length || c.req.length)) h += '<span class="dt dt-n">Not owed: check</span>';
 return h || '<span class="dash">&mdash;</span>';
 }
+
+function hasReq(s) { return CAL_OK && (calFor('eblast', s.n).req.length || calFor('story', s.n).req.length); }
 
 function obMatch(s) {
 var f = OB.f;
 if (f === 'old') { if (!s.old) return false; }
 else if (s.old) return false;
 if (f === 'owed' && !s.eb) return false;
+if (f === 'req' && !hasReq(s)) return false;
 if (f === 'flag' && !s.flag) return false;
 if (f === 'nofolder' && s.id) return false;
 if (TIER_LABEL[f] && s.t !== f) return false;
 if (OB.q) {
-var hay = [s.n, s.aka, s.lead, s.prod, s.bag, s.act, s.note, s.soc].join(' ').toLowerCase();
+var hay = [s.n, s.aka, s.ct, s.em, s.lead, s.note, s.soc].join(' ').toLowerCase();
 if (hay.indexOf(OB.q) === -1) return false;
 }
 return true;
 }
 
-function cell(v) { return v ? esc(v) : '<span class="dash">&mdash;</span>'; }
+function contactCell(s) {
+if (!s.em) return '<span class="dash">&mdash;</span>';
+return (s.ct ? '<div>'+esc(s.ct)+'</div>' : '')
++ s.em.split(',').map(function(e){ e = e.trim(); return '<a class="em" href="mailto:'+esc(e)+'">'+esc(e)+'</a>'; }).join('');
+}
 
 function obRows() {
 var rows = SPONSORS.map(function(s, i){ return {s:s, i:i}; }).filter(function(o){ return obMatch(o.s); });
 if (!rows.length) return '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:24px">No sponsors match.</td></tr>';
 return rows.map(function(o){
-var s = o.s, i = o.i, link = sponsorLink(s.n);
-var acts = '<button class="mini mini-p" onclick="copyDirect(this,\''+link.replace(/'/g, "\\'")+'\')">Link</button>'
-+ '<button class="mini mini-p" style="background:#1e7a3a" onclick="copyDirect(this,\''+photoLink(s.n).replace(/'/g, "\\'")+'\')">Photos</button>'
-+ (s.eb ? '<button class="mini mini-p" onclick="draftEmail(this,'+i+')">Email</button>' : '')
-+ '<a class="mini mini-s" href="'+link+'" target="_blank">View</a>'
-+ (s.id ? '<a class="mini mini-s" href="'+driveUrl(s.id)+'" target="_blank">Drive</a>' : '<span class="mini mini-s off">No folder</span>')
-+ (s.id2 ? '<a class="mini mini-s" href="'+driveUrl(s.id2)+'" target="_blank" title="Second folder">Drive 2</a>' : '');
+var s = o.s, i = o.i;
+var acts = (s.eb && s.em ? '<button class="mini mini-p" onclick="draftEmail(this,'+i+')">Draft email</button>' : '')
++ (s.id ? '<a class="mini mini-s" href="'+driveUrl(s.id)+'" target="_blank">Asset Folder</a>' : '<span class="mini mini-s off">No folder</span>')
++ '<button class="mini mini-s" onclick="copyText(this, sponsorLink(SPONSORS['+i+'].n))">Copy link</button>';
 return '<tr class="'+(s.flag?'flag ':'')+(s.old?'old':'')+'">'
-+'<td><div class="sp-name">'+esc(s.n)+'</div>'+(s.aka?'<div class="sp-lead">aka '+esc(s.aka)+'</div>':'')+(s.lead?'<div class="sp-lead">'+esc(s.lead)+'</div>':'')+'</td>'
++'<td><div class="sp-name">'+esc(s.n)+'</div>'+(s.aka?'<div class="sp-lead">aka '+esc(s.aka)+'</div>':'')+(s.lead?'<div class="sp-lead">PP lead: '+esc(s.lead)+'</div>':'')+'</td>'
 +'<td><span class="tier tier-'+s.t+'" style="margin-left:0">'+TIER_LABEL[s.t]+'</span></td>'
++'<td class="ct">'+contactCell(s)+'</td>'
 +'<td><span class="ob-n'+(s.eb?'':' zero')+'">'+(s.eb||'0')+'</span></td>'
-+'<td>'+obStatus(s)+'</td>'
-+'<td>'+cell(s.soc)+'</td>'
-+'<td>'+cell([s.prod, s.bag].filter(Boolean).join(' · '))+'</td>'
-+'<td>'+cell(s.act)+'</td>'
-+'<td><div class="note'+(s.flag?' fl':'')+'">'+(s.note?esc(s.note):'<span class="dash">&mdash;</span>')+'</div></td>'
-+'<td class="acts">'+acts+'</td></tr>';
++'<td>'+statusCell('eblast', s, s.eb)+'</td>'
++'<td>'+(s.soc ? esc(s.soc) : '<span class="dash">&mdash;</span>')+'</td>'
++'<td>'+statusCell('story', s, 0)+'</td>'
++'<td class="acts">'+acts+'</td>'
++'<td><div class="note'+(s.flag?' fl':'')+'">'+(s.note?esc(s.note):'<span class="dash">&mdash;</span>')+'</div></td></tr>';
 }).join('');
 }
 
@@ -646,17 +642,20 @@ function obStats() {
 var live = SPONSORS.filter(function(s){ return !s.old; });
 var owedS = live.filter(function(s){ return s.eb; });
 var owed = owedS.reduce(function(a,s){ return a + s.eb; }, 0);
-var booked = 0, req = 0;
-if (CAL_OK) owedS.forEach(function(s){ var d = ebDates(s.n); booked += Math.min(d.b.length, s.eb); if (d.r.length) req++; });
-var flags = live.filter(function(s){ return s.flag; }).length;
-var nof = live.filter(function(s){ return !s.id; }).length;
+var booked = 0, sent = 0, reqS = 0;
+if (CAL_OK) {
+owedS.forEach(function(s){ var b = calFor('eblast', s.n).booked.slice(0, s.eb); booked += b.length; sent += b.filter(function(r){ return r.date < TODAY; }).length; });
+live.forEach(function(s){ if (hasReq(s)) reqS++; });
+}
 function st(v, l, c) { return '<div class="stat '+(c||'')+'"><b>'+v+'</b><span>'+l+'</span></div>'; }
-return st(live.length, 'Sponsors (2026)') + st(owedS.length, 'Owe an eblast', 'pink') + st(owed, 'Eblasts owed', 'pink')
-+ st(CAL_OK ? booked : '&hellip;', 'Booked', 'ok') + st(CAL_OK ? (owed - booked) : '&hellip;', 'Still to book', 'warn')
-+ st(CAL_OK ? req : '&hellip;', 'Sponsors w/ requests') + st(flags, 'Needs check', 'warn') + st(nof, 'No Drive folder');
+function w(v) { return CAL_OK ? v : '&hellip;'; }
+return st(live.length, 'Sponsors (2026)') + st(owed, 'Eblasts owed', 'pink') + st(w(booked - sent), 'Scheduled', 'ok')
++ st(w(sent), 'Sent') + st(w(owed - booked), 'Still to book', 'warn') + st(w(reqS), 'Sponsors w/ requests', 'pink')
++ st(live.filter(function(s){ return s.flag; }).length, 'Needs check', 'warn');
 }
 
 function drawOb() {
+if (!document.getElementById('obBody')) return;
 document.getElementById('obStats').innerHTML = obStats();
 document.getElementById('obChips').innerHTML = OB_FILTERS.map(function(f){
 return '<button class="fchip'+(OB.f===f[0]?' on':'')+'" onclick="setOb(\''+f[0]+'\')">'+f[1]+'</button>';
@@ -666,34 +665,62 @@ document.getElementById('obBody').innerHTML = obRows();
 function setOb(f) { OB.f = f; drawOb(); }
 function searchOb(v) { OB.q = v.trim().toLowerCase(); drawOb(); }
 
+// Approve / release straight from the table.
+function obAct(action, btn) {
+if (!ADMIN.key) { setMsg('ob', 'bad', 'Enter the admin key above first.'); document.getElementById('obKey').focus(); return; }
+if (action === 'release' && btn.getAttribute('data-arm') !== '1') {
+btn.setAttribute('data-arm','1'); btn.textContent = 'Click again to release'; return;
+}
+var t = btn.getAttribute('data-t'), d = btn.getAttribute('data-d'), sp = btn.getAttribute('data-s') || '';
+btn.disabled = true; btn.textContent = 'Saving…';
+post({action:action, type:t, date:d, sponsor:sp, key:ADMIN.key})
+.then(function(){ return confirmWrite(function(){
+var r = rowFor(t, d);
+return action === 'approve' ? (r && isLocked(r.status) && r.sponsors === sp) : !r;
+}); })
+.then(function(ok){
+drawOb(); if (document.getElementById('tracker')) drawTracker();
+if (!ok) throw new Error('Not saved. Check the admin key and try again.');
+setMsg('ob', 'ok', (action==='approve' ? 'Approved '+esc(sp)+' '+(t==='story'?'story':'eblast')+' for ' : 'Released ') + fmtDate(d) + '.');
+})
+.catch(function(e){ drawOb(); setMsg('ob', 'bad', esc(e.message)); });
+}
+
 function obligationsHTML() {
-return '<div class="card"><div class="card-title">Sponsor Obligations</div>'
-+'<div class="ob-sub"><b>Owed</b> comes from the CGE PP Sponsors 2026 sheet (Chris: most current; written agreements only). The roster was cross-checked against the full 2026 sponsor list, the shot list and email on 10/3. Silver, Bronze and product-only sponsors owe no eblast unless their agreement says so (Allan + Tim, 9/28). <b>Status</b> is live from the date calendar. <b>Email</b> appears only for sponsors owed an eblast. Every sponsor keeps a <b>Drive</b> folder for event photos.</div>'
+return '<div class="card"><div class="card-title">Sponsor Obligations &amp; Calendar</div>'
++'<div class="ob-sub"><b>Owed</b> comes from the CGE PP Sponsors 2026 sheet (written agreements only). <b>Status</b> comes live from the date calendar. Click a yellow <b>Req</b> date to approve it; that locks it for everyone else. Green = scheduled, grey = the date has passed (sent/posted). Click a scheduled date twice to release it. Contacts come from the CGE sheet.</div>'
 +'<div class="stats" id="obStats"></div>'
-+'<div class="ob-bar"><input class="ob-search" placeholder="Search sponsor, lead, product, activation&hellip;" oninput="searchOb(this.value)"/></div>'
++'<div class="ob-bar"><input class="ob-search" placeholder="Search sponsor, contact, email&hellip;" oninput="searchOb(this.value)"/>'
++'<input id="obKey" class="ob-search" style="flex:0 1 220px;min-width:160px" type="password" placeholder="Admin key (to approve)" value="'+esc(ADMIN.key)+'" onchange="saveKey(this.value)"/>'
++'<button class="fchip" onclick="refreshTracker()">Refresh</button></div>'
++'<div class="msg" id="msg-ob"></div>'
 +'<div class="ob-bar" id="obChips"></div>'
-+'<div class="ob-wrap"><table class="ob"><thead><tr><th>Sponsor</th><th>Tier</th><th>Eblasts owed</th><th>Eblast status (live)</th><th>Social owed</th><th>Product / VIP bag</th><th>Activation</th><th>Notes / flags</th><th>Actions</th></tr></thead>'
++'<div class="ob-wrap"><table class="ob"><thead><tr><th>Sponsor</th><th>Tier</th><th>Client contact</th><th>Eblasts owed</th><th>Eblast status</th><th>Social owed</th><th>Story status</th><th>Actions</th><th>Notes / flags</th></tr></thead>'
 +'<tbody id="obBody"></tbody></table></div>'
-+'<div class="ob-foot">Orange bar = needs a decision. Link = copy the full kit page (eblast + dates + upload) · Photos = copy the photos-only page (for sponsors who just get images) · Email = Gmail draft (paste body) · View = sponsor page · Drive = their folder.</div>'
++'<div class="ob-foot">Orange bar = needs a decision. Draft email = opens a filled-in Gmail draft (pinesparty) to the client, CC Tim + you. Asset Folder = where the client uploads (event photos are inside). Copy link = the client\'s page.</div>'
 +'</div>';
 }
 
-function copyDirect(btn, url) {
-navigator.clipboard.writeText(url).then(function(){
-var orig = btn.textContent;
-btn.textContent = 'Copied!';
-setTimeout(function(){ btn.textContent = orig; }, 1500);
-});
+// Clipboard copy with a fallback for browsers that block navigator.clipboard.
+function copyText(btn, text) {
+function done(ok) { var o = btn.textContent; btn.textContent = ok ? 'Copied!' : 'Copy failed'; setTimeout(function(){ btn.textContent = o; }, 1500); }
+function legacy() {
+var ta = document.createElement('textarea'); ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+document.body.appendChild(ta); ta.select(); var ok = false; try { ok = document.execCommand('copy'); } catch(e) {}
+document.body.removeChild(ta); if (!ok) window.prompt('Copy this link:', text); done(ok);
 }
+if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(function(){ done(true); }, legacy);
+else legacy();
+}
+function copyDirect(btn, url) { copyText(btn, url); }
 
 // ---------- Admin: date request tracker ----------
 var ADMIN = { type: 'eblast', key: '', past: false };
 try { ADMIN.key = localStorage.getItem('ppAdminKey') || ''; } catch (e) {}
 
 function trackerHTML() {
-return '<div class="card"><div class="card-title">Date Requests</div>'
+return '<div class="card"><div class="card-title">Calendar by Date</div>'
 +'<div class="hint" style="margin-bottom:12px">Sponsor requests from the live calendar. Approve one date per eblast (up to two per sponsor) &mdash; it greys out for everyone else. Once a sponsor has two approved, their other requests clear.</div>'
-+'<div class="field"><label>Admin key</label><input id="admKey" type="password" placeholder="Needed to approve or release" value="'+esc(ADMIN.key)+'" onchange="saveKey(this.value)"/></div>'
 +'<div class="tabs"><button class="tab" id="tab-eblast" onclick="setTab(\'eblast\')">Eblasts</button>'
 +'<button class="tab" id="tab-story" onclick="setTab(\'story\')">Stories</button>'
 +'<button class="tab" id="tab-past" onclick="togglePast()">Show past</button>'
@@ -739,7 +766,7 @@ return '<div class="trow"><div class="trow-top"><span class="trow-date">'+fmtDat
 }
 
 function adminAct(action, btn) {
-if (!ADMIN.key) { setMsg('admin', 'bad', 'Enter the admin key first.'); document.getElementById('admKey').focus(); return; }
+if (!ADMIN.key) { setMsg('admin', 'bad', 'Enter the admin key first.'); document.getElementById('obKey').focus(); return; }
 var d = btn.getAttribute('data-d'), s = btn.getAttribute('data-s') || '';
 if (action === 'release' && !confirmRelease(d)) return;
 btn.disabled = true;
@@ -769,28 +796,10 @@ return false;
 function renderAdmin() {
 document.body.className = 'admin';
 document.getElementById('pgTitle').textContent = 'Sponsor Obligations Tracker';
-document.getElementById('pgSub').textContent = 'Team view: who we owe, what we owe, and where each eblast stands.';
+document.getElementById('pgSub').textContent = 'Team view: who we owe, what we owe, and the live eblast + story calendar.';
 document.getElementById('main').innerHTML =
 obligationsHTML()
 + trackerHTML()
-+'<div class="card"><div class="card-title">Generate Custom Link</div>'
-+'<div class="hint" style="margin-bottom:14px">For a sponsor not in the table above.</div>'
-+'<div class="field"><label>Sponsor Name</label>'
-+'<input id="inS" type="text" placeholder="e.g. Chris Turk"/>'
-+'</div>'
-+'<div class="field"><label>Sponsor Upload Folder (Google Drive URL)</label>'
-+'<input id="inD" type="text" placeholder="https://drive.google.com/drive/folders/..."/>'
-+'</div>'
-+'<div class="row">'
-+'<button class="abtn abtn-p" onclick="generate()">Generate Link</button>'
-+'<a class="abtn abtn-s" href="'+KIT+'" target="_blank">Open Kit Folder</a>'
-+'</div>'
-+'<div class="out" id="out">'
-+'<div class="out-lbl">Shareable Sponsor Link</div>'
-+'<div class="out-url" id="outUrl"></div>'
-+'<button class="cbtn" onclick="copyLink()">Copy Link</button>'
-+'</div>'
-+'</div>'
 +'<div class="sec">Team</div>'
 +'<div class="contacts">'+contactsHTML()+'</div>';
 drawOb();
