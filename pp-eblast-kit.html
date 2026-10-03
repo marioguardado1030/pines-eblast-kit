@@ -105,6 +105,8 @@ h1{font-size:26px;font-weight:700}
 .st-blocked{background:#eee;color:#777}
 .trow-sp{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
 .spn{font-size:12px;background:#f7f3f6;border-radius:6px;padding:4px 8px}
+.pkg{background:#fff;border:1px solid var(--border);border-left:4px solid var(--pink);border-radius:12px;padding:16px 20px;margin-bottom:14px}
+.pkg ul{margin:0 0 0 18px;font-size:14px;line-height:1.7}
 .tier-vipbag{background:#f3e3ee;color:#9a1d63}
 /* ---- Obligations tracker (team view) ---- */
 body.admin .hdr-in,body.admin .main{max-width:1240px}
@@ -210,7 +212,7 @@ var SPONSORS = [
 {n:'Identiti Financial', ct:'Matthew Erickson', em:'matthew.erickson@identiti-nyc.com', ph:'1cqjlZQss_--oRgoQE3HLcJmMzobsvXa0', t:'gold', id:'1RUZKX4S3KUtrvkBmgg6_N_jQJq3cwpSM', eb:1, soc:'2 posts + 2 shout-outs', lead:'Nick Ammaturo, Allan Baum', note:'Copy received 7/10; eblast draft built 9/15.'},
 {n:'H2O', ct:'Rob Maag', em:'rob@h2olimo.org', t:'gold', id:'1VrHZJ6zpPE4w3XZjjR4vKeujKFllND5p', eb:2, soc:'3', lead:'Allan Baum, Nick Ammaturo', note:'Custom deal: 2 eblasts + 3 posts. Eblast draft built 8/8.'},
 {n:'Poxeidon', ct:'Vito Meijia, Andres Isaquita', em:'vito@thewerkroom.shop, andres@thewerkroom.shop', ph:'16dn8S3zZ4AOpjF5cYsFO14MrqN5IXe0w', aka:'Werkroom', t:'gold', id:'1Uzci9tYIVzSDjB2jhgfbehyXwnDICRbB', id2:'1Kc9haxos75Tvtveuf9LYvFz455xMAl4k', eb:1, soc:'1', lead:'Allan Baum', note:'Eblast promotes products + VIP discount code. Final copy 8/14 (Option A).'},
-{n:'Swiss Air', ct:'Allison Joan O’Reilly', em:'allison-joan.oreilly@dlh.de', ph:'178u_-k2XJocnK6UHgIraixfFuTUDunBN', t:'gold', id:'1Eiy2SxARTvnmqrUc7sEAA8rRKE1JGQTk', eb:1, soc:'2', lead:'Allan Baum', note:'SWISS approves all content before it goes out.'},
+{n:'Swiss Air', eml:'As agreed, we\'ll share all content with SWISS for approval before anything goes out.', ct:'Allison Joan O’Reilly', em:'allison-joan.oreilly@dlh.de', ph:'178u_-k2XJocnK6UHgIraixfFuTUDunBN', t:'gold', id:'1Eiy2SxARTvnmqrUc7sEAA8rRKE1JGQTk', eb:1, soc:'2', lead:'Allan Baum', note:'SWISS approves all content before it goes out.'},
 {n:'Boardwalk Etiquette', ct:'Justin B', em:'jborgstahl@gmail.com', ph:'1hNIdjcFBoq_okwKRDq--1ZmmQoZ5tkfB', t:'gold', id:'1XNznMEimyhEaKhKQP24Nty7CG3MnGH-6', eb:0, soc:'1 post + 1 shout-out', lead:'Allan Baum', note:'No eblast. 1 post + 1 shout-out.'},
 {n:'Pines Harbor Realty', ct:'Alex Keomurjian', em:'alex@pinesharbor.com', ph:'1KXMr2qQOMmX8isUbA-BW4uOQWdHp95ra', t:'gold', id:'1fbIeaayTS8qnYIX16KfdGpnshzz4220o', eb:0, soc:'"Silver Package"', lead:'Allan Baum', note:'No eblast (Allan, 9/28). Confirm what the "Silver Package" social covers.', flag:true},
 {n:'Jeff Wan', ct:'Jeff Wan', em:'jeff@jeffwan.com', ph:'1OA6yh7DHcml-OA6qycXn-v_VE23kEPJI', t:'gold', id:'1I_aqoNmhf594MxYsx9i_VIEvfov9stjW', eb:0, lead:'Nick Ammaturo', note:'No eblast (Allan, 9/28).'},
@@ -292,29 +294,61 @@ function driveUrl(id) { return 'https://drive.google.com/drive/folders/'+id; }
 var MAIL_FROM = 'mario.guardado@pinesparty.com';
 var MAIL_CC = 'tdejsiriudom@pinesparty.com,mario.guardado1030@gmail.com';
 var LINK_TITLE = 'Pines Party Eblast + Social Media Scheduling and Resources';
+function linkTitle(sp) { return emailSubject(sp).replace('Pines Party 2026: Your ', 'Pines Party '); }
 function greetName(sp) {
 var first = (sp.ct || '').split(/,|;|&|\//).map(function(x){ return x.trim().split(/\s+/)[0]; }).filter(Boolean);
 if (!first.length) return sp.n + ' team';
 return first.length === 1 ? first[0] : first.slice(0,-1).join(', ') + ' and ' + first[first.length-1];
 }
+function emailSteps(sp) {
+var st = [];
+if (sp.eb) st.push('Open the writing kit (guide, template and example) and write your eblast copy');
+st.push('Upload your logo, photos' + (sp.eb ? ' and copy' : '') + ' to your folder');
+if (sp.eb) st.push('Request your eblast send dates (pick up to ' + MAX_EBLAST_DATES + ', in order of preference; we\'ll confirm ' + sp.eb + ')');
+if (hasSocial(sp)) { var n = socOwed(sp); st.push('Request your Instagram story dates' + (n ? ' (pick up to ' + n + ')' : '')); }
+return st;
+}
 function sponsorEmailText(sp) {
+var pk = pkgItems(sp), st = emailSteps(sp);
 return 'Hi ' + greetName(sp) + ',\n\n'
-+ 'Thank you for supporting Pines Party 2026. We\'ve set up a page with everything you need for your post-event eblast and Instagram story:\n\n'
-+ LINK_TITLE + ':\n' + sponsorLink(sp.n) + '\n\n'
-+ 'On your page you can:\n'
-+ '1. Open the writing kit (guide, template and example) and write your eblast copy\n'
-+ '2. Upload your logo, photos and copy to your folder\n'
-+ '3. Request up to 4 eblast send dates, in order of preference\n'
-+ '4. Request up to 2 Instagram story dates\n\n'
++ 'Thank you for supporting Pines Party 2026. As a ' + TIER_LABEL[sp.t] + ' sponsor, your package includes:\n'
++ pk.map(function(x){ return '- ' + x; }).join('\n') + '\n\n'
++ 'We\'ve set up a page with everything you need:\n' + linkTitle(sp) + ': ' + sponsorLink(sp.n) + '\n\n'
++ 'On your page you can:\n' + st.map(function(x, k){ return (k+1) + '. ' + x; }).join('\n') + '\n\n'
++ (sp.eml ? sp.eml + '\n\n' : '')
 + 'We\'ll confirm your dates by email once they\'re approved. We\'ll also add your event photos to your folder, so you can find them from the same page.\n\n'
 + 'Thanks again for your support, and please reach out with any questions.\n\n'
 + 'Best,\nMario';
 }
+function sponsorEmailHTML(sp) {
+var pk = pkgItems(sp), st = emailSteps(sp);
+return '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#222">'
++ '<p>Hi ' + esc(greetName(sp)) + ',</p>'
++ '<p>Thank you for supporting Pines Party 2026. As a ' + TIER_LABEL[sp.t] + ' sponsor, your package includes:</p>'
++ '<ul>' + pk.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>'
++ '<p>We\'ve set up a page with everything you need:</p>'
++ '<p><a href="' + sponsorLink(sp.n) + '"><b>' + esc(linkTitle(sp)) + '</b></a></p>'
++ '<p>On your page you can:</p><ol>' + st.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ol>'
++ (sp.eml ? '<p>' + esc(sp.eml) + '</p>' : '')
++ '<p>We\'ll confirm your dates by email once they\'re approved. We\'ll also add your event photos to your folder, so you can find them from the same page.</p>'
++ '<p>Thanks again for your support, and please reach out with any questions.</p>'
++ '<p>Best,<br>Mario</p></div>';
+}
 // Opens a Gmail draft on the pinesparty account with To, CC, Subject and Body filled in.
 // Gmail saves it to Drafts automatically. Nothing sends until you hit Send.
+function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
+function pkgItems(sp) {
+var out = [], x = socSplit(sp);
+if (sp.eb) out.push(plural(sp.eb, 'dedicated eblast', 'dedicated eblasts') + ' to the Pines Party list');
+if (x && x.stories) out.push(plural(x.stories, 'Instagram story', 'Instagram stories') + ' on the Pines Party account');
+if (x && x.shouts) out.push(plural(x.shouts, 'shout-out', 'shout-outs') + ' from Pines Party (we schedule these)');
+if (!x && sp.pkSoc) out.push(sp.pkSoc);
+return out;
+}
+function hasSocial(sp) { return !!(socSplit(sp) && socSplit(sp).stories) || !!sp.pkSoc; }
 // Subject reflects what we owe: eblast and/or social (Instagram stories).
 function emailSubject(sp) {
-var eb = !!sp.eb, so = !!(socSplit(sp) || /post/i.test(sp.soc || ''));
+var eb = !!sp.eb, so = hasSocial(sp);
 var what = eb && so ? 'Your Eblast Kit and Instagram Story Generator' : eb ? 'Your Eblast Kit' : so ? 'Your Instagram Story Generator' : 'Your Sponsor Page';
 return 'Pines Party 2026: ' + what;
 }
@@ -440,32 +474,32 @@ return '<div class="legend"><span><i style="background:var(--pink)"></i>Your pic
 +'<div class="picked" id="picked-'+type+'"></div>';
 }
 
+var reg = findSponsor(sponsor);
+var doEb = reg ? !!reg.eb : true, doSo = reg ? hasSocial(reg) : true;
+if (reg && socOwed(reg)) MAXP.story = socOwed(reg);
+if (reg) document.getElementById('pgTitle').textContent = sponsor + ' - ' + (doEb && doSo ? 'Eblast Kit + Instagram Stories' : doEb ? 'Eblast Kit' : doSo ? 'Instagram Stories' : 'Sponsor Page');
+var pk = reg ? pkgItems(reg) : [];
+var n = 0;
+function step(inner) { n++; return '<div class="step"><div class="num">'+n+'</div><div style="flex:1;min-width:0">'+inner+'</div></div>'; }
 document.getElementById('main').innerHTML =
-'<div class="steps">'
-+'<div class="step"><div class="num">1</div><div style="flex:1;min-width:0">'
-+'<h2>Open the Kit</h2>'
+(pk.length ? '<div class="pkg"><div class="sec" style="margin:0 0 8px">Your Pines Party 2026 package</div><ul>'+pk.map(function(x){ return '<li>'+esc(x)+'</li>'; }).join('')+'</ul></div>' : '')
++'<div class="steps">'
++(doEb ? step('<h2>Open the Kit</h2>'
 +'<p>Your kit includes a writing guide, blank template, and completed example &mdash; everything you need to prepare your eblast copy.</p>'
-+'<a class="btn btn-outline" href="'+KIT+'" target="_blank">Open Kit Folder &rarr;</a>'
-+'</div></div>'
-+'<div class="step"><div class="num">2</div><div style="flex:1;min-width:0">'
-+'<h2>Upload Your Assets</h2>'
-+'<p>Upload your logo, 1-2 photos, and completed copy template to your sponsor folder. You\'ll need to be signed in to any Google account.</p>'
-+uploadHTML
-+'</div></div>'
-+'<div class="step"><div class="num">3</div><div style="flex:1;min-width:0">'
-+'<h2>Request Your Eblast Send Date</h2>'
-+'<p>Tap up to '+MAX_EBLAST_DATES+' dates, in order of preference. Greyed-out dates are already taken. We\'ll confirm your send date(s) by email &mdash; a request is not a booking.</p>'
++'<a class="btn btn-outline" href="'+KIT+'" target="_blank">Open Kit Folder &rarr;</a>') : '')
++step('<h2>Upload Your Assets</h2>'
++'<p>Upload your logo, 1-2 photos'+(doEb?', and completed copy template':'')+' to your sponsor folder. You\'ll need to be signed in to any Google account. Your event photos will be in this folder too.</p>'
++uploadHTML)
++(doEb ? step('<h2>Request Your Eblast Send Date'+(reg && reg.eb > 1 ? 's' : '')+'</h2>'
++'<p>Tap up to '+MAX_EBLAST_DATES+' dates, in order of preference'+(reg ? '. We\'ll confirm '+plural(reg.eb,'send date','send dates') : '')+'. Greyed-out dates are already taken. A request is not a booking.</p>'
 +pickerHTML('eblast')
 +'<button class="btn btn-pink" id="go-eblast" onclick="submitDates(\'eblast\')">Request Eblast Date(s) &rarr;</button>'
-+'<div class="msg" id="msg-eblast"></div>'
-+'</div></div>'
-+'<div class="step"><div class="num">4</div><div style="flex:1;min-width:0">'
-+'<h2>Request an Instagram Story Date</h2>'
-+'<p>Optional. Tap up to '+MAX_STORY_DATES+' dates for your Instagram story, in order of preference.</p>'
++'<div class="msg" id="msg-eblast"></div>') : '')
++(doSo ? step('<h2>Request Your Instagram Story Date'+(MAXP.story > 1 ? 's' : '')+'</h2>'
++'<p>Tap up to '+MAXP.story+' date'+(MAXP.story>1?'s':'')+' for your Instagram stor'+(MAXP.story>1?'ies':'y')+', in order of preference.'+(reg && socSplit(reg) && socSplit(reg).shouts ? ' Your shout-outs are scheduled by our team.' : '')+'</p>'
 +pickerHTML('story')
-+'<button class="btn btn-outline" id="go-story" onclick="submitDates(\'story\')">Request Story Slot(s) &rarr;</button>'
-+'<div class="msg" id="msg-story"></div>'
-+'</div></div>'
++'<button class="btn btn-outline" id="go-story" onclick="submitDates(\'story\')">Request Story Date(s) &rarr;</button>'
++'<div class="msg" id="msg-story"></div>') : '')
 +'</div>'
 +'<div class="sec">Questions? Contact us</div>'
 +'<div class="contacts">'+contactsHTML()+'</div>';
@@ -474,10 +508,9 @@ var now = new Date();
 VIEW.eblast = new Date(now.getFullYear(), now.getMonth(), 1);
 VIEW.story = new Date(now.getFullYear(), now.getMonth(), 1);
 loadCalendar().then(function(){
-drawCal('eblast'); drawCal('story');
-showExisting('eblast'); showExisting('story');
+['eblast','story'].forEach(function(t){ if (document.getElementById('cal-'+t)) { drawCal(t); showExisting(t); } });
 }).catch(function(){
-['eblast','story'].forEach(function(t){
+['eblast','story'].filter(function(t){ return document.getElementById('cal-'+t); }).forEach(function(t){
 drawCal(t);
 setMsg(t, 'bad', 'Couldn\'t load availability right now. You can still pick dates &mdash; we\'ll check for conflicts before confirming.');
 });
