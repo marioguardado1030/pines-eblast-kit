@@ -594,9 +594,12 @@ if (x) return x.stories + ' stor' + (x.stories===1?'y':'ies') + (x.shouts ? ' + 
 return s.soc ? s.soc.replace(/"/g,'') : 'None owed';
 }
 function statusCell(type, s, owed) {
-var head = '<div class="own'+((type==='eblast'?s.eb:socOwed(s))?'':' none')+'">'+esc(ownedLine(type, s))+'</div>';
+var sx = type === 'story' ? socSplit(s) : null;
+var tail = sx && sx.shouts ? '<span class="dt dt-x" title="Shout-outs are scheduled by the team">+'+sx.shouts+' shout-out'+(sx.shouts===1?'':'s')+'</span>' : '';
+if (type === 'story' && !sx && s.soc) tail = '<span class="dt dt-x">'+esc(s.soc.replace(/"/g,''))+'</span>';
+var head = '';
 if (s.old) return '<span class="dt dt-x">'+esc(s.old)+'</span>';
-if (!CAL_OK) return head + '<span class="dash">loading&hellip;</span>';
+if (!CAL_OK) return '<span class="dash">loading&hellip;</span>';
 var c = calFor(type, s.n), h = '', done = type === 'eblast' ? 'Sent' : 'Posted';
 c.booked.forEach(function(r){
 var past = r.date < TODAY;
@@ -607,7 +610,8 @@ h += '<button class="dt dt-r" title="Click to approve this date" data-t="'+type+
 });
 if (owed) { var left = owed - c.booked.length; if (left > 0) h += '<span class="dt dt-n">'+left+' to book</span>'; }
 else if (type === 'eblast' && (c.booked.length || c.req.length)) h += '<span class="dt dt-n">Not owed: check</span>';
-return head + h;
+h += tail;
+return h || '<span class="dash">&mdash;</span>';
 }
 
 // Social owed -> stories the sponsor requests + shout-outs the team decides.
