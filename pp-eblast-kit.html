@@ -593,6 +593,8 @@ else if (type === 'eblast' && (c.booked.length || c.req.length)) h += '<span cla
 return h || '<span class="dash">&mdash;</span>';
 }
 
+function socOwed(s) { var m = (s.soc||'').match(/^(\d+)/); return m ? +m[1] : 0; }
+
 function hasReq(s) { return CAL_OK && (calFor('eblast', s.n).req.length || calFor('story', s.n).req.length); }
 
 function obMatch(s) {
@@ -632,7 +634,7 @@ return '<tr class="'+(s.flag?'flag ':'')+(s.old?'old':'')+'">'
 +'<td><span class="ob-n'+(s.eb?'':' zero')+'">'+(s.eb||'0')+'</span></td>'
 +'<td>'+statusCell('eblast', s, s.eb)+'</td>'
 +'<td>'+(s.soc ? esc(s.soc) : '<span class="dash">&mdash;</span>')+'</td>'
-+'<td>'+statusCell('story', s, 0)+'</td>'
++'<td>'+statusCell('story', s, socOwed(s))+'</td>'
 +'<td class="acts">'+acts+'</td>'
 +'<td><div class="note'+(s.flag?' fl':'')+'">'+(s.note?esc(s.note):'<span class="dash">&mdash;</span>')+'</div></td></tr>';
 }).join('');
@@ -642,15 +644,17 @@ function obStats() {
 var live = SPONSORS.filter(function(s){ return !s.old; });
 var owedS = live.filter(function(s){ return s.eb; });
 var owed = owedS.reduce(function(a,s){ return a + s.eb; }, 0);
-var booked = 0, sent = 0, reqS = 0;
+var booked = 0, sent = 0, reqS = 0, sOwed = 0, sBooked = 0;
+live.forEach(function(s){ sOwed += socOwed(s); });
 if (CAL_OK) {
 owedS.forEach(function(s){ var b = calFor('eblast', s.n).booked.slice(0, s.eb); booked += b.length; sent += b.filter(function(r){ return r.date < TODAY; }).length; });
-live.forEach(function(s){ if (hasReq(s)) reqS++; });
+live.forEach(function(s){ if (hasReq(s)) reqS++; var n = socOwed(s); if (n) sBooked += Math.min(calFor('story', s.n).booked.length, n); });
 }
 function st(v, l, c) { return '<div class="stat '+(c||'')+'"><b>'+v+'</b><span>'+l+'</span></div>'; }
 function w(v) { return CAL_OK ? v : '&hellip;'; }
 return st(live.length, 'Sponsors (2026)') + st(owed, 'Eblasts owed', 'pink') + st(w(booked - sent), 'Scheduled', 'ok')
-+ st(w(sent), 'Sent') + st(w(owed - booked), 'Still to book', 'warn') + st(w(reqS), 'Sponsors w/ requests', 'pink')
++ st(w(sent), 'Sent') + st(w(owed - booked), 'Eblasts to book', 'warn')
++ st(sOwed, 'Social owed', 'pink') + st(w(sBooked), 'Social booked', 'ok') + st(w(sOwed - sBooked), 'Social to book', 'warn') + st(w(reqS), 'Sponsors w/ requests', 'pink')
 + st(live.filter(function(s){ return s.flag; }).length, 'Needs check', 'warn');
 }
 
@@ -681,21 +685,21 @@ return action === 'approve' ? (r && isLocked(r.status) && r.sponsors === sp) : !
 .then(function(ok){
 drawOb(); if (document.getElementById('tracker')) drawTracker();
 if (!ok) throw new Error('Not saved. Check the admin key and try again.');
-setMsg('ob', 'ok', (action==='approve' ? 'Approved '+esc(sp)+' '+(t==='story'?'story':'eblast')+' for ' : 'Released ') + fmtDate(d) + '.');
+setMsg('ob', 'ok', (action==='approve' ? 'Approved '+esc(sp)+' '+(t==='story'?'social post':'eblast')+' for ' : 'Released ') + fmtDate(d) + '.');
 })
 .catch(function(e){ drawOb(); setMsg('ob', 'bad', esc(e.message)); });
 }
 
 function obligationsHTML() {
 return '<div class="card"><div class="card-title">Sponsor Obligations &amp; Calendar</div>'
-+'<div class="ob-sub"><b>Owed</b> comes from the CGE PP Sponsors 2026 sheet (written agreements only). <b>Status</b> comes live from the date calendar. Click a yellow <b>Req</b> date to approve it; that locks it for everyone else. Green = scheduled, grey = the date has passed (sent/posted). Click a scheduled date twice to release it. Contacts come from the CGE sheet.</div>'
++'<div class="ob-sub"><b>Owed</b> comes from the CGE PP Sponsors 2026 sheet (written agreements only). <b>Status</b> comes live from the date calendar. Click a yellow <b>Req</b> date to approve it; that locks it for everyone else. Social = the Instagram dates sponsors request on their page. Green = scheduled, grey = the date has passed (sent/posted). Click a scheduled date twice to release it. Contacts come from the CGE sheet.</div>'
 +'<div class="stats" id="obStats"></div>'
 +'<div class="ob-bar"><input class="ob-search" placeholder="Search sponsor, contact, email&hellip;" oninput="searchOb(this.value)"/>'
 +'<input id="obKey" class="ob-search" style="flex:0 1 220px;min-width:160px" type="password" placeholder="Admin key (to approve)" value="'+esc(ADMIN.key)+'" onchange="saveKey(this.value)"/>'
 +'<button class="fchip" onclick="refreshTracker()">Refresh</button></div>'
 +'<div class="msg" id="msg-ob"></div>'
 +'<div class="ob-bar" id="obChips"></div>'
-+'<div class="ob-wrap"><table class="ob"><thead><tr><th>Sponsor</th><th>Tier</th><th>Client contact</th><th>Eblasts owed</th><th>Eblast status</th><th>Social owed</th><th>Story status</th><th>Actions</th><th>Notes / flags</th></tr></thead>'
++'<div class="ob-wrap"><table class="ob"><thead><tr><th>Sponsor</th><th>Tier</th><th>Client contact</th><th>Eblasts owed</th><th>Eblast status</th><th>Social owed</th><th>Social status</th><th>Actions</th><th>Notes / flags</th></tr></thead>'
 +'<tbody id="obBody"></tbody></table></div>'
 +'<div class="ob-foot">Orange bar = needs a decision. Draft email = opens a filled-in Gmail draft (pinesparty) to the client, CC Tim + you. Asset Folder = where the client uploads (event photos are inside). Copy link = the client\'s page.</div>'
 +'</div>';
@@ -796,7 +800,7 @@ return false;
 function renderAdmin() {
 document.body.className = 'admin';
 document.getElementById('pgTitle').textContent = 'Sponsor Obligations Tracker';
-document.getElementById('pgSub').textContent = 'Team view: who we owe, what we owe, and the live eblast + story calendar.';
+document.getElementById('pgSub').textContent = 'Team view: who we owe, what we owe, and the live eblast + social calendar.';
 document.getElementById('main').innerHTML =
 obligationsHTML()
 + trackerHTML()
