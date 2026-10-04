@@ -811,7 +811,8 @@ if (!rows.length) return '<tr><td colspan="7" style="text-align:center;color:var
 return rows.map(function(o){
 var s = o.s, i = o.i;
 var acts = ((s.eb || hasSocial(s)) && s.em && !s.flag ? '<button class="mini mini-p" onclick="draftEmail(this,'+i+')">Email Draft</button>' : '')
-+ '<button class="mini mini-s" title="The link we share with this client: their package, upload folder and date requests" onclick="copyText(this, sponsorLink(SPONSORS['+i+'].n))">'+esc(hubShort(s))+' Hub</button>';
++ (s.id ? '<a class="mini mini-s" href="'+driveUrl(s.id)+'" target="_blank" title="Open their Drive asset folder">Asset Link</a>' : '')
++ '<button class="mini mini-s" title="Copy the Hub link we share with this client: their package, upload folder and date requests" onclick="copyText(this, sponsorLink(SPONSORS['+i+'].n))">'+esc(hubShort(s))+' Hub</button>';
 var name = s.id ? '<a class="sp-name" href="'+driveUrl(s.id)+'" target="_blank" title="Open their Drive folder">'+esc(s.n)+'</a>' : '<div class="sp-name">'+esc(s.n)+'</div><div class="sp-lead">No Drive folder</div>';
 return '<tr class="'+(s.flag?'flag ':'')+(s.old?'old':'')+'">'
 +'<td>'+name+(s.aka?'<div class="sp-lead">aka '+esc(s.aka)+'</div>':'')+'</td>'
@@ -953,7 +954,7 @@ return '<div class="card"><div class="card-title">Sponsor Obligations &amp; Cale
 +'<div id="view-s"><div class="ob-wrap"><table class="ob"><thead><tr><th>Sponsor</th><th>Tier</th><th>Client Custom Page</th><th>Client email</th><th>Eblast</th><th>Social</th><th>Notes</th></tr></thead>'
 +'<tbody id="obBody"></tbody></table></div></div>'
 +'<div id="view-c" style="display:none"></div>'
-+'<div class="ob-foot">Orange bar = needs a decision. Click a sponsor name to open their Drive folder. [Sponsor] Hub = copies the client\'s hub link to share (their package, upload folder and date requests). Email Draft = creates the Gmail draft.</div>'
++'<div class="ob-foot">Orange bar = needs a decision. Click a sponsor name to open their Drive folder. Asset Link = opens their Drive asset folder. [Sponsor] Hub = copies the client\'s hub link to share (their package, upload folder and date requests). Email Draft = creates the Gmail draft.</div>'
 +'</div>';
 }
 
