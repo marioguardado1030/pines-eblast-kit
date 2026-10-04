@@ -312,46 +312,68 @@ function driveUrl(id) { return 'https://drive.google.com/drive/folders/'+id; }
 var MAIL_FROM = 'mario.guardado@pinesparty.com';
 var MAIL_CC = 'tdejsiriudom@pinesparty.com,nammaturo@pinesparty.com,tj@pinesparty.com,mario.guardado1030@gmail.com';
 var LINK_TITLE = 'Pines Party Eblast + Social Media Scheduling and Resources';
-function linkTitle(sp) { return emailSubject(sp).replace('Pines Party 2026: Your ', 'Pines Party '); }
+function linkTitle(sp) { return hubName(sp); }
 function greetName(sp) {
 var first = (sp.ct || '').split(/,|;|&|\//).map(function(x){ return x.trim().split(/\s+/)[0]; }).filter(Boolean);
 if (!first.length) return sp.n + ' team';
 return first.length === 1 ? first[0] : first.slice(0,-1).join(', ') + ' and ' + first[first.length-1];
 }
+// "Gilead Pines Party Hub": the sponsor's page. Short names where the full name is long.
+var HUB_SHORT = {'Gilead Sciences': 'Gilead', 'Tryst Hospitality / MISTR': 'Tryst / MISTR'};
+function hubShort(sp) { return HUB_SHORT[sp.n] || String(sp.n).split(/\s*[\/(]/)[0].trim(); }
+function hubName(sp) { return hubShort(sp) + ' Pines Party Hub'; }
+// Email sign-off: whoever is drafting (saved per browser on the team page), never hardcoded.
+function signer() { try { return (localStorage.getItem('ppSigner') || '').trim(); } catch (e) { return ''; } }
+function saveSigner(v) { try { localStorage.setItem('ppSigner', v.trim()); } catch (e) {} }
+var NUMW = ['zero','one','two','three','four','five','six','seven','eight'];
+function numw(n) { return NUMW[n] || String(n); }
+function andList(a, word) { return a.length < 2 ? a.join('') : a.slice(0,-1).join(', ') + ' ' + (word || 'and') + ' ' + a[a.length-1]; }
+function pkgSentence(sp) {
+var out = [], x = socSplit(sp);
+if (sp.eb) out.push(numw(sp.eb) + ' dedicated ' + (sp.eb === 1 ? 'eblast' : 'eblasts') + ' to the Pines Party list');
+if (x && x.stories) out.push(numw(x.stories) + ' Instagram ' + (x.stories === 1 ? 'story' : 'stories') + ' on the Pines Party account');
+if (x && x.shouts) out.push(numw(x.shouts) + ' ' + (x.shouts === 1 ? 'shout-out' : 'shout-outs') + ' that we schedule for you');
+if (!x && sp.pkSoc) out.push(sp.pkSoc);
+return andList(out);
+}
 function emailSteps(sp) {
-var st = [];
-if (sp.eb) st.push('Open the writing kit (guide, template and example) and write your eblast copy');
-var fp = filePrefixes(sp).map(function(x){ return x.p; });
-st.push('Upload your logo, photos' + (sp.eb ? ' and copy' : '') + ' to your folder' + (fp.length ? ', starting each file name with ' + fp.join(', ') : ''));
-if (sp.eb) st.push('Request your eblast send dates (2 choices per eblast, ' + (2 * sp.eb) + ' total; we\'ll confirm ' + sp.eb + ')');
-if (hasSocial(sp)) { var n = socOwed(sp); st.push('Request your Instagram story dates' + (n ? ' (2 choices per story, ' + (2 * n) + ' total; we\'ll confirm ' + n + ')' : '')); }
+var st = [], x = socSplit(sp), k = x ? x.stories : 0;
+if (sp.eb) st.push('Open the writing kit, which has a guide, a template and an example, and draft your eblast copy');
+var fp = filePrefixes(sp).map(function(f){ return f.p; });
+st.push('Upload your logo' + (sp.eb ? ', photos and copy' : ' and photos') + ' to your folder.'
+  + (fp.length ? ' Please start each file name with ' + andList(fp, 'or') + ' so we can keep everything straight' : ''));
+if (sp.eb) st.push('Pick your preferred send dates. ' + (sp.eb === 1
+  ? 'Choose two options for your eblast, and we\'ll confirm one'
+  : 'Choose two options for each eblast (' + numw(2 * sp.eb) + ' total), and we\'ll confirm one date for each'));
+if (k) st.push('Pick your Instagram story dates. ' + (k === 1
+  ? 'Choose two options for your story, and we\'ll confirm one'
+  : 'Choose two options for each story (' + numw(2 * k) + ' total), and we\'ll confirm one date for each'));
 return st;
 }
+function emailClose(sp) {
+return ['We\'ll email you once your dates are locked in. After the event, we\'ll also add your photos to your folder, so you\'ll find them on the same page.',
+        'Thanks again for being part of this. If anything comes up, just reply here and I\'ll help.'];
+}
 function sponsorEmailText(sp) {
-var pk = pkgItems(sp), st = emailSteps(sp);
+var st = emailSteps(sp);
 return 'Hi ' + greetName(sp) + ',\n\n'
-+ 'Thank you for supporting Pines Party 2026. As a ' + TIER_LABEL[sp.t] + ' sponsor, your package includes:\n'
-+ pk.map(function(x){ return '- ' + x; }).join('\n') + '\n\n'
-+ 'We\'ve set up a page with everything you need:\n' + linkTitle(sp) + ': ' + sponsorLink(sp.n) + '\n\n'
-+ 'On your page you can:\n' + st.map(function(x, k){ return (k+1) + '. ' + x; }).join('\n') + '\n\n'
++ 'Thank you so much for supporting Pines Party 2026. As a ' + TIER_LABEL[sp.t] + ' sponsor, your package includes ' + pkgSentence(sp) + '.\n\n'
++ 'To make things easy, we\'ve put everything in one place: ' + hubName(sp) + ' (' + sponsorLink(sp.n) + ')\n\n'
++ 'From there you can:\n' + st.map(function(x, k){ return (k+1) + '. ' + x; }).join('\n') + '\n\n'
 + (sp.eml ? sp.eml + '\n\n' : '')
-+ 'We\'ll confirm your dates by email once they\'re approved. We\'ll also add your event photos to your folder, so you can find them from the same page.\n\n'
-+ 'Thanks again for your support, and please reach out with any questions.\n\n'
-+ 'Best,\nMario';
++ emailClose(sp).join('\n\n') + '\n\n'
++ 'Thanks again for your support,\n' + signer();
 }
 function sponsorEmailHTML(sp) {
-var pk = pkgItems(sp), st = emailSteps(sp);
+var st = emailSteps(sp);
 return '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#222">'
 + '<p>Hi ' + esc(greetName(sp)) + ',</p>'
-+ '<p>Thank you for supporting Pines Party 2026. As a ' + TIER_LABEL[sp.t] + ' sponsor, your package includes:</p>'
-+ '<ul>' + pk.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>'
-+ '<p>We\'ve set up a page with everything you need:</p>'
-+ '<p><a href="' + sponsorLink(sp.n) + '"><b>' + esc(linkTitle(sp)) + '</b></a></p>'
-+ '<p>On your page you can:</p><ol>' + st.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ol>'
++ '<p>Thank you so much for supporting Pines Party 2026. As a ' + TIER_LABEL[sp.t] + ' sponsor, your package includes ' + esc(pkgSentence(sp)) + '.</p>'
++ '<p>To make things easy, we\'ve put everything in one place: <a href="' + sponsorLink(sp.n) + '"><b>' + esc(hubName(sp)) + '</b></a></p>'
++ '<p>From there you can:</p><ol>' + st.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ol>'
 + (sp.eml ? '<p>' + esc(sp.eml) + '</p>' : '')
-+ '<p>We\'ll confirm your dates by email once they\'re approved. We\'ll also add your event photos to your folder, so you can find them from the same page.</p>'
-+ '<p>Thanks again for your support, and please reach out with any questions.</p>'
-+ '<p>Best,<br>Mario</p></div>';
++ emailClose(sp).map(function(x){ return '<p>' + esc(x) + '</p>'; }).join('')
++ '<p>Thanks again for your support,<br>' + esc(signer()) + '</p></div>';
 }
 // Opens a Gmail draft on the pinesparty account with To, CC, Subject and Body filled in.
 // Gmail saves it to Drafts automatically. Nothing sends until you hit Send.
@@ -387,11 +409,7 @@ return '<div class="naming"><div class="naming-h">Name your files so we know wha
 }
 function hasSocial(sp) { return !!(socSplit(sp) && socSplit(sp).stories) || !!sp.pkSoc; }
 // Subject reflects what we owe: eblast and/or social (Instagram stories).
-function emailSubject(sp) {
-var eb = !!sp.eb, so = hasSocial(sp);
-var what = eb && so ? 'Your Eblast Kit and Instagram Story Generator' : eb ? 'Your Eblast Kit' : so ? 'Your Instagram Story Generator' : 'Your Sponsor Page';
-return 'Pines Party 2026: ' + what;
-}
+function emailSubject(sp) { return 'Pines Party 2026: Your ' + hubName(sp); }
 function sponsorEmailUrl(sp) {
 var su = emailSubject(sp);
 return 'https://mail.google.com/mail/?authuser=' + encodeURIComponent(MAIL_FROM) + '&view=cm&fs=1'
@@ -401,6 +419,7 @@ return 'https://mail.google.com/mail/?authuser=' + encodeURIComponent(MAIL_FROM)
 }
 function draftEmail(btn, i) {
 var sp = SPONSORS[i];
+if (!signer()) { setMsg('ob', 'bad', 'Type your name in "Sign emails as" first, so the email is signed by you.'); var f = document.getElementById('obSigner'); if (f) f.focus(); return; }
 var orig = btn.textContent; btn.disabled = true; btn.textContent = 'Drafting…';
 var q = '?action=draft&key=' + encodeURIComponent(ADMIN.key)
 + '&to=' + encodeURIComponent((sp.em||'').replace(/\s+/g,''))
@@ -574,7 +593,7 @@ var doEb = reg ? !!reg.eb : true, doSo = reg ? hasSocial(reg) : true;
 // Sponsors pick 2 dates per item owed (1st + 2nd choice); the team selects one per item.
 if (reg && reg.eb) MAXP.eblast = 2 * reg.eb;
 if (reg && socOwed(reg)) MAXP.story = 2 * socOwed(reg);
-if (reg) document.getElementById('pgTitle').textContent = sponsor + ' - ' + (doEb && doSo ? 'Eblast Kit + Instagram Stories' : doEb ? 'Eblast Kit' : doSo ? 'Instagram Stories' : 'Sponsor Page');
+if (reg) document.getElementById('pgTitle').textContent = hubName(reg);
 var pk = reg ? pkgItems(reg) : [];
 var n = 0;
 function step(inner) { n++; return '<div class="step"><div class="num">'+n+'</div><div style="flex:1;min-width:0">'+inner+'</div></div>'; }
@@ -792,7 +811,7 @@ if (!rows.length) return '<tr><td colspan="7" style="text-align:center;color:var
 return rows.map(function(o){
 var s = o.s, i = o.i;
 var acts = ((s.eb || hasSocial(s)) && s.em && !s.flag ? '<button class="mini mini-p" onclick="draftEmail(this,'+i+')">Email Draft</button>' : '')
-+ '<button class="mini mini-s" title="The link we share with this client: their package, upload folder and date requests" onclick="copyText(this, sponsorLink(SPONSORS['+i+'].n))">Asset / Resource Link</button>';
++ '<button class="mini mini-s" title="The link we share with this client: their package, upload folder and date requests" onclick="copyText(this, sponsorLink(SPONSORS['+i+'].n))">'+esc(hubShort(s))+' Hub</button>';
 var name = s.id ? '<a class="sp-name" href="'+driveUrl(s.id)+'" target="_blank" title="Open their Drive folder">'+esc(s.n)+'</a>' : '<div class="sp-name">'+esc(s.n)+'</div><div class="sp-lead">No Drive folder</div>';
 return '<tr class="'+(s.flag?'flag ':'')+(s.old?'old':'')+'">'
 +'<td>'+name+(s.aka?'<div class="sp-lead">aka '+esc(s.aka)+'</div>':'')+'</td>'
@@ -925,6 +944,7 @@ return '<div class="card"><div class="card-title">Sponsor Obligations &amp; Cale
 +'<div class="stats" id="obStats"></div>'
 +'<div class="ob-bar"><input class="ob-search" placeholder="Search sponsor, contact, email&hellip;" oninput="searchOb(this.value)"/>'
 +'<input id="obKey" class="ob-search" style="flex:0 1 220px;min-width:160px" type="password" placeholder="Admin key (to approve)" value="'+esc(ADMIN.key)+'" onchange="saveKey(this.value)"/>'
++'<input id="obSigner" class="ob-search" style="flex:0 1 170px;min-width:130px" placeholder="Sign emails as (your name)" value="'+esc(signer())+'" onchange="saveSigner(this.value)"/>'
 +'<button class="fchip" onclick="refreshTracker()">Refresh</button></div>'
 +'<div class="ob-bar gen"><span class="gen-l">New sponsor link</span><input id="inS" class="ob-search" placeholder="Sponsor name"/><input id="inD" class="ob-search" placeholder="Drive folder URL"/><button class="fchip on" onclick="generate()">Generate</button><span id="outUrl" class="gen-out"></span></div>'
 +'<div class="msg" id="msg-ob"></div>'
@@ -933,7 +953,7 @@ return '<div class="card"><div class="card-title">Sponsor Obligations &amp; Cale
 +'<div id="view-s"><div class="ob-wrap"><table class="ob"><thead><tr><th>Sponsor</th><th>Tier</th><th>Client Custom Page</th><th>Client email</th><th>Eblast</th><th>Social</th><th>Notes</th></tr></thead>'
 +'<tbody id="obBody"></tbody></table></div></div>'
 +'<div id="view-c" style="display:none"></div>'
-+'<div class="ob-foot">Orange bar = needs a decision. Click a sponsor name to open their Drive folder. Asset / Resource Link = copies the client\'s custom page link to share (their package, upload folder and date requests). Email Draft = creates the Gmail draft.</div>'
++'<div class="ob-foot">Orange bar = needs a decision. Click a sponsor name to open their Drive folder. [Sponsor] Hub = copies the client\'s hub link to share (their package, upload folder and date requests). Email Draft = creates the Gmail draft.</div>'
 +'</div>';
 }
 
