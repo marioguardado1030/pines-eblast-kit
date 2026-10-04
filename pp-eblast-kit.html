@@ -397,7 +397,7 @@ return base.replace(/[^A-Za-z0-9]+/g, '') || 'Sponsor';
 function filePrefixes(sp) {
 var out = [], i, x = socSplit(sp), n = sp.eb || 0, k = x ? x.stories : 0, t = fileTag(sp) + '_';
 for (i = 1; i <= n; i++) out.push({p: t + 'Eblast' + i + '_', ex: [t + 'Eblast' + i + '_Copy.docx', t + 'Eblast' + i + '_Photo1.jpg']});
-for (i = 1; i <= k; i++) out.push({p: t + 'InstagramStory' + i + '_', ex: [t + 'InstagramStory' + i + '_Image.jpg', t + 'InstagramStory' + i + '_Caption.txt']});
+for (i = 1; i <= k; i++) out.push({p: t + 'InstagramStory' + i + '_', ex: [t + 'InstagramStory' + i + '_Video.mp4', t + 'InstagramStory' + i + '_Brief.txt', t + 'InstagramStory' + i + '_Photo1.jpg']});
 return out;
 }
 function namingHTML(sp) {
