@@ -323,8 +323,8 @@ var st = [];
 if (sp.eb) st.push('Open the writing kit (guide, template and example) and write your eblast copy');
 var fp = filePrefixes(sp).map(function(x){ return x.p; });
 st.push('Upload your logo, photos' + (sp.eb ? ' and copy' : '') + ' to your folder' + (fp.length ? ', starting each file name with ' + fp.join(', ') : ''));
-if (sp.eb) st.push('Request your eblast send dates (pick up to ' + MAX_EBLAST_DATES + ', in order of preference; we\'ll confirm ' + sp.eb + ')');
-if (hasSocial(sp)) { var n = socOwed(sp); st.push('Request your Instagram story dates' + (n ? ' (pick up to ' + n + ')' : '')); }
+if (sp.eb) st.push('Request your eblast send dates (2 choices per eblast, ' + (2 * sp.eb) + ' total; we\'ll confirm ' + sp.eb + ')');
+if (hasSocial(sp)) { var n = socOwed(sp); st.push('Request your Instagram story dates' + (n ? ' (2 choices per story, ' + (2 * n) + ' total; we\'ll confirm ' + n + ')' : '')); }
 return st;
 }
 function sponsorEmailText(sp) {
@@ -541,6 +541,13 @@ var PICK = { eblast: [], story: [] };
 var VIEW = { eblast: null, story: null };
 var SPONSOR = '';
 var MAXP = { eblast: MAX_EBLAST_DATES, story: MAX_STORY_DATES };
+// "Pick 2 dates for Eblast 1, then 2 for Eblast 2" — order of taps = which item and which choice.
+function pickText(owed, type) {
+var word = type === 'eblast' ? 'eblast' : 'Instagram story', words = type === 'eblast' ? 'eblasts' : 'Instagram stories';
+if (!owed) return 'Tap up to ' + MAXP[type] + ' dates, in order of preference.';
+if (owed === 1) return 'Tap 2 dates for your ' + word + ': your 1st choice, then your 2nd. We\'ll confirm one.';
+return 'Tap 2 dates for each of your ' + owed + ' ' + words + ' (' + (2 * owed) + ' total), in order: 1st and 2nd choice for ' + (type === 'eblast' ? 'Eblast' : 'Story') + ' 1, then for ' + (type === 'eblast' ? 'Eblast' : 'Story') + ' 2' + (owed > 2 ? ', and so on' : '') + '. We\'ll confirm one date for each.';
+}
 
 function renderClient(sponsor, drive) {
 SPONSOR = sponsor;
@@ -564,7 +571,9 @@ return '<div class="legend"><span><i style="background:var(--pink)"></i>Your pic
 
 var reg = findSponsor(sponsor);
 var doEb = reg ? !!reg.eb : true, doSo = reg ? hasSocial(reg) : true;
-if (reg && socOwed(reg)) MAXP.story = socOwed(reg);
+// Sponsors pick 2 dates per item owed (1st + 2nd choice); the team selects one per item.
+if (reg && reg.eb) MAXP.eblast = 2 * reg.eb;
+if (reg && socOwed(reg)) MAXP.story = 2 * socOwed(reg);
 if (reg) document.getElementById('pgTitle').textContent = sponsor + ' - ' + (doEb && doSo ? 'Eblast Kit + Instagram Stories' : doEb ? 'Eblast Kit' : doSo ? 'Instagram Stories' : 'Sponsor Page');
 var pk = reg ? pkgItems(reg) : [];
 var n = 0;
@@ -580,12 +589,12 @@ document.getElementById('main').innerHTML =
 +(reg ? namingHTML(reg) : '')
 +uploadHTML)
 +(doEb ? step('<h2>Request Your Eblast Send Date'+(reg && reg.eb > 1 ? 's' : '')+'</h2>'
-+'<p>Tap up to '+MAX_EBLAST_DATES+' dates, in order of preference'+(reg ? '. We\'ll confirm '+plural(reg.eb,'send date','send dates') : '')+'. Greyed-out dates are already taken. A request is not a booking.</p>'
++'<p>'+pickText(reg ? reg.eb : 0, 'eblast')+' Greyed-out dates are already taken. A request is not a booking.</p>'
 +pickerHTML('eblast')
 +'<button class="btn btn-pink" id="go-eblast" onclick="submitDates(\'eblast\')">Request Eblast Date(s) &rarr;</button>'
 +'<div class="msg" id="msg-eblast"></div>') : '')
 +(doSo ? step('<h2>Request Your Instagram Story Date'+(MAXP.story > 1 ? 's' : '')+'</h2>'
-+'<p>Tap up to '+MAXP.story+' date'+(MAXP.story>1?'s':'')+' for your Instagram stor'+(MAXP.story>1?'ies':'y')+', in order of preference.'+(reg && socSplit(reg) && socSplit(reg).shouts ? ' Your shout-outs are scheduled by our team.' : '')+'</p>'
++'<p>'+pickText(reg ? socOwed(reg) : 0, 'story')+(reg && socSplit(reg) && socSplit(reg).shouts ? ' Your shout-outs are scheduled by our team.' : '')+'</p>'
 +pickerHTML('story')
 +'<button class="btn btn-outline" id="go-story" onclick="submitDates(\'story\')">Request Story Date(s) &rarr;</button>'
 +'<div class="msg" id="msg-story"></div>') : '')
