@@ -460,12 +460,13 @@ return window.location.origin + window.location.pathname
 
 // ---------- Backend ----------
 var CAL = { eblast: [], story: [] }, CAL_OK = false;
+var TRACKER = []; // Internal Tracker rows (team view only; needs the admin key)
 
 // Reads: GET with a timeout and one retry.
 function getJSON(ms) {
 var ctl = window.AbortController ? new AbortController() : null;
 var t = setTimeout(function(){ if (ctl) ctl.abort(); }, ms);
-return fetch(GAS_URL + '?_t=' + Date.now() + (ADMIN && ADMIN.key ? '&key=' + encodeURIComponent(ADMIN.key) : ''), ctl ? {signal: ctl.signal} : {})
+return fetch(GAS_URL + '?_t=' + Date.now() + (ADMIN && ADMIN.key ? '&key=' + encodeURIComponent(ADMIN.key) : '') + (SPONSOR ? '&sponsor=' + encodeURIComponent(SPONSOR) : ''), ctl ? {signal: ctl.signal} : {})
 .then(function(r){ clearTimeout(t); return r.json(); });
 }
 // Obligations sheet -> SPONSORS. Falls back to the built-in list if the sheet isn't served yet.
@@ -492,6 +493,7 @@ return getJSON(20000).catch(function(){ return getJSON(20000); })
 .then(function(d){
 if (!d || !d.rows) throw new Error((d && d.error) || 'Bad response');
 CAL.eblast = d.rows || []; CAL.story = d.story || []; CAL_OK = true;
+if (d.tracker) TRACKER = d.tracker;
 if (d.sponsors) applySponsors(d.sponsors);
 return CAL;
 });
