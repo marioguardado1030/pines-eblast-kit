@@ -107,6 +107,11 @@ h1{font-size:26px;font-weight:700}
 .spn{font-size:12px;background:#f7f3f6;border-radius:6px;padding:4px 8px}
 .pkg{background:#fff;border:1px solid var(--border);border-left:4px solid var(--pink);border-radius:12px;padding:16px 20px;margin-bottom:14px}
 .pkg ul{margin:0 0 0 18px;font-size:14px;line-height:1.7}
+.naming{background:#faf5f8;border:1px solid var(--border);border-radius:9px;padding:12px 14px;margin:0 0 14px}
+.naming-h{font-size:12px;font-weight:700;color:var(--gray);margin-bottom:8px}
+.nrow{display:flex;gap:10px;align-items:baseline;font-size:12px;margin-bottom:5px;flex-wrap:wrap}
+.nrow code,.naming code{background:#fff;border:1px solid var(--border);border-radius:5px;padding:1px 6px;font-size:12px;color:var(--pink);font-weight:700}
+.nrow span{color:var(--muted)}
 .tier-vipbag{background:#f3e3ee;color:#9a1d63}
 /* ---- Obligations tracker (team view) ---- */
 body.admin .hdr-in,body.admin .main{max-width:1240px}
@@ -303,7 +308,8 @@ return first.length === 1 ? first[0] : first.slice(0,-1).join(', ') + ' and ' + 
 function emailSteps(sp) {
 var st = [];
 if (sp.eb) st.push('Open the writing kit (guide, template and example) and write your eblast copy');
-st.push('Upload your logo, photos' + (sp.eb ? ' and copy' : '') + ' to your folder');
+var fp = filePrefixes(sp).map(function(x){ return x.p; });
+st.push('Upload your logo, photos' + (sp.eb ? ' and copy' : '') + ' to your folder' + (fp.length ? ', starting each file name with ' + fp.join(', ') : ''));
 if (sp.eb) st.push('Request your eblast send dates (pick up to ' + MAX_EBLAST_DATES + ', in order of preference; we\'ll confirm ' + sp.eb + ')');
 if (hasSocial(sp)) { var n = socOwed(sp); st.push('Request your Instagram story dates' + (n ? ' (pick up to ' + n + ')' : '')); }
 return st;
@@ -344,6 +350,20 @@ if (x && x.stories) out.push(plural(x.stories, 'Instagram story', 'Instagram sto
 if (x && x.shouts) out.push(plural(x.shouts, 'shout-out', 'shout-outs') + ' from Pines Party (we schedule these)');
 if (!x && sp.pkSoc) out.push(sp.pkSoc);
 return out;
+}
+// One folder per sponsor; files are named by deliverable so we know what each is for.
+function filePrefixes(sp) {
+var out = [], i, x = socSplit(sp), n = sp.eb || 0, k = x ? x.stories : 0;
+for (i = 1; i <= n; i++) out.push({p: 'Eblast' + i + '_', ex: ['Eblast' + i + '_Copy.docx', 'Eblast' + i + '_Logo.png', 'Eblast' + i + '_Photo1.jpg']});
+for (i = 1; i <= k; i++) out.push({p: 'InstagramStory' + i + '_', ex: ['InstagramStory' + i + '_Image.jpg', 'InstagramStory' + i + '_Caption.txt']});
+return out;
+}
+function namingHTML(sp) {
+var f = filePrefixes(sp);
+if (!f.length) return '';
+return '<div class="naming"><div class="naming-h">Name your files so we know what each one is for</div>'
++ f.map(function(x){ return '<div class="nrow"><code>'+x.p+'</code><span>'+x.ex.join(' &middot; ')+'</span></div>'; }).join('')
++ '<div class="hint">Everything goes in the same folder. Shared files (like your logo) can be named <code>All_Logo.png</code>.</div></div>';
 }
 function hasSocial(sp) { return !!(socSplit(sp) && socSplit(sp).stories) || !!sp.pkSoc; }
 // Subject reflects what we owe: eblast and/or social (Instagram stories).
@@ -509,6 +529,7 @@ document.getElementById('main').innerHTML =
 +'<a class="btn btn-outline" href="'+KIT+'" target="_blank">Open Kit Folder &rarr;</a>') : '')
 +step('<h2>Upload Your Assets</h2>'
 +'<p>Upload your logo, 1-2 photos'+(doEb?', and completed copy template':'')+' to your sponsor folder. You\'ll need to be signed in to any Google account. Your event photos will be in this folder too.</p>'
++(reg ? namingHTML(reg) : '')
 +uploadHTML)
 +(doEb ? step('<h2>Request Your Eblast Send Date'+(reg && reg.eb > 1 ? 's' : '')+'</h2>'
 +'<p>Tap up to '+MAX_EBLAST_DATES+' dates, in order of preference'+(reg ? '. We\'ll confirm '+plural(reg.eb,'send date','send dates') : '')+'. Greyed-out dates are already taken. A request is not a booking.</p>'
