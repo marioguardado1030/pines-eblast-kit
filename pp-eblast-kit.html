@@ -495,17 +495,28 @@ return fetch(GAS_URL + '?_t=' + Date.now() + (ADMIN && ADMIN.key ? '&key=' + enc
 var SHEET_OK = false;
 var TIER_KEY = {platinum:'platinum', gold:'gold', silver:'silver', bronze:'bronze', community:'community', 'vip bag':'vipbag', vipbag:'vipbag'};
 function num(v) { var n = parseInt(v, 10); return isNaN(n) ? 0 : n; }
+// Obligations sheet -> SPONSORS (the sheet is the source of what each sponsor is owed).
+// Contacts/notes only come with the admin key; anything missing falls back to the built-in list.
+function folderIdOf(v) { var m = String(v || '').match(/folders\/([\w-]+)/); return m ? m[1] : String(v || '').trim(); }
 function applySponsors(list) {
-if (!list || !list.length) return;
-SPONSORS = list.map(function(r){
-var st = String(r.Status||'').toLowerCase();
+if (!list || list.length < 10) return; // sanity: never wipe the list on a bad read
+var base = SPONSORS.slice();
+function fromBase(name, key) {
+for (var i = 0; i < base.length; i++) { if (base[i].n === name || (key && slug(base[i].n) === key)) return base[i]; }
+return {};
+}
+SPONSORS = list.filter(function(r){ return r.Sponsor; }).map(function(r){
+var st = String(r.Status||'').toLowerCase(), b = fromBase(r.Sponsor, r.Key);
+var pick = function(a, bk) { return (a !== undefined && a !== '') ? a : (b[bk] || ''); };
 return {
-n: r.Sponsor, key: r.Key || '', aka: r.Aka || '', t: TIER_KEY[String(r.Tier||'').toLowerCase()] || 'community',
-eb: num(r.Eblasts), st: num(r.Stories), sh: num(r.ShoutOuts), soc: r.ContractSocial || '',
-ct: r.Contact || '', em: r.Emails || '',
-id: r.DriveFolderID || null, id2: r.DriveFolder2ID || '', ph: r.PhotoFolderID || '',
-lead: r.PPLead || '', eml: r.ExtraEmailLine || '', note: r.Notes || '', tag: r.FileTag || '',
-flag: st === 'needs check', old: st === 'not 2026' ? (r.Notes || 'Not 2026') : ''
+n: r.Sponsor, key: r.Key || '', aka: pick(r.Aka, 'aka'), t: TIER_KEY[String(r.Tier||'').toLowerCase()] || b.t || 'community',
+eb: num(r.Eblasts), ebSent: num(r['Eblasts Sent']), st: num(r.Stories), sh: num(r['Shout-outs'] !== undefined ? r['Shout-outs'] : r.ShoutOuts),
+ct: pick(r.Contact, 'ct'), em: pick(r.Emails, 'em'),
+id: folderIdOf(r['Asset Folder'] || r.DriveFolderID) || b.id || null, id2: folderIdOf(r['Asset Folder 2'] || r.DriveFolder2ID) || b.id2 || '',
+ph: folderIdOf(r['Photo Folder'] || r.PhotoFolderID) || b.ph || '',
+lead: pick(r['PP Lead'] !== undefined ? r['PP Lead'] : r.PPLead, 'lead'), eml: pick(r['Extra Email Line'] !== undefined ? r['Extra Email Line'] : r.ExtraEmailLine, 'eml'),
+note: pick(r.Notes, 'note'), tag: pick(r['File Tag'] !== undefined ? r['File Tag'] : r.FileTag, 'tag'),
+flag: st === 'needs check', old: st === 'not 2026' ? (r.Notes || b.old || 'Not 2026') : ''
 };
 });
 SHEET_OK = true;
