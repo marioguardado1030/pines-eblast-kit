@@ -325,6 +325,7 @@ function hubName(sp) { return hubShort(sp) + ' Pines Party Hub'; }
 // Email sign-off: whoever is drafting (saved per browser on the team page), never hardcoded.
 function signer() { try { return (localStorage.getItem('ppSigner') || '').trim(); } catch (e) { return ''; } }
 function saveSigner(v) { try { localStorage.setItem('ppSigner', v.trim()); } catch (e) {} }
+var STORY_GEN = 'https://marioguardado1030.github.io/pp2026-asset-builder/';
 var NUMW = ['zero','one','two','three','four','five','six','seven','eight'];
 function numw(n) { return NUMW[n] || String(n); }
 function andList(a, word) { return a.length < 2 ? a.join('') : a.slice(0,-1).join(', ') + ' ' + (word || 'and') + ' ' + a[a.length-1]; }
@@ -339,6 +340,7 @@ return andList(out);
 function emailSteps(sp) {
 var st = [], x = socSplit(sp), k = x ? x.stories : 0;
 if (sp.eb) st.push('Open the writing kit, which has a guide, a template and an example, and draft your eblast copy');
+if (k) st.push('Build your Instagram ' + (k === 1 ? 'story' : 'stories') + ' with our Story Generator (' + STORY_GEN + '). We\'ve made it easy to build a story, download it and share it with us, then select your desired dates');
 var fp = filePrefixes(sp).map(function(f){ return f.p; });
 st.push('Upload your logo' + (sp.eb ? ', photos and copy' : ' and photos') + ' to your folder.'
   + (fp.length ? ' Please start each file name with ' + andList(fp, 'or') + ' so we can keep everything straight' : ''));
@@ -370,7 +372,7 @@ return '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-h
 + '<p>Hi ' + esc(greetName(sp)) + ',</p>'
 + '<p>Thank you so much for supporting Pines Party 2026. As a ' + TIER_LABEL[sp.t] + ' sponsor, your package includes ' + esc(pkgSentence(sp)) + '.</p>'
 + '<p>To make things easy, we\'ve put everything in one place: <a href="' + sponsorLink(sp.n) + '"><b>' + esc(hubName(sp)) + '</b></a></p>'
-+ '<p>From there you can:</p><ol>' + st.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ol>'
++ '<p>From there you can:</p><ol>' + st.map(function(x){ return '<li>' + esc(x).replace('Story Generator (' + STORY_GEN + ')', '<a href="' + STORY_GEN + '"><b>Story Generator</b></a>') + '</li>'; }).join('') + '</ol>'
 + (sp.eml ? '<p>' + esc(sp.eml) + '</p>' : '')
 + emailClose(sp).map(function(x){ return '<p>' + esc(x) + '</p>'; }).join('')
 + '<p>Thanks again for your support,<br>' + esc(signer()) + '</p></div>';
@@ -603,6 +605,9 @@ document.getElementById('main').innerHTML =
 +(doEb ? step('<h2>Open the Kit</h2>'
 +'<p>Your kit includes a writing guide, blank template, and completed example &mdash; everything you need to prepare your eblast copy.</p>'
 +'<a class="btn btn-outline" href="'+KIT+'" target="_blank">Open Kit Folder &rarr;</a>') : '')
++(doSo ? step('<h2>Build Your Instagram Story</h2>'
++'<p>We\'ve made it easy to build a story, download it and share it with us, then select your desired dates below.</p>'
++'<a class="btn btn-outline" href="'+STORY_GEN+'" target="_blank">Open the Story Generator &rarr;</a>') : '')
 +step('<h2>Upload Your Assets</h2>'
 +'<p>Upload your logo, 1-2 photos'+(doEb?', and completed copy template':'')+' to your sponsor folder. You\'ll need to be signed in to any Google account. Your event photos will be in this folder too.</p>'
 +(reg ? namingHTML(reg) : '')
