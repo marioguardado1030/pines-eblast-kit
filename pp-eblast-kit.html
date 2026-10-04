@@ -343,7 +343,7 @@ var st = [], x = socSplit(sp), k = x ? x.stories : 0, e = ebLeft(sp);
 if (e) st.push('Open the writing kit, which has a guide, a template and an example, and draft your eblast copy');
 if (k) st.push('Build your Instagram ' + (k === 1 ? 'story' : 'stories') + ' with our Story Generator (' + STORY_GEN + '). We\'ve made it easy to build a story, download it and share it with us, then select your desired dates');
 var fp = filePrefixes(sp).map(function(f){ return f.p; });
-st.push('Upload your logo' + (e ? ', photos and copy' : ' and photos') + ' to your folder.'
+st.push((e ? 'Upload your logo, photos and copy' + (k ? ', plus your story video and brief' : '') : 'Upload the story video and brief you download from the Story Generator') + ' to your folder.'
   + (fp.length ? ' Please start each file name with ' + andList(fp, 'or') + ' so we can keep everything straight' : ''));
 if (e) st.push('Pick your preferred send dates. ' + (e === 1
   ? 'Choose two options for your eblast, and we\'ll confirm one'
@@ -400,7 +400,7 @@ return base.replace(/[^A-Za-z0-9]+/g, '') || 'Sponsor';
 function filePrefixes(sp) {
 var out = [], i, x = socSplit(sp), n = ebLeft(sp), k = x ? x.stories : 0, t = fileTag(sp) + '_';
 for (i = 1; i <= n; i++) out.push({p: t + 'Eblast' + i + '_', ex: [t + 'Eblast' + i + '_Copy.docx', t + 'Eblast' + i + '_Photo1.jpg']});
-for (i = 1; i <= k; i++) out.push({p: t + 'InstagramStory' + i + '_', ex: [t + 'InstagramStory' + i + '_Video.mp4', t + 'InstagramStory' + i + '_Brief.txt', t + 'InstagramStory' + i + '_Photo1.jpg']});
+for (i = 1; i <= k; i++) out.push({p: t + 'InstagramStory' + i + '_', ex: [t + 'InstagramStory' + i + '_Video.mp4', t + 'InstagramStory' + i + '_Brief.txt']});
 return out;
 }
 function namingHTML(sp) {
@@ -610,7 +610,7 @@ document.getElementById('main').innerHTML =
 +'<p>We\'ve made it easy to build a story, download it and share it with us, then select your desired dates below.</p>'
 +'<a class="btn btn-outline" href="'+STORY_GEN+'" target="_blank">Open the Story Generator &rarr;</a>') : '')
 +step('<h2>Upload Your Assets</h2>'
-+'<p>Upload your logo, 1-2 photos'+(doEb?', and completed copy template':'')+' to your sponsor folder. You\'ll need to be signed in to any Google account. Your event photos will be in this folder too.</p>'
++'<p>'+(doEb ? 'Upload your logo, 1-2 photos and completed copy template'+(doSo?', plus the story video and brief from the Story Generator':'') : 'Upload the story video and brief you download from the Story Generator')+' to your sponsor folder. You\'ll need to be signed in to any Google account. Your event photos will be in this folder too.</p>'
 +(reg ? namingHTML(reg) : '')
 +uploadHTML)
 +(doEb ? step('<h2>Request Your Eblast Send Date'+(reg && ebLeft(reg) > 1 ? 's' : '')+'</h2>'
