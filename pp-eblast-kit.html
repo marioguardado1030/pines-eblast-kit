@@ -352,10 +352,17 @@ if (!x && sp.pkSoc) out.push(sp.pkSoc);
 return out;
 }
 // One folder per sponsor; files are named by deliverable so we know what each is for.
+// File-name tag for a sponsor: name before any "/" or "(", letters and digits only.
+// e.g. "High Noon (Gallo) / Lucky One Lemonade" -> "HighNoon", "JustFor.Fans" -> "JustForFans".
+function fileTag(sp) {
+if (sp.tag) return sp.tag;
+var base = String(sp.n).split(/\s*[\/(]/)[0];
+return base.replace(/[^A-Za-z0-9]+/g, '') || 'Sponsor';
+}
 function filePrefixes(sp) {
-var out = [], i, x = socSplit(sp), n = sp.eb || 0, k = x ? x.stories : 0;
-for (i = 1; i <= n; i++) out.push({p: 'Eblast' + i + '_', ex: ['Eblast' + i + '_Copy.docx', 'Eblast' + i + '_Logo.png', 'Eblast' + i + '_Photo1.jpg']});
-for (i = 1; i <= k; i++) out.push({p: 'InstagramStory' + i + '_', ex: ['InstagramStory' + i + '_Image.jpg', 'InstagramStory' + i + '_Caption.txt']});
+var out = [], i, x = socSplit(sp), n = sp.eb || 0, k = x ? x.stories : 0, t = fileTag(sp) + '_';
+for (i = 1; i <= n; i++) out.push({p: t + 'Eblast' + i + '_', ex: [t + 'Eblast' + i + '_Copy.docx', t + 'Eblast' + i + '_Photo1.jpg']});
+for (i = 1; i <= k; i++) out.push({p: t + 'InstagramStory' + i + '_', ex: [t + 'InstagramStory' + i + '_Image.jpg', t + 'InstagramStory' + i + '_Caption.txt']});
 return out;
 }
 function namingHTML(sp) {
@@ -363,7 +370,7 @@ var f = filePrefixes(sp);
 if (!f.length) return '';
 return '<div class="naming"><div class="naming-h">Name your files so we know what each one is for</div>'
 + f.map(function(x){ return '<div class="nrow"><code>'+x.p+'</code><span>'+x.ex.join(' &middot; ')+'</span></div>'; }).join('')
-+ '<div class="hint">Everything goes in the same folder. Shared files (like your logo) can be named <code>All_Logo.png</code>.</div></div>';
++ '<div class="hint">Everything goes in the same folder. Shared files (like your logo) can be named <code>'+fileTag(sp)+'_All_Logo.png</code>.</div></div>';
 }
 function hasSocial(sp) { return !!(socSplit(sp) && socSplit(sp).stories) || !!sp.pkSoc; }
 // Subject reflects what we owe: eblast and/or social (Instagram stories).
@@ -435,7 +442,7 @@ n: r.Sponsor, key: r.Key || '', aka: r.Aka || '', t: TIER_KEY[String(r.Tier||'')
 eb: num(r.Eblasts), st: num(r.Stories), sh: num(r.ShoutOuts), soc: r.ContractSocial || '',
 ct: r.Contact || '', em: r.Emails || '',
 id: r.DriveFolderID || null, id2: r.DriveFolder2ID || '', ph: r.PhotoFolderID || '',
-lead: r.PPLead || '', eml: r.ExtraEmailLine || '', note: r.Notes || '',
+lead: r.PPLead || '', eml: r.ExtraEmailLine || '', note: r.Notes || '', tag: r.FileTag || '',
 flag: st === 'needs check', old: st === 'not 2026' ? (r.Notes || 'Not 2026') : ''
 };
 });
