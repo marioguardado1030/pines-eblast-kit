@@ -401,7 +401,6 @@ return 'https://mail.google.com/mail/?authuser=' + encodeURIComponent(MAIL_FROM)
 }
 function draftEmail(btn, i) {
 var sp = SPONSORS[i];
-if (!ADMIN.key) { setMsg('ob', 'bad', 'Enter the admin key above first.'); return; }
 var orig = btn.textContent; btn.disabled = true; btn.textContent = 'Drafting…';
 var q = '?action=draft&key=' + encodeURIComponent(ADMIN.key)
 + '&to=' + encodeURIComponent((sp.em||'').replace(/\s+/g,''))
@@ -415,9 +414,15 @@ setMsg('ob', 'ok', (d.existing ? 'A draft already exists for ' : 'Gmail draft cr
 btn.textContent = d.existing ? 'Draft exists' : 'Drafted ✓';
 } else { throw new Error(d && d.error ? d.error : 'no-addon'); }
 }).catch(function(e){
-// Script add-on not installed yet: open a filled Gmail compose window instead.
+// Script add-on not installed yet: copy the formatted (HTML) email, then open a Gmail compose
+// window with To/CC/Subject and a plain-text body. Select the body and paste (Cmd+V) for the formatted version.
+try {
+if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
+navigator.clipboard.write([new ClipboardItem({'text/html': new Blob([sponsorEmailHTML(sp)], {type:'text/html'}), 'text/plain': new Blob([sponsorEmailText(sp)], {type:'text/plain'})})]);
+}
+} catch (x) {}
 window.open(sponsorEmailUrl(sp), '_blank');
-setMsg('ob', 'info', 'Opened a filled Gmail compose window for ' + esc(sp.n) + '. (Real one-click drafts start working once the script add-on is installed.)');
+setMsg('ob', 'info', 'Opened a Gmail draft for ' + esc(sp.n) + ' with To, CC, subject and body filled in. The formatted version is copied too: select the body and paste (Cmd+V) to swap it in.');
 btn.textContent = orig;
 }).then(function(){ btn.disabled = false; });
 }
