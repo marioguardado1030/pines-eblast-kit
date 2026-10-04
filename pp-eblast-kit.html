@@ -781,10 +781,10 @@ var name = s.id ? '<a class="sp-name" href="'+driveUrl(s.id)+'" target="_blank" 
 return '<tr class="'+(s.flag?'flag ':'')+(s.old?'old':'')+'">'
 +'<td>'+name+(s.aka?'<div class="sp-lead">aka '+esc(s.aka)+'</div>':'')+'</td>'
 +'<td><span class="tier tier-'+s.t+'" style="margin-left:0">'+TIER_LABEL[s.t]+'</span></td>'
++'<td class="acts">'+acts+'</td>'
 +'<td class="ct">'+contactCell(s)+'</td>'
 +'<td>'+statusCell('eblast', s, s.eb)+'</td>'
 +'<td>'+statusCell('story', s, socOwed(s))+'</td>'
-+'<td class="acts">'+acts+'</td>'
 +'<td><div class="note'+(s.flag?' fl':'')+'">'+(s.note?esc(s.note):'')+'</div></td></tr>';
 }).join('');
 }
@@ -914,7 +914,7 @@ return '<div class="card"><div class="card-title">Sponsor Obligations &amp; Cale
 +'<div class="msg" id="msg-ob"></div>'
 +'<div class="tabs" style="margin-top:6px"><button class="tab on" id="vt-s" onclick="showView(\'s\')">Sponsors</button><button class="tab" id="vt-c" onclick="showView(\'c\')">Calendar</button></div>'
 +'<div class="ob-bar" id="obChips"></div>'
-+'<div id="view-s"><div class="ob-wrap"><table class="ob"><thead><tr><th>Sponsor</th><th>Tier</th><th>Client email</th><th>Eblast</th><th>Social</th><th>Client Custom Page</th><th>Notes</th></tr></thead>'
++'<div id="view-s"><div class="ob-wrap"><table class="ob"><thead><tr><th>Sponsor</th><th>Tier</th><th>Client Custom Page</th><th>Client email</th><th>Eblast</th><th>Social</th><th>Notes</th></tr></thead>'
 +'<tbody id="obBody"></tbody></table></div></div>'
 +'<div id="view-c" style="display:none"></div>'
 +'<div class="ob-foot">Orange bar = needs a decision. Click a sponsor name to open their Drive folder. Asset / Resource Link = copies the client\'s custom page link to share (their package, upload folder and date requests). Email Draft = creates the Gmail draft.</div>'
