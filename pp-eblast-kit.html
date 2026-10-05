@@ -182,6 +182,19 @@ table.ob{min-width:980px}
 .logbox{background:#faf5f8;border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin:14px 0}
 select.ob-search{background:#fff}
 .ob-foot{font-size:11px;color:var(--muted);margin-top:8px}
+.keyp{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;margin:0 0 14px;background:#fff}
+.keyp.locked{border-color:var(--pink);background:#fdf3f8}
+.keyp.open{border-color:#9fd3ae;background:#f0f9f2}
+.keyp b{font-size:13px}
+.keyp .kt{flex:1 1 220px;font-size:12px;color:var(--gray);line-height:1.45}
+.keyp form{display:flex;gap:8px;flex:1 1 100%;min-width:0}
+.keyp input{flex:1;min-width:0;width:100%;font:inherit;font-size:14px;padding:9px 10px;border:1.5px solid var(--border);border-radius:8px}
+.keyp .kbtn{border:0;border-radius:8px;padding:9px 18px;font-size:14px;font-weight:700;background:var(--pink);color:#fff;cursor:pointer}
+.keyp .kbtn:disabled{opacity:.6;cursor:default}
+.keyp .klink{border:1.5px solid var(--border);background:#fff;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;color:var(--gray);cursor:pointer}
+.keyp .khead{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-basis:100%}
+.keyp .tl{background:none;border:0;padding:0;color:var(--pink);font:inherit;font-weight:700;cursor:pointer;text-decoration:underline}
+.keyp .kerr{flex-basis:100%;font-size:12px;color:#b00020;font-weight:700}
 </style>
 </head>
 <body>
@@ -422,7 +435,7 @@ box.innerHTML = '<b>Who is signing this email?</b><div style="font-size:12px;col
 + '<input type="text" placeholder="Your name, e.g. Mario"/> <button class="mini mini-p">Sign &amp; draft email</button> <button class="mini mini-s">Cancel</button>';
 var inp = box.querySelector('input'), bs = box.querySelectorAll('button');
 function go() { var v = inp.value.trim(); if (!v) { inp.focus(); inp.style.borderColor = '#b00020'; return; }
-saveSigner(v); var f = document.getElementById('obSigner'); if (f) f.value = v; box.remove(); draftEmail(btn, i); }
+saveSigner(v); box.remove(); drawKey(); draftEmail(btn, i); }
 bs[0].onclick = go; bs[1].onclick = function(){ box.remove(); };
 inp.onkeydown = function(e){ if (e.key === 'Enter') go(); if (e.key === 'Escape') box.remove(); };
 btn.parentNode.insertBefore(box, btn.nextSibling); inp.focus();
@@ -691,7 +704,7 @@ return date < TODAY ? 'Date passed' : 'Scheduled';
 }
 function needKey(msgId) {
 if (ADMIN.key && ADMIN.ok) return false;
-setMsg(msgId || 'ob', 'bad', ADMIN.key ? 'The admin key wasn\'t accepted. Check it above.' : 'Enter the admin key above first.'); var k = document.getElementById('obKey'); if (k) k.focus();
+setMsg(msgId || 'ob', 'bad', ADMIN.key ? 'The team key wasn\'t accepted. Check it in the Team key box above.' : 'Unlock with the team key above first.'); var k = document.getElementById('obKey'); if (k) k.focus();
 return true;
 }
 // After any write: re-read everything and redraw, then show the result.
@@ -763,7 +776,7 @@ if (OB.q && [s.n, s.aka, s.ct, s.em, s.lead, s.note].join(' ').toLowerCase().ind
 return true;
 }
 function contactCell(s) {
-if (!s.em) return '<span class="dash">'+(ADMIN.ok ? '&mdash;' : 'Enter admin key')+'</span>';
+if (!s.em) return '<span class="dash">'+(ADMIN.ok ? '&mdash;' : 'Unlock to see')+'</span>';
 return (s.ct ? '<div>'+esc(s.ct)+'</div>' : '')
 + s.em.split(',').map(function(e){ e = e.trim(); return '<a class="em" href="mailto:'+esc(e)+'">'+esc(e)+'</a>'; }).join('');
 }
@@ -836,9 +849,35 @@ if (lg && !lg.options.length) lg.innerHTML = SPONSORS.filter(function(s){ return
 }
 function drawAll() {
 drawOb(); drawMonth(); drawTracker();
-var k = document.getElementById('keyNote');
-if (k) k.innerHTML = ADMIN.key && CAL_OK && !ADMIN.ok ? '<div class="msg bad" style="display:block;margin:0 0 10px">Admin key not accepted. Contacts, folders, statuses and editing stay hidden until the key is right.</div>' : '';
+drawKey();
 }
+// Team key panel: one clear place to unlock (remembered on this device) or lock.
+var KEY_BUSY = false;
+function drawKey() {
+var el = document.getElementById('keyPanel'); if (!el) return;
+if (ADMIN.ok) {
+  el.className = 'keyp open';
+  el.innerHTML = '<div class="khead"><b>&#10003; Team view unlocked</b><button class="klink" onclick="lockKey()">Lock</button></div>'
+    + '<span class="kt">Contacts, folders and statuses are showing, and you can approve dates. Remembered on this device.'
+    + (signer() ? ' Email drafts are signed &ldquo;' + esc(signer()) + '&rdquo; (<button class="tl" onclick="changeSigner()">change</button>).' : '')
+    + '</span>';
+  return;
+}
+var rejected = ADMIN.key && CAL_OK && !KEY_BUSY;
+el.className = 'keyp locked';
+el.innerHTML = '<span class="kt"><b>Team key</b><br>Enter it once to see contacts, folders and statuses, and to approve dates. This device will remember it.</span>'
+  + '<form onsubmit="unlockKey();return false"><input id="obKey" type="password" autocomplete="current-password" placeholder="Team key" value="' + esc(rejected ? '' : ADMIN.key) + '"/>'
+  + '<button class="kbtn" type="submit"' + (KEY_BUSY ? ' disabled>Checking&hellip;' : '>Unlock') + '</button></form>'
+  + (rejected ? '<div class="kerr">That key wasn&rsquo;t accepted. Check it and try again.</div>' : '')
+  + (!CAL_OK && !KEY_BUSY ? '<div class="kerr">Couldn&rsquo;t reach the server. Press Reload data, then try again.</div>' : '');
+}
+function unlockKey() {
+var v = (document.getElementById('obKey') || {}).value || '';
+if (!v.trim()) { var k = document.getElementById('obKey'); if (k) k.focus(); return; }
+saveKey(v);
+}
+function lockKey() { ADMIN.key = ''; ADMIN.ok = false; try { localStorage.removeItem('ppAdminKey'); } catch (e) {} refreshAll(); }
+function changeSigner() { var v = prompt('Your name for email drafts', signer()); if (v != null && v.trim()) { saveSigner(v); drawKey(); } }
 function setOb(f) { OB.f = f; drawOb(); }
 function searchOb(v) { OB.q = v.trim().toLowerCase(); drawOb(); }
 
@@ -915,7 +954,7 @@ return out.join('');
 }
 var h = '<div class="mc-hd"><button class="cal-nav" onclick="shiftMonth(-1)">&lsaquo;</button><strong>'
 + MCAL.toLocaleDateString('en-US',{month:'long',year:'numeric'}) + '</strong><button class="cal-nav" onclick="shiftMonth(1)">&rsaquo;</button></div>'
-+ (CAL_OK ? '' : '<div class="hint" style="margin-bottom:8px">Couldn\'t reach the calendar right now. Press Refresh to retry.</div>')
++ (CAL_OK ? '' : '<div class="hint" style="margin-bottom:8px">Couldn\'t reach the calendar right now. Press Reload data to retry.</div>')
 + '<div class="mc">';
 ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(function(d){ h += '<div class="mc-dow">'+d+'</div>'; });
 for (var i = 0; i < first; i++) h += '<div class="mc-day off"></div>';
@@ -961,13 +1000,11 @@ return '<div class="trow"><div class="trow-top"><span class="trow-date">'+fmtDat
 
 function obligationsHTML() {
 return '<div class="card"><div class="card-title">Sponsor Obligations &amp; Calendar</div>'
-+'<div class="ob-sub"><b>Owed</b> comes from the Obligations sheet. <b>Status</b> comes live from the date calendar and the tracker. Click a yellow <b>Req</b> date to approve it; that locks it for everyone else. Click its <b>&#10005;</b> to reject it, optionally proposing another date. Click any item status (E1, S1, SO1&hellip;) to change it and its date; the automatic status check won&rsquo;t override your change for 5 days. Click a scheduled date twice to release it. Contacts and notes need the admin key.</div>'
-+'<div id="keyNote"></div><div id="obPending"></div>'
++'<div class="ob-sub"><b>Owed</b> comes from the Obligations sheet. <b>Status</b> comes live from the date calendar and the tracker. Click a yellow <b>Req</b> date to approve it; that locks it for everyone else. Click its <b>&#10005;</b> to reject it, optionally proposing another date. Click any item status (E1, S1, SO1&hellip;) to change it and its date; the automatic status check won&rsquo;t override your change for 5 days. Click a scheduled date twice to release it.</div>'
++'<div id="keyPanel"></div><div id="obPending"></div>'
 +'<div class="stats" id="obStats"></div>'
 +'<div class="ob-bar"><input class="ob-search" placeholder="Search sponsor, contact, email&hellip;" oninput="searchOb(this.value)"/>'
-+'<input id="obKey" class="ob-search" style="flex:0 1 220px;min-width:160px" type="password" placeholder="Admin key (to approve)" value="'+esc(ADMIN.key)+'" onchange="saveKey(this.value)"/>'
-+'<input id="obSigner" class="ob-search" style="flex:0 1 170px;min-width:130px" placeholder="Sign emails as (your name)" value="'+esc(signer())+'" onchange="saveSigner(this.value)"/>'
-+'<button class="fchip" onclick="refreshAll()">Refresh</button></div>'
++'<button class="fchip" onclick="refreshAll()" title="Reloads sponsors, dates and statuses from the sheets">Reload data</button></div>'
 +'<div class="ob-bar gen"><span class="gen-l">New sponsor link</span><input id="inS" class="ob-search" placeholder="Sponsor name"/><input id="inD" class="ob-search" placeholder="Drive folder URL"/><button class="fchip on" onclick="generate()">Generate</button><span id="outUrl" class="gen-out"></span></div>'
 +'<div class="msg" id="msg-ob"></div>'
 +'<div class="tabs" style="margin-top:6px"><button class="tab on" id="vt-s" onclick="showView(\'s\')">Sponsors</button><button class="tab" id="vt-c" onclick="showView(\'c\')">Calendar</button></div>'
@@ -985,9 +1022,9 @@ document.getElementById('vt-s').className = 'tab' + (v==='s'?' on':'');
 document.getElementById('vt-c').className = 'tab' + (v==='c'?' on':'');
 document.getElementById('obChips').style.display = v==='s' ? '' : 'none';
 }
-function saveKey(v) { ADMIN.key = v.trim(); try { localStorage.setItem('ppAdminKey', ADMIN.key); } catch (e) {} refreshAll(); }
+function saveKey(v) { ADMIN.key = v.trim(); try { localStorage.setItem('ppAdminKey', ADMIN.key); } catch (e) {} KEY_BUSY = true; drawKey(); refreshAll().then(function(){ KEY_BUSY = false; drawKey(); }); }
 function refreshAll() {
-return loadCalendar().then(drawAll, function(){ drawAll(); setMsg('ob', 'bad', 'Couldn\'t reach the calendar backend. Press Refresh to retry.'); });
+return loadCalendar().then(drawAll, function(){ drawAll(); setMsg('ob', 'bad', 'Couldn\'t reach the calendar backend. Press Reload data to retry.'); });
 }
 // Clipboard copy with a fallback for browsers that block navigator.clipboard.
 function copyText(btn, text) {
