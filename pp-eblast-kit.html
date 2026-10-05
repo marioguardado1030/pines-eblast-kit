@@ -790,6 +790,33 @@ return s.soc ? s.soc.replace(/"/g,'') : 'None owed';
 var ST_CLS = {'Sent':'dt-x','Posted':'dt-x','Scheduled':'dt-b','Selected Date':'dt-r','In progress':'dt-r','Pending Client Approval':'dt-r',
 'Not sent':'dt-n','Not posted':'dt-n','No reply':'dt-n','Client declined':'dt-x'};
 function itemAbbr(it) { return String(it).replace(/^Eblast\s*/,'E').replace(/^Story\s*/,'S').replace(/^Shout-out\s*/,'SO'); }
+var ST_LIST = ['Email sent','No reply','Client replied','Client declined','Selected Date','In progress','Pending Client Approval','Scheduled','Not sent','Not posted','Sent','Posted'];
+function trackerRow(sp, item) { for (var i = 0; i < TRACKER.length; i++) if (TRACKER[i]['Sponsor Name'] === sp && TRACKER[i].Item === item) return TRACKER[i]; return null; }
+// Change an item's status from the dashboard (saved to the tracker sheet; the status check won't override it for 5 days).
+function stEditOpen(btn) {
+if (!ADMIN.key) { setMsg('ob', 'bad', 'Enter the admin key above first.'); document.getElementById('obKey').focus(); return; }
+var sp = btn.getAttribute('data-s'), it = btn.getAttribute('data-i'), r = trackerRow(sp, it) || {};
+var box = document.createElement('span'); box.className = 'rjbox';
+box.innerHTML = esc(it) + ': <select>' + ['<option value="">(blank)</option>'].concat(ST_LIST.map(function(x){ return '<option' + (x === r.Status ? ' selected' : '') + '>' + x + '</option>'; })).join('') + '</select>'
++ ' Date <input type="date" value="' + esc(r['Assigned Date'] || '') + '"/>'
++ '<button class="dt dt-b" style="margin:0">Save</button><button class="dt dt-x" style="margin:0">Cancel</button>';
+var bs = box.querySelectorAll('button');
+bs[1].onclick = function(){ box.remove(); btn.style.display = ''; };
+bs[0].onclick = function(){ stEditSave(sp, it, box.querySelector('select').value, box.querySelector('input').value, r['Assigned Date'] || '', bs[0]); };
+btn.style.display = 'none'; btn.parentNode.insertBefore(box, btn.nextSibling);
+}
+function stEditSave(sp, it, st, date, oldDate, b) {
+b.disabled = true; b.textContent = 'Saving…';
+var q = {action:'editStatus', sponsor:sp, item:it, status:st, by:(signer() || 'Team page'), key:ADMIN.key};
+if (date) q.date = date; else if (oldDate) q.clearDate = '1';
+post(q).then(function(){ return confirmWrite(function(){ var r = trackerRow(sp, it); return r && r.Status === st && (r['Assigned Date'] || '') === date; }); })
+.then(function(ok){
+drawOb();
+if (!ok) throw new Error('Not saved. Check the admin key and try again.');
+setMsg('ob', 'ok', esc(sp) + ' ' + esc(it) + ' set to ' + esc(st || '(blank)') + (date ? ' (' + fmtDate(date) + ')' : '') + '.');
+})
+.catch(function(e){ drawOb(); setMsg('ob', 'bad', esc(e.message)); });
+}
 function trackerChips(type, s) {
 if (!TRACKER.length) return '';
 var re = type === 'eblast' ? /^Eblast/ : /^(Story|Shout)/;
@@ -798,7 +825,7 @@ if (!rows.length) return '';
 return '<div class="trk">' + rows.map(function(r){
 var st = r.Status || 'Not started', fl = r.Flag ? ' &#9888;' : '';
 var tip = r.Item + ': ' + st + (r['Assigned Date'] ? ' (' + r['Assigned Date'] + ')' : '') + (r.Evidence ? ' | ' + r.Evidence : '') + (r.Flag ? ' | FLAG: ' + r.Flag : '');
-return '<span class="dt ' + (ST_CLS[st] || 'dt-o') + '" title="' + esc(tip) + '">' + esc(itemAbbr(r.Item)) + ' ' + esc(st) + fl + '</span>';
+return '<button class="dt ' + (ST_CLS[st] || 'dt-o') + '" title="' + esc(tip + ' | Click to change') + '" data-s="' + esc(s.n) + '" data-i="' + esc(r.Item) + '" onclick="stEditOpen(this)">' + esc(itemAbbr(r.Item)) + ' ' + esc(st) + fl + (r['Assigned Date'] ? ' ' + shortDate(r['Assigned Date']) : '') + '</button>';
 }).join('') + '</div>';
 }
 function statusCell(type, s, owed) {
@@ -1022,7 +1049,7 @@ setMsg('ob', 'ok', (action==='approve' ? 'Approved '+esc(sp)+' '+(t==='story'?'s
 
 function obligationsHTML() {
 return '<div class="card"><div class="card-title">Sponsor Obligations &amp; Calendar</div>'
-+'<div class="ob-sub"><b>Owed</b> comes from the CGE PP Sponsors 2026 sheet (written agreements only). <b>Status</b> comes live from the date calendar. Click a yellow <b>Req</b> date to approve it; that locks it for everyone else. Click its <b>&#10005;</b> to reject it, optionally proposing another date. Social = the Instagram dates sponsors request on their page. Green = scheduled, grey = the date has passed (sent/posted). Click a scheduled date twice to release it. Contacts come from the CGE sheet.</div>'
++'<div class="ob-sub"><b>Owed</b> comes from the CGE PP Sponsors 2026 sheet (written agreements only). <b>Status</b> comes live from the date calendar. Click a yellow <b>Req</b> date to approve it; that locks it for everyone else. Click its <b>&#10005;</b> to reject it, optionally proposing another date. Click any item status (E1, S1, SO1&hellip;) to change it; the automatic status check won&rsquo;t override your change for 5 days. Social = the Instagram dates sponsors request on their page. Green = scheduled, grey = the date has passed (sent/posted). Click a scheduled date twice to release it. Contacts come from the CGE sheet.</div>'
 +'<div class="stats" id="obStats"></div>'
 +'<div class="ob-bar"><input class="ob-search" placeholder="Search sponsor, contact, email&hellip;" oninput="searchOb(this.value)"/>'
 +'<input id="obKey" class="ob-search" style="flex:0 1 220px;min-width:160px" type="password" placeholder="Admin key (to approve)" value="'+esc(ADMIN.key)+'" onchange="saveKey(this.value)"/>'
