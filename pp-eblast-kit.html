@@ -140,7 +140,7 @@ table.ob tr.old td{color:#999}
 .dash{color:#c9b8c2}
 .dt{display:inline-block;font-size:10.5px;font-weight:700;border-radius:5px;padding:2px 6px;margin:0 3px 3px 0;white-space:nowrap}
 .dt-o{background:#f1f1f4;color:#555} .trk{margin-top:4px;padding-top:4px;border-top:1px dashed var(--border)}
-.mine{list-style:none;padding:0;margin:8px 0 0} .mine li{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-top:1px solid var(--border);font-size:14px} .mine li:first-child{border-top:none} .mine b{font-weight:700}
+.mine-list{list-style:none;padding:0;margin:8px 0 0} .mine-list li{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-top:1px solid var(--border);font-size:14px} .mine-list li:first-child{border-top:none} .mine-list b{font-weight:700}
 .dt-b{background:#e6f4ea;color:#1e7a3a} .dt-r{background:#fdf0d8;color:#9a6a12} .dt-n{background:#f6e2da;color:#b5502e} .dt-x{background:#eee;color:#888}
 .note{font-size:11.5px;color:#555;min-width:220px;max-width:320px}
 .note.fl{color:#9a4a10}
@@ -198,110 +198,85 @@ select.ob-search{background:#fff}
 <div class="main" id="main"></div>
 
 <script>
+// PP2026 Sponsor Hub + team dashboard. Everything about sponsors (what they're owed, folders, contacts) comes
+// from the server (Apps Script reading the Obligations sheet). This file holds NO contacts, notes or folders:
+//   no key            -> sponsor names / tiers / counts only
+//   ?s=<key> (Hub)    -> that sponsor's own row only
+//   admin key         -> everything
+// Writes are CORS POSTs whose JSON reply is read: the page shows the server's real result or error.
+
 // Kit folder (writing guide, template, example) — shared by every sponsor
 var KIT = 'https://drive.google.com/drive/folders/1f-x19JB9m2c3_YA4Ia2f7_in78xCXDcT?usp=drive_link';
+var STORY_GEN = 'https://marioguardado1030.github.io/pp2026-asset-builder/';
 
 var TEAM = [
-{n:'Mario Guardado', e:'mario.guardado@pinesparty.com', i:'MG', cc:false, note:''},
-{n:'Tim Dejsiriudom', e:'tdejsiriudom@pinesparty.com', i:'TD', cc:true, note:''},
-{n:'Tejesh Mistry', e:'tj@pinesparty.com', i:'TM', cc:true, note:''}
+{n:'Mario Guardado', e:'mario.guardado@pinesparty.com', i:'MG', cc:false},
+{n:'Tim Dejsiriudom', e:'tdejsiriudom@pinesparty.com', i:'TD', cc:true},
+{n:'Tejesh Mistry', e:'tj@pinesparty.com', i:'TM', cc:true}
 ];
+// CC on every sponsor email draft (team rules).
+var MAIL_CC = 'tdejsiriudom@pinesparty.com,nammaturo@pinesparty.com,tj@pinesparty.com,mario.guardado1030@gmail.com';
 
-// Live calendar backend — Apps Script Web App (PinePartyCalenar) writing to
-// the PinesPartyEblastCalendar sheet. Hardcoded on purpose: every sponsor on
-// every device must hit the same backend with no setup screen.
+// Live backend — Apps Script Web App (PinePartyCalenar). Hardcoded: every device hits the same backend.
 var GAS_URL = 'https://script.google.com/macros/s/AKfycbwkXN4_2_PWGGurtNTPZc7m-NwBGFN6lElJB7b0WJPbseXDjppwAbJgq5TrGvLFujlnjQ/exec';
 
-// Sponsors pick dates in this window. A pick is a REQUEST, not a booking —
-// the team approves one date per sponsor per type from the admin view.
 function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 var DATE_MIN = ymd(new Date());
 var DATE_MAX = '2027-06-30';
-var MAX_EBLAST_DATES = 4;
-var MAX_STORY_DATES = 2;
-
-// Sponsor registry + obligations.
-// Owed = CGE PP Sponsors 2026 sheet (18roj9PrZwktfkhzBIoKUhFeX4aVjlE1y), "Social media
-// obligations" column, validated 2026-10-03. Rule (Allan + Tim, 9/28 thread): an eblast is owed
-// ONLY when the written agreement says so; Silver/Bronze and product-only sponsors default to none.
-// Drive folder IDs unchanged: every folder stays reachable (photos go to all sponsors).
-// n = display name AND the ?s= slug key: do not rename existing entries or sent links break.
-// eb = eblasts owed (0 = none), soc = social owed, old = not a 2026 sponsor (kept for its folder).
-var SPONSORS = [
-{n:'Gilead Sciences', ct:'George Gates', em:'george.gates@gilead.com', ph:'11Ml1Hef2VIvvjDqf_IOm4tfrBFq3FviA', t:'platinum', id:'1QgyQBLodMU1LW_FaLO34rhWBj_FPyzC0', eb:2, soc:'', lead:'Patrick Forrett', note:'Contract: 2 eblasts + social posts (no count given). Coordinate with Boombox. Tier differs between the sheets (Gold vs Platinum).'},
-{n:'JustFor.Fans', ct:'Jack Aaronson, Anthony Meade', em:'dominic@justfor.fans, jack@aaronsongroup.com, events@justfor.fans', ph:'1DL5E4DE8Wo9UxNZdIeznedY3fRm-LYSH', t:'platinum', id:'1q_BjGHOTjjzb7Av_na2ojXCJWRiVf_lm', eb:2, soc:'4', lead:'Nick Ammaturo', note:'Platinum: 2 eblasts + social (confirmed by Mario 10/4).'},
-{n:'Tryst Hospitality / MISTR', ct:'Jonathan Grunin, Armando Macias', em:'jonathan@trysthospitality.com, armando@mistr.com', ph:'1U-PS6bFPb5dqA8RMz3Kuixy7jAYqRypx', t:'platinum', id:'1a7AmqcYD71xkAWtH9P1W69pNdtRMHZpw', eb:2, soc:'4 customized', lead:'Allan Baum, Nick Ammaturo', note:'Eblasts must go after Sep 7 (contract).'},
-{n:'Visit Lauderdale', ct:'Roger Dudley, Attiyya Atkins', em:'RDUDLEY@broward.org, aatkins@broward.org', ph:'1BCDzQYRz7wRS7sppYY58TzPC-CMA6RtX', t:'platinum', id:'1g8_VjxtvT3PhJQUosA5JNnE8KvHWrRKP', eb:2, soc:'4', lead:'Allan Baum, Amy Kule', note:''},
-{n:'Cuervo', ct:'Jaime Salas', em:'Jsalas@proximospirits.com', ph:'1CDxXPfqcS4Rc__q5rJrV4mUjAJQqa0BO', t:'gold', id:'1fW3GFed8xRZDv-FDAgqSUitn0zELloP7', eb:1, soc:'2 posts + 2 shout-outs', lead:'Allan Baum', note:'Gold Standard: 1 eblast + social (2026 Sponsors sheet).'},
-{n:'High Noon (Gallo) / Lucky One Lemonade', ct:'Jorge Espinosa, Emma Bovberg', em:'Emma.Bovberg@ejgallo.com, jorge.espinosa@ejgallo.com', ph:'1LBTMmgVrScyk8AdQQE6H1uGINVCSfwdY', t:'gold', id:'10Ycudgq3dHywAhEUASuEnHyLd5innEI5', eb:1, soc:'2 posts + 2 shout-outs', lead:'Allan Baum', note:'One eblast covers High Noon, Lucky One + New Amsterdam.'},
-{n:'Identiti Financial', ct:'Matthew Erickson', em:'matthew.erickson@identiti-nyc.com', ph:'1cqjlZQss_--oRgoQE3HLcJmMzobsvXa0', t:'gold', id:'1RUZKX4S3KUtrvkBmgg6_N_jQJq3cwpSM', eb:1, soc:'2 posts + 2 shout-outs', lead:'Nick Ammaturo, Allan Baum', note:'Copy received 7/10; eblast draft built 9/15.'},
-{n:'H2O', ct:'Rob Maag', em:'rob@h2olimo.org', t:'gold', id:'1VrHZJ6zpPE4w3XZjjR4vKeujKFllND5p', eb:2, soc:'3', lead:'Allan Baum, Nick Ammaturo', note:'Custom deal: 2 eblasts + 3 posts. Eblast draft built 8/8.'},
-{n:'Poxeidon', ct:'Vito Meijia, Andres Isaquita', em:'vito@thewerkroom.shop, andres@thewerkroom.shop', ph:'16dn8S3zZ4AOpjF5cYsFO14MrqN5IXe0w', aka:'Werkroom', t:'gold', id:'1Uzci9tYIVzSDjB2jhgfbehyXwnDICRbB', id2:'1Kc9haxos75Tvtveuf9LYvFz455xMAl4k', eb:1, soc:'1', lead:'Allan Baum', note:'Eblast promotes products + VIP discount code. Final copy 8/14 (Option A).'},
-{n:'Swiss Air', ct:'Allison Joan O\u2019Reilly', em:'allison-joan.oreilly@dlh.de', ebSent:1, eml:'As agreed, we\'ll share all content with SWISS for approval before anything goes out.', ph:'178u_-k2XJocnK6UHgIraixfFuTUDunBN', t:'gold', id:'1Eiy2SxARTvnmqrUc7sEAA8rRKE1JGQTk', eb:1, soc:'2', lead:'Allan Baum', note:'Eblast went out (Mario 10/4). Social still owed. SWISS approves all content before it goes out.'},
-{n:'Boardwalk Etiquette', ct:'Justin B', em:'jborgstahl@gmail.com', ph:'1hNIdjcFBoq_okwKRDq--1ZmmQoZ5tkfB', t:'gold', id:'1XNznMEimyhEaKhKQP24Nty7CG3MnGH-6', eb:0, soc:'1 post + 1 shout-out', lead:'Allan Baum', note:'No eblast. 1 post + 1 shout-out.'},
-{n:'Pines Harbor Realty', ct:'Alex Keomurjian', em:'alex@pinesharbor.com', ph:'1KXMr2qQOMmX8isUbA-BW4uOQWdHp95ra', t:'gold', id:'1fbIeaayTS8qnYIX16KfdGpnshzz4220o', eb:0, soc:'2 posts + 2 shout-outs', lead:'Allan Baum', note:'Gold Standard social (2026 Sponsors sheet). No eblast (Allan, 9/28).'},
-{n:'Jeff Wan', ct:'Jeff Wan', em:'jeff@jeffwan.com', ph:'1OA6yh7DHcml-OA6qycXn-v_VE23kEPJI', t:'gold', id:'1I_aqoNmhf594MxYsx9i_VIEvfov9stjW', eb:0, lead:'Nick Ammaturo', note:'No eblast (Allan, 9/28).'},
-{n:'Threadcount', ct:'Alex Zimmerman', em:'alex.zimmerman@coppercane.com', ph:'1vxuxOdSrSDWL3MQvkict2Qg4BDSrx7fq', t:'gold', id:'1g7YS9VU9cGiB72nG2dJkdt05GUiK8iVL', eb:0, lead:'Patrick Forrett', note:''},
-{n:'MPM Studio / De.bauchere', aka:'MPM Studio, de.bachere', t:'gold', id:'1XKsl5oeunP_HUgeVkc1snX8FGxVF658v', id2:'1A_nLejjbjeQJeii3bPMtKf7aSe-genUB', eb:0, lead:'Nick Ammaturo', note:'Agreement has no eblast or social.'},
-{n:'LAFCO New York', ct:'Jon Bresler', em:'jonb@lafco.com', ph:'1EbA04zSVTDSTnsvUA9jm5HFu7kZulV2u', t:'silver', id:'1O9jBoETOOtgT6rbZjYvbO7jF93dBI-Ea', eb:0, lead:'Allan Baum', note:'Bonus eblast (not contracted): approved 9/16, didn\'t send 9/22.', flag:true},
-{n:'ViiV Healthcare', ct:'George Maquieira', em:'gmaquieira@spimarketing.com', ph:'1zulivaWZTPT3pYnMIk03Vag26hGwAMBm', t:'silver', id:'1cFAsKpytVsi0ALvkmQ-fgwrx11tMlEip', eb:0, lead:'Patrick Forrett', note:''},
-{n:'Chris Turk', ct:'Chris Turk', em:'christurkswim@gmail.com', t:'silver', id:'1_b6z9cqDHBJz8162bfj4JleFCPcsCM6j', eb:0, lead:'Allan Baum, Nick Ammaturo', note:''},
-{n:'Bekin', ct:'Josh Dawson', em:'josh@bekin.io', ph:'18UOwl4mJKKLmq3hm1zKE-NE3D3Y7GQiQ', t:'silver', id:'1a1MzqRmsU-MI-XUdG_7yDSsFWmP0xXrN', eb:0, lead:'Allan Baum, Nick Ammaturo', note:''},
-{n:'Long Island Cannabis Club', ph:'1PlATYSR7zGuVzHgM5FZTRinBspj9o1Ua', t:'silver', id:'1ptGvJpZzJnC6m2Bg7L2F_3WGwTT-n_Gt', eb:0, lead:'Nick Ammaturo', note:''},
-{n:'PUMP!', ct:'María Fernanda Tous', em:'pr@wearpump.com', ph:'1uVfnzEOSTt3qo4jrFdHYfKmXqi5du6OK', t:'silver', id:'1Lt3EqKrjg8ZLeGafs0tABovxNm6DiYkz', eb:0, lead:'Bruce Robert Harris', note:''},
-{n:'Vinnie Petrarca Fire Island Real Estate', ct:'Vinnie Petrarca', em:'vinnie@vpfireislandpines.com', ph:'1KZB1XUXz-IbzoTC1viKVaBdBcnAsk8s1', t:'silver', id:'14re68NevJjlTiVkeKnW18t90-pGU90Rm', eb:0, lead:'Allan Baum', note:''},
-{n:'HOWL', ct:'David Song', em:'david@song.dance', t:'silver', id:'1zmMYDX7Y22Flkq3o8NTZaP2uFCXGjhFu', eb:0, lead:'Nick Ammaturo', note:''},
-{n:'The Owen-Micchane Family', t:'silver', id:'10BZLSzZYBUns8sG_vwWlSZIRP82sFTC4', eb:0, lead:'Nick Ammaturo', note:''},
-{n:'AHF Pharmacy', ct:'Eddie Dillard', em:'edwin.dillard@ahf.org', t:'silver', id:'1OWXm3g775Yoh66V7yvaSfSeXUai3g5Pp', eb:0, lead:'Patrick Forrett', note:''},
-{n:'Edy\'s Grocer', ct:'', em:'edysgrocer@gmail.com', t:'silver', id:'1wGRzqH85fntltZtoXyf57wCNdjzIq-OK', eb:0, lead:'Nick Ammaturo', note:''},
-{n:'Pines Pantry', ct:'Eric Schrader, Emma Schrader', em:'eric@pinespantry.com, emma@pinespantry.com', t:'silver', id:'14PCzAXp1OV1e6Iqj0SWDzA3FtXzC8F-L', eb:0, lead:'Allan Baum', note:''},
-{n:'Atlantis', ct:'Rich Campbell', em:'rich@atlantisevents.com', t:'silver', id:'1x4np-9jt-f4_RB8REXX-hP8uk2yo3obP', eb:0, lead:'Allan Baum', note:'Silver (2026 Sponsors sheet).'},
-{n:'Brownie', ct:'Jeremy Brownie', em:'jeremy@brownieny.com', t:'silver', id:'1AltkEpnUZ9EpyfZxJdk1Qds94U4Djcbk', eb:0, note:'Silver (2026 Sponsors sheet).'},
-{n:'Quatela Chimeri PLLC', ct:'Joseph Quatela', em:'jaquatela@gmail.com', t:'silver', id:null, eb:0, lead:'Nick Ammaturo', note:''},
-{n:'GMHC', ct:'Jose Mateo', em:'josem@gmhc.org', t:'bronze', id:'1Z7aaR372gjgizYHieNcNZaPMEmDjCkt7', eb:0, lead:'Nick Ammaturo', note:''},
-{n:'Guesthouse Lost River', ct:'Jesse & Gary Halpern-Robinson', em:'info@guesthouselostriver.com', t:'bronze', id:'1yrOeW-G-4HSfemc_WhakwQdIG2_-8oza', eb:0, lead:'Allan Baum', note:''},
-{n:'Sip n Twirl', ct:'PJ McAteer', em:'mack696@aol.com', t:'bronze', id:'1Vz3XtpK-WXyFRRV1OI8JyG2hp-0_ZsJ7', eb:0, lead:'Allan Baum', note:''},
-{n:'Mark Allen', ct:'Mark Pasetsky', em:'mark@markallenco.com', t:'bronze', id:'1buqWlOZtCRZqlLYpT0yJ5oCRVabr1xvH', eb:0, lead:'Allan Baum', note:''},
-{n:'Curious Elixirs', ct:'Rachel Reynolds, Noemi Flores', em:'rachel@goodbusiness.works, noemi.flores@goodbusiness.works', ph:'1s4xR8994kMr_ueaDynAxyJ6g2gRCs_X3', t:'bronze', id:'1xWXq4UnCZGMXhsQkGEFvqmCg1C7gevG9', eb:0, lead:'Allan Baum', note:''},
-{n:'The Dunes', ct:'Nick Aleck', em:'nick@dunesresort.com', t:'bronze', id:'1HgBnkxgJGH5cGUPDkih43FB3UUYpScSS', eb:0, lead:'Allan Baum, Bruce Robert Harris', note:''},
-{n:'Li-Lac Chocolates', ct:'Chris Taylor, David', em:'david@li-lacchocolates.com, chris@li-lacchocolates.com', t:'bronze', id:'1f3sPB3ARmgBTKT5QhEokpqdwObhrArme', eb:0, lead:'Allan Baum', note:''},
-{n:'Pines Club', ct:'Dan Spinello', em:'danspinello@gmail.com', t:'bronze', id:'164TlekZQ2OJu_pGf70JT8_SJsesq7GEw', eb:0, lead:'Allan Baum', note:''},
-{n:'BAWDY', ct:'Sylwia Wiesenberg', em:'sylwia@bawdybeauty.com', t:'bronze', id:'1W-xyFIEZBe-2l18XxfegIWUcFuUXWVA6', eb:0, lead:'Allan Baum', note:''},
-{n:'Boys of Froot Falls', ct:'Kevin Cuenca', em:'kevincuenca@icloud.com', t:'bronze', id:null, eb:0, lead:'Allan Baum', note:''},
-{n:'Five Boroughs Brewing', t:'bronze', id:null, eb:0, lead:'Patrick Forrett', note:''},
-{n:'Once Upon a Coconut', ct:'Ray Burbige', em:'ray@onceuponacoconut.com, marc@onceuponacoconut.com, blaise@onceuponacoconut.com', t:'bronze', id:null, eb:0, lead:'Allan Baum', note:''},
-{n:'Todd Snyder', ct:'Philip Gutman', em:'phillip.gutman@toddsnyder.com', t:'bronze', id:'1oHmFtAPj2FkAmveTgPFG-u9her6KKOCH', eb:0, lead:'Allan Baum, Bruce Robert Harris', note:''},
-{n:'Red Bull', ct:'Andrew Niebling, Alex Tyson', em:'Andrew.Niebling@redbull.com, Alex.Tyson@redbull.com', ph:'1nhD20pKi9xNS0Igsed6wQf00FU3pDnJO', t:'vipbag', id:'1792YbwaATjDCbSAKyLVamezWRVoRUw1V', eb:0, lead:'Allan Baum', note:'Allan wanted event photos of people with the product. No posts on the sheet. Confirm.', flag:true},
-{n:'Hello Bubble', t:'vipbag', id:null, eb:0, note:''},
-{n:'Smood Beauty', ct:'Andrew', em:'pr@smoodbeauty.com', t:'vipbag', id:null, eb:0, lead:'Allan Baum', note:''},
-// Not on either 2026 sheet and no 2026 email; kept only so their folders stay reachable.
-{n:'LUXY Ride', t:'silver', id:'1cOTuv1R3mvXDT-z-DFg1UwCQsgntBqBi', eb:0, old:'Not on either 2026 sheet'},
-{n:'Davis Park Harbor Store', ph:'1t9eH6Lv9ev633pwFf4-2RS8FJMcqawfm', t:'bronze', id:'1nPEVMgioVkv5XPY8mg652iQGPP5L-x5S', eb:0, old:'Not on either 2026 sheet'}
-];
+var TODAY = DATE_MIN;
 
 var TIER_LABEL = {platinum:'Platinum', gold:'Gold', silver:'Silver', bronze:'Bronze', community:'Community', vipbag:'VIP Bag'};
+var TIER_KEY = {platinum:'platinum', gold:'gold', silver:'silver', bronze:'bronze', community:'community', 'vip bag':'vipbag', vipbag:'vipbag'};
+// "Gilead Pines Party Hub": the sponsor's page. Short names where the full name is long.
+var HUB_SHORT = {'Gilead Sciences': 'Gilead', 'Tryst Hospitality / MISTR': 'Tryst / MISTR'};
 
-function slug(name) { return name.toLowerCase().replace(/&/g,'and').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+// ---------- small helpers
+function slug(name) { return String(name || '').toLowerCase().replace(/&/g,'and').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+function esc(s) { return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function num(v) { var n = parseInt(v, 10); return isNaN(n) ? 0 : n; }
+function driveUrl(id) { return 'https://drive.google.com/drive/folders/'+id; }
+function folderIdOf(v) { var m = String(v || '').match(/folders\/([\w-]+)/); return m ? m[1] : String(v || '').trim(); }
+function fmtDate(s) { var p = s.split('-'); return new Date(+p[0], +p[1]-1, +p[2]).toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric', year:'numeric'}); }
+function shortDate(s) { var p = s.split('-'); return (+p[1])+'/'+(+p[2]); }
+function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
+var NUMW = ['zero','one','two','three','four','five','six','seven','eight'];
+function numw(n) { return NUMW[n] || String(n); }
+function andList(a, word) { return a.length < 2 ? a.join('') : a.slice(0,-1).join(', ') + ' ' + (word || 'and') + ' ' + a[a.length-1]; }
+function itemType(item) { return /^eblast/i.test(item) ? 'eblast' : 'story'; }
+
+// ---------- sponsors (from the server)
+var SPONSORS = [];
+// One Obligations row (as the server sends it) -> the page's sponsor object.
+function fromRow(r) {
+var st = String(r.Status || '').toLowerCase();
+return {
+n: r.Sponsor, key: r.Key || slug(r.Sponsor), aka: r.Aka || '', t: TIER_KEY[String(r.Tier || '').toLowerCase()] || 'community',
+eb: num(r.Eblasts), ebSent: num(r['Eblasts Sent']), st: num(r.Stories), sh: num(r['Shout-outs']),
+ct: r.Contact || '', em: r.Emails || '', lead: r['PP Lead'] || '', note: r.Notes || '', eml: r['Extra Email Line'] || '', tag: r['File Tag'] || '',
+id: folderIdOf(r['Asset Folder']) || null, id2: folderIdOf(r['Asset Folder 2']) || '', ph: folderIdOf(r['Photo Folder']) || '',
+flag: st === 'needs check', old: st === 'not 2026' ? (r.Notes || 'Not 2026') : ''
+};
+}
 function findSponsor(key) {
+var k = slug(key);
 for (var i = 0; i < SPONSORS.length; i++) {
-var sp = SPONSORS[i], k = slug(key);
-if (slug(sp.n) === k || (sp.key && sp.key === k)) return sp;
+var sp = SPONSORS[i];
+if (slug(sp.n) === k || sp.key === k) return sp;
 if (sp.aka && sp.aka.split(',').some(function(a){ return slug(a) === k; })) return sp;
 }
 return null;
 }
-
-// Sponsor page: ?s=<slug> (drive folder comes from the registry above).
-// Old ?sponsor=&drive= links still work.
-function getParams() {
-var p = new URLSearchParams(window.location.search);
-var key = p.get('s') || p.get('sponsor') || '';
-var v = p.get('v') || '';
-var reg = key ? findSponsor(key) : null;
-var v = p.get('v') || '';
-if (reg) return {sponsor: reg.n, drive: reg.id ? driveUrl(reg.id) : '', reg: reg, view: v};
-return {sponsor: p.get('sponsor')||'', drive: p.get('drive')||'', view: v};
+function hubShort(sp) { return HUB_SHORT[sp.n] || String(sp.n).split(/\s*[\/(]/)[0].trim(); }
+function hubName(sp) { return hubShort(sp) + ' Pines Party Hub'; }
+function sponsorLink(name) { return window.location.origin + window.location.pathname + '?s=' + slug(name); }
+function linkFor(name, driveLink) {
+return window.location.origin + window.location.pathname + '?sponsor=' + encodeURIComponent(name) + (driveLink ? '&drive=' + encodeURIComponent(driveLink) : '');
 }
+function ebLeft(sp) { return Math.max(0, (sp.eb || 0) - (sp.ebSent || 0)); }
+// Social owed -> stories the sponsor requests + shout-outs the team schedules.
+function socSplit(s) { var tot = (s.st || 0) + (s.sh || 0); return tot ? {total: tot, stories: s.st || 0, shouts: s.sh || 0} : null; }
+function socOwed(s) { var x = socSplit(s); return x ? x.stories : 0; }
+function hasSocial(sp) { return socOwed(sp) > 0; }
 
 function contactsHTML() {
 return TEAM.map(function(c){
@@ -311,98 +286,121 @@ return '<div class="crow"><div class="av">'+c.i+'</div><div class="ci">'
 }).join('');
 }
 
-function driveUrl(id) { return 'https://drive.google.com/drive/folders/'+id; }
+// ---------- backend
+var CAL = { eblast: [], story: [] }, CAL_OK = false;
+var TRACKER = [];  // Internal Tracker rows (team view; needs the admin key)
+var MINE = null;   // this sponsor's items (Hub view; client wording)
+var ME = null;     // this sponsor's own Obligations row (Hub view)
+var STATUSES = []; // [{status, only}] from the server: the one status list
+var HUB_Q = '';    // Hub: the ?s= key (or old ?sponsor= name) sent with every read
+var SPONSOR = '';  // Hub: the sponsor's canonical name (from the server)
+var ADMIN = { key: '' };
+try { ADMIN.key = localStorage.getItem('ppAdminKey') || ''; } catch (e) {}
 
-// Ready-to-send sponsor email, opened in Gmail compose on the pinesparty
-// account. To: is left blank (add the sponsor contact); Tim + Mario's
-// personal inbox are CC'd per team rules.
-var MAIL_FROM = 'mario.guardado@pinesparty.com';
-var MAIL_CC = 'tdejsiriudom@pinesparty.com,nammaturo@pinesparty.com,tj@pinesparty.com,mario.guardado1030@gmail.com';
-var LINK_TITLE = 'Pines Party Eblast + Social Media Scheduling and Resources';
-function linkTitle(sp) { return hubName(sp); }
+// Reads: GET with a timeout. Hub reads are scoped to the sponsor; team reads send the key if there is one.
+function getJSON(ms) {
+var ctl = window.AbortController ? new AbortController() : null;
+var t = setTimeout(function(){ if (ctl) ctl.abort(); }, ms);
+var q = HUB_Q ? '&sponsor=' + encodeURIComponent(HUB_Q) : (ADMIN.key ? '&key=' + encodeURIComponent(ADMIN.key) : '');
+return fetch(GAS_URL + '?_t=' + Date.now() + q, ctl ? {signal: ctl.signal} : {})
+.then(function(r){ clearTimeout(t); return r.json(); });
+}
+function loadCalendar() {
+return getJSON(15000).catch(function(){ return getJSON(15000); })
+.then(function(d){
+if (!d || !d.rows) throw new Error((d && d.error) || 'Bad response');
+CAL.eblast = d.rows || []; CAL.story = d.story || []; CAL_OK = true;
+TRACKER = d.tracker || [];
+if (d.statuses) STATUSES = d.statuses;
+if (HUB_Q) { ME = d.me || null; MINE = d.mine || null; if (ME) SPONSOR = ME.Sponsor; }
+else if (d.sponsors && d.sponsors.length) SPONSORS = d.sponsors.filter(function(r){ return r.Sponsor; }).map(fromRow);
+return d;
+});
+}
+// Writes: POST, read the JSON reply. Rejects with the server's own error message.
+function post(params) {
+return fetch(GAS_URL, {method:'POST', body: new URLSearchParams(params)})
+.then(function(r){ return r.json(); }, function(){ throw new Error('Couldn\'t reach the server. Check your connection and try again.'); })
+.then(function(d){ if (!d || d.ok === false) throw new Error((d && d.error) || 'The server didn\'t answer.'); return d; });
+}
+
+function isLocked(st) { return st === 'booked' || st === 'approved' || st === 'blocked'; }
+function rowFor(type, date) {
+var rows = CAL[type];
+for (var i = 0; i < rows.length; i++) if (rows[i].date === date) return rows[i];
+return null;
+}
+function hasSponsor(row, name) {
+return !!row && row.sponsors.split(',').map(function(x){ return x.trim(); }).indexOf(name) !== -1;
+}
+function setMsg(id, cls, html) {
+var m = document.getElementById('msg-'+id);
+if (!m) return;
+m.className = 'msg ' + cls; m.innerHTML = html;
+}
+
+// ---------- sponsor email (Email Draft). Links are embedded as text, never shown as raw URLs.
+function signer() { try { return (localStorage.getItem('ppSigner') || '').trim(); } catch (e) { return ''; } }
+function saveSigner(v) { try { localStorage.setItem('ppSigner', v.trim()); } catch (e) {} }
 function greetName(sp) {
 var first = (sp.ct || '').split(/,|;|&|\//).map(function(x){ return x.trim().split(/\s+/)[0]; }).filter(Boolean);
 if (!first.length) return sp.n + ' team';
 return first.length === 1 ? first[0] : first.slice(0,-1).join(', ') + ' and ' + first[first.length-1];
 }
-// "Gilead Pines Party Hub": the sponsor's page. Short names where the full name is long.
-var HUB_SHORT = {'Gilead Sciences': 'Gilead', 'Tryst Hospitality / MISTR': 'Tryst / MISTR'};
-function hubShort(sp) { return HUB_SHORT[sp.n] || String(sp.n).split(/\s*[\/(]/)[0].trim(); }
-function hubName(sp) { return hubShort(sp) + ' Pines Party Hub'; }
-// Email sign-off: whoever is drafting (saved per browser on the team page), never hardcoded.
-function signer() { try { return (localStorage.getItem('ppSigner') || '').trim(); } catch (e) { return ''; } }
-function saveSigner(v) { try { localStorage.setItem('ppSigner', v.trim()); } catch (e) {} }
-var STORY_GEN = 'https://marioguardado1030.github.io/pp2026-asset-builder/';
-var NUMW = ['zero','one','two','three','four','five','six','seven','eight'];
-function numw(n) { return NUMW[n] || String(n); }
-function andList(a, word) { return a.length < 2 ? a.join('') : a.slice(0,-1).join(', ') + ' ' + (word || 'and') + ' ' + a[a.length-1]; }
-function ebLeft(sp) { return Math.max(0, (sp.eb || 0) - (sp.ebSent || 0)); }
 function pkgSentence(sp) {
 var out = [], x = socSplit(sp);
 if (sp.eb) out.push(numw(sp.eb) + ' dedicated ' + (sp.eb === 1 ? 'eblast' : 'eblasts') + ' to the Pines Party list' + (sp.ebSent ? ' (' + (sp.ebSent >= sp.eb ? 'already sent' : numw(sp.ebSent) + ' already sent') + ')' : ''));
 if (x && x.stories) out.push(numw(x.stories) + ' Instagram ' + (x.stories === 1 ? 'story' : 'stories') + ' on the Pines Party account');
 if (x && x.shouts) out.push(numw(x.shouts) + ' ' + (x.shouts === 1 ? 'shout-out' : 'shout-outs') + ' that we schedule for you');
-if (!x && sp.pkSoc) out.push(sp.pkSoc);
 return andList(out);
 }
+var SG = '{{STORY_GENERATOR}}'; // placeholder: becomes a link in HTML, plain words in text
 function emailSteps(sp) {
 var st = [], x = socSplit(sp), k = x ? x.stories : 0, e = ebLeft(sp);
 if (e) st.push('Open the writing kit, which has a guide, a template and an example, and draft your eblast copy');
-if (k) st.push('Build your Instagram ' + (k === 1 ? 'story' : 'stories') + ' with our Story Generator (' + STORY_GEN + '). We\'ve made it easy to build a story, download it and share it with us, then select your desired dates');
+if (k) st.push('Build your Instagram ' + (k === 1 ? 'story' : 'stories') + ' with our ' + SG + '. We\'ve made it easy to build a story, download it and share it with us, then select your desired dates');
 var fp = filePrefixes(sp).map(function(f){ return f.p; });
 st.push((e ? 'Upload your logo, photos and copy' + (k ? ', plus your story video and brief' : '') : 'Upload the story video and brief you download from the Story Generator') + ' to your folder.'
   + (fp.length ? ' Please start each file name with ' + andList(fp, 'or') + ' so we can keep everything straight' : ''));
-if (e) st.push('Pick your preferred send dates. ' + (e === 1
-  ? 'Choose two options for your eblast, and we\'ll confirm one'
+if (e) st.push('Pick your preferred send dates. ' + (e === 1 ? 'Choose two options for your eblast, and we\'ll confirm one'
   : 'Choose two options for each eblast (' + numw(2 * e) + ' total), and we\'ll confirm one date for each'));
-if (k) st.push('Pick your Instagram story dates. ' + (k === 1
-  ? 'Choose two options for your story, and we\'ll confirm one'
+if (k) st.push('Pick your Instagram story dates. ' + (k === 1 ? 'Choose two options for your story, and we\'ll confirm one'
   : 'Choose two options for each story (' + numw(2 * k) + ' total), and we\'ll confirm one date for each'));
 return st;
 }
-function emailClose(sp) {
+function emailClose() {
 return ['We\'ll email you once your dates are locked in. After the event, we\'ll also add your photos to your folder, so you\'ll find them on the same page.',
         'Thanks again for being part of this. If anything comes up, just reply here and I\'ll help.'];
 }
-function sponsorEmailText(sp) {
-var st = emailSteps(sp);
+function emailSubject(sp) { return 'Pines Party 2026: Your ' + hubName(sp); }
+function sponsorEmailText(sp) { // plain-text part (clipboard fallback): names only, no URLs
 return 'Hi ' + greetName(sp) + ',\n\n'
 + 'Thank you so much for supporting Pines Party 2026. As a ' + TIER_LABEL[sp.t] + ' sponsor, your package includes ' + pkgSentence(sp) + '.\n\n'
-+ 'To make things easy, we\'ve put everything in one place: ' + hubName(sp) + ' (' + sponsorLink(sp.n) + ')\n\n'
-+ 'From there you can:\n' + st.map(function(x, k){ return (k+1) + '. ' + x; }).join('\n') + '\n\n'
-+ (sp.eml ? sp.eml + '\n\n' : '')
-+ emailClose(sp).join('\n\n') + '\n\n'
-+ 'Thanks again for your support,\n' + signer();
++ 'To make things easy, we\'ve put everything in one place: your ' + hubName(sp) + '.\n\n'
++ 'From there you can:\n' + emailSteps(sp).map(function(x, k){ return (k+1) + '. ' + x.replace(SG, 'Story Generator'); }).join('\n') + '\n\n'
++ (sp.eml ? sp.eml + '\n\n' : '') + emailClose().join('\n\n') + '\n\nThanks again for your support,\n' + signer();
 }
 function sponsorEmailHTML(sp) {
-var st = emailSteps(sp);
 return '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#222">'
 + '<p>Hi ' + esc(greetName(sp)) + ',</p>'
 + '<p>Thank you so much for supporting Pines Party 2026. As a ' + TIER_LABEL[sp.t] + ' sponsor, your package includes ' + esc(pkgSentence(sp)) + '.</p>'
-+ '<p>To make things easy, we\'ve put everything in one place: <a href="' + sponsorLink(sp.n) + '"><b>' + esc(hubName(sp)) + '</b></a></p>'
-+ '<p>From there you can:</p><ol>' + st.map(function(x){ return '<li>' + esc(x).replace('Story Generator (' + STORY_GEN + ')', '<a href="' + STORY_GEN + '"><b>Story Generator</b></a>') + '</li>'; }).join('') + '</ol>'
++ '<p>To make things easy, we\'ve put everything in one place: <a href="' + esc(sponsorLink(sp.n)) + '"><b>' + esc(hubName(sp)) + '</b></a></p>'
++ '<p>From there you can:</p><ol>' + emailSteps(sp).map(function(x){ return '<li>' + esc(x).replace(SG, '<a href="' + STORY_GEN + '"><b>Story Generator</b></a>') + '</li>'; }).join('') + '</ol>'
 + (sp.eml ? '<p>' + esc(sp.eml) + '</p>' : '')
-+ emailClose(sp).map(function(x){ return '<p>' + esc(x) + '</p>'; }).join('')
++ emailClose().map(function(x){ return '<p>' + esc(x) + '</p>'; }).join('')
 + '<p>Thanks again for your support,<br>' + esc(signer()) + '</p></div>';
 }
-// Opens a Gmail draft on the pinesparty account with To, CC, Subject and Body filled in.
-// Gmail saves it to Drafts automatically. Nothing sends until you hit Send.
-function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
 function pkgItems(sp) {
 var out = [], x = socSplit(sp);
 if (sp.eb) out.push(plural(sp.eb, 'dedicated eblast', 'dedicated eblasts') + ' to the Pines Party list');
 if (x && x.stories) out.push(plural(x.stories, 'Instagram story', 'Instagram stories') + ' on the Pines Party account');
 if (x && x.shouts) out.push(plural(x.shouts, 'shout-out', 'shout-outs') + ' from Pines Party (we schedule these)');
-if (!x && sp.pkSoc) out.push(sp.pkSoc);
 return out;
 }
-// One folder per sponsor; files are named by deliverable so we know what each is for.
-// File-name tag for a sponsor: name before any "/" or "(", letters and digits only.
-// e.g. "High Noon (Gallo) / Lucky One Lemonade" -> "HighNoon", "JustFor.Fans" -> "JustForFans".
+// File-name tag for a sponsor: name before any "/" or "(", letters and digits only ("High Noon (Gallo) / ..." -> "HighNoon").
 function fileTag(sp) {
 if (sp.tag) return sp.tag;
-var base = String(sp.n).split(/\s*[\/(]/)[0];
-return base.replace(/[^A-Za-z0-9]+/g, '') || 'Sponsor';
+return String(sp.n).split(/\s*[\/(]/)[0].replace(/[^A-Za-z0-9]+/g, '') || 'Sponsor';
 }
 function filePrefixes(sp) {
 var out = [], i, x = socSplit(sp), n = ebLeft(sp), k = x ? x.stories : 0, t = fileTag(sp) + '_';
@@ -417,17 +415,7 @@ return '<div class="naming"><div class="naming-h">Name your files so we know wha
 + f.map(function(x){ return '<div class="nrow"><code>'+x.p+'</code><span>'+x.ex.join(' &middot; ')+'</span></div>'; }).join('')
 + '<div class="hint">Everything goes in the same folder. Shared files (like your logo) can be named <code>'+fileTag(sp)+'_All_Logo.png</code>.</div></div>';
 }
-function hasSocial(sp) { return !!(socSplit(sp) && socSplit(sp).stories) || !!sp.pkSoc; }
-// Subject reflects what we owe: eblast and/or social (Instagram stories).
-function emailSubject(sp) { return 'Pines Party 2026: Your ' + hubName(sp); }
-function sponsorEmailUrl(sp) {
-var su = emailSubject(sp);
-return 'https://mail.google.com/mail/?authuser=' + encodeURIComponent(MAIL_FROM) + '&view=cm&fs=1'
-+ '&to=' + encodeURIComponent((sp.em || '').replace(/\s+/g,''))
-+ '&cc=' + encodeURIComponent(MAIL_CC) + '&su=' + encodeURIComponent(su)
-+ '&body=' + encodeURIComponent(sponsorEmailText(sp));
-}
-// No signer yet: ask right next to the button (a modal-style box), then continue drafting.
+// No signer yet: ask right next to the button, then continue drafting.
 function askSigner(btn, i) {
 var old = document.querySelector('.signbox'); if (old) old.remove();
 var box = document.createElement('div'); box.className = 'signbox';
@@ -440,46 +428,70 @@ bs[0].onclick = go; bs[1].onclick = function(){ box.remove(); };
 inp.onkeydown = function(e){ if (e.key === 'Enter') go(); if (e.key === 'Escape') box.remove(); };
 btn.parentNode.insertBefore(box, btn.nextSibling); inp.focus();
 }
-function draftEmail(btn, i) {
+// Creates a real Gmail draft (never sends). If one exists, the button turns into "Replace draft".
+function draftEmail(btn, i, replace) {
 var sp = SPONSORS[i];
 if (!signer()) { askSigner(btn, i); return; }
-var orig = btn.textContent; btn.disabled = true; btn.textContent = 'Drafting…';
-// Real Gmail draft (HTML, links embedded as text, never pasted as raw URLs). Sent as a POST: the body is too long for a URL.
-var body = new URLSearchParams({action:'draft', key:ADMIN.key, to:(sp.em||'').replace(/\s+/g,''), cc:MAIL_CC, subject:emailSubject(sp), html:sponsorEmailHTML(sp)});
-fetch(GAS_URL, {method:'POST', body:body}).then(function(r){ return r.json(); }).then(function(d){
-if (d && d.ok && d.draft) {
-setMsg('ob', 'ok', (d.existing ? 'A draft already exists for ' : 'Gmail draft created for ') + esc(sp.n) + ' in mario.guardado@pinesparty.com. Review it in Drafts before sending.');
-btn.textContent = d.existing ? 'Draft exists' : 'Drafted ✓';
-} else { throw new Error(d && d.error ? d.error : 'no-addon'); }
-}).catch(function(e){
-// Script add-on not installed yet: copy the formatted (HTML) email, then open a Gmail compose
-// window with To/CC/Subject and a plain-text body. Select the body and paste (Cmd+V) for the formatted version.
-try {
-if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
-navigator.clipboard.write([new ClipboardItem({'text/html': new Blob([sponsorEmailHTML(sp)], {type:'text/html'}), 'text/plain': new Blob([sponsorEmailText(sp)], {type:'text/plain'})})]);
+var orig = 'Email Draft'; btn.disabled = true; btn.textContent = 'Drafting…';
+var q = {action:'draft', key:ADMIN.key, to:(sp.em||'').replace(/\s+/g,''), cc:MAIL_CC, subject:emailSubject(sp), html:sponsorEmailHTML(sp)};
+if (replace) q.replace = '1';
+post(q).then(function(d){
+if (d.existing) {
+setMsg('ob', 'info', 'A draft already exists for ' + esc(sp.n) + ' in mario.guardado@pinesparty.com. Click <b>Replace draft</b> to swap it for a fresh one.');
+btn.textContent = 'Replace draft'; btn.onclick = function(){ draftEmail(btn, i, true); };
+} else {
+setMsg('ob', 'ok', 'Gmail draft ' + (d.replaced ? 'replaced' : 'created') + ' for ' + esc(sp.n) + ' in mario.guardado@pinesparty.com. Review it in Drafts before sending.');
+btn.textContent = 'Email Draft ✓'; btn.onclick = function(){ draftEmail(btn, i); };
 }
-} catch (x) {}
-// Body left empty on purpose: a plain-text body would show raw URLs. The formatted email (links embedded) is on the clipboard.
-window.open('https://mail.google.com/mail/?authuser=mario.guardado@pinesparty.com&view=cm&fs=1&to=' + encodeURIComponent((sp.em||'').replace(/\s+/g,'')) + '&cc=' + encodeURIComponent(MAIL_CC) + '&su=' + encodeURIComponent(emailSubject(sp)), '_blank');
-setMsg('ob', 'bad', 'Couldn\'t create the Gmail draft automatically (' + esc(e.message) + '). Opened a new Gmail email for ' + esc(sp.n) + ' with To, CC and subject. The formatted email is copied: click in the body and paste (Cmd+V). Links stay embedded.');
+}).catch(function(e){
+// Manual fallback. Opening Gmail and copying must happen inside a click, so it gets its own button.
+setMsg('ob', 'bad', 'Couldn\'t create the Gmail draft (' + esc(e.message) + '). '
++ '<button class="mini mini-p" id="gmailFallback">Open Gmail + copy the email</button> Then click in the body and paste (Cmd+V); links stay embedded.');
+document.getElementById('gmailFallback').onclick = function(){ openGmailFallback(sp); };
 btn.textContent = orig;
 }).then(function(){ btn.disabled = false; });
 }
-
-function sponsorLink(name) {
-return window.location.origin + window.location.pathname + '?s=' + slug(name);
+// Runs inside the click: a synchronous rich-text copy first (keeps the click's popup permission), then Gmail.
+function openGmailFallback(sp) {
+var div = document.createElement('div');
+div.contentEditable = 'true'; div.style.position = 'fixed'; div.style.left = '-9999px';
+div.innerHTML = sponsorEmailHTML(sp);
+document.body.appendChild(div);
+try {
+var range = document.createRange(); range.selectNodeContents(div);
+var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+document.execCommand('copy'); sel.removeAllRanges();
+} catch (x) {}
+div.remove();
+// Body left empty on purpose: a plain-text body would show raw URLs. The formatted email is on the clipboard.
+window.open('https://mail.google.com/mail/?authuser=mario.guardado@pinesparty.com&view=cm&fs=1&to=' + encodeURIComponent((sp.em||'').replace(/\s+/g,'')) + '&cc=' + encodeURIComponent(MAIL_CC) + '&su=' + encodeURIComponent(emailSubject(sp)), '_blank');
 }
 
-function photoLink(name) { return sponsorLink(name) + '&v=photos'; }
-function photoFolder(s) { return s.ph || s.id || null; }
+// ---------- Hub (sponsor view): ?s=<key>
+function getParams() {
+var p = new URLSearchParams(window.location.search);
+return {key: p.get('s') || p.get('sponsor') || '', drive: p.get('drive') || '', view: p.get('v') || ''};
+}
+function bootHub(p) {
+HUB_Q = p.key;
+document.getElementById('main').innerHTML = '<div class="hint" style="padding:24px 0">Loading your Hub&hellip;</div>';
+loadCalendar().catch(function(){ return null; }).then(function(){
+if (!ME) {
+document.getElementById('main').innerHTML = '<div class="err">We couldn\'t load this Hub right now. Please refresh in a minute, or email <a href="mailto:'+TEAM[0].e+'" style="color:#c0304a">'+TEAM[0].e+'</a>.</div>'
++ '<div class="sec">Questions? Contact us</div><div class="contacts">'+contactsHTML()+'</div>';
+return;
+}
+var sp = fromRow(ME);
+if (p.view === 'photos') renderPhotos(sp, p.drive); else renderClient(sp, p.drive);
+});
+}
 
-// Photos-only page: ?s=<slug>&v=photos. For sponsors who only need their event photos.
+// Photos-only page: ?s=<key>&v=photos.
 function renderPhotos(sp, drive) {
-var name = sp ? sp.n : '';
-var folder = sp && photoFolder(sp) ? driveUrl(photoFolder(sp)) : drive;
-document.getElementById('pgTitle').textContent = name + ' - Event Photos';
+var folder = sp.ph || sp.id ? driveUrl(sp.ph || sp.id) : drive;
+document.getElementById('pgTitle').textContent = sp.n + ' - Event Photos';
 document.getElementById('pgSub').textContent = 'Your photos and video from Pines Party 2026.';
-var chip = document.getElementById('pgChip'); chip.textContent = name; chip.style.display = 'inline-block';
+var chip = document.getElementById('pgChip'); chip.textContent = sp.n; chip.style.display = 'inline-block';
 document.getElementById('main').innerHTML =
 '<div class="steps"><div class="step"><div class="num">&#9673;</div><div style="flex:1;min-width:0">'
 +'<h2>Your Pines Party 2026 Photos</h2>'
@@ -491,144 +503,40 @@ document.getElementById('main').innerHTML =
 +'<div class="contacts">'+contactsHTML()+'</div>';
 }
 
-function linkFor(name, driveLink) {
-return window.location.origin + window.location.pathname
-+ '?sponsor=' + encodeURIComponent(name)
-+ (driveLink ? '&drive=' + encodeURIComponent(driveLink) : '');
-}
-
-// ---------- Backend ----------
-var CAL = { eblast: [], story: [] }, CAL_OK = false;
-var TRACKER = []; // Internal Tracker rows (team view only; needs the admin key)
-var MINE = null;  // this sponsor's item statuses (Hub view; client-friendly labels from the script)
-
-// Reads: GET with a timeout and one retry.
-function getJSON(ms) {
-var ctl = window.AbortController ? new AbortController() : null;
-var t = setTimeout(function(){ if (ctl) ctl.abort(); }, ms);
-return fetch(GAS_URL + '?_t=' + Date.now() + (ADMIN && ADMIN.key ? '&key=' + encodeURIComponent(ADMIN.key) : '') + (SPONSOR ? '&sponsor=' + encodeURIComponent(SPONSOR) : ''), ctl ? {signal: ctl.signal} : {})
-.then(function(r){ clearTimeout(t); return r.json(); });
-}
-// Obligations sheet -> SPONSORS. Falls back to the built-in list if the sheet isn't served yet.
-var SHEET_OK = false;
-var TIER_KEY = {platinum:'platinum', gold:'gold', silver:'silver', bronze:'bronze', community:'community', 'vip bag':'vipbag', vipbag:'vipbag'};
-function num(v) { var n = parseInt(v, 10); return isNaN(n) ? 0 : n; }
-// Obligations sheet -> SPONSORS (the sheet is the source of what each sponsor is owed).
-// Contacts/notes only come with the admin key; anything missing falls back to the built-in list.
-function folderIdOf(v) { var m = String(v || '').match(/folders\/([\w-]+)/); return m ? m[1] : String(v || '').trim(); }
-function applySponsors(list) {
-if (!list || list.length < 10) return; // sanity: never wipe the list on a bad read
-var base = SPONSORS.slice();
-function fromBase(name, key) {
-for (var i = 0; i < base.length; i++) { if (base[i].n === name || (key && slug(base[i].n) === key)) return base[i]; }
-return {};
-}
-SPONSORS = list.filter(function(r){ return r.Sponsor; }).map(function(r){
-var st = String(r.Status||'').toLowerCase(), b = fromBase(r.Sponsor, r.Key);
-var pick = function(a, bk) { return (a !== undefined && a !== '') ? a : (b[bk] || ''); };
-return {
-n: r.Sponsor, key: r.Key || '', aka: pick(r.Aka, 'aka'), t: TIER_KEY[String(r.Tier||'').toLowerCase()] || b.t || 'community',
-eb: num(r.Eblasts), ebSent: num(r['Eblasts Sent']), st: num(r.Stories), sh: num(r['Shout-outs'] !== undefined ? r['Shout-outs'] : r.ShoutOuts),
-ct: pick(r.Contact, 'ct'), em: pick(r.Emails, 'em'),
-id: folderIdOf(r['Asset Folder'] || r.DriveFolderID) || b.id || null, id2: folderIdOf(r['Asset Folder 2'] || r.DriveFolder2ID) || b.id2 || '',
-ph: folderIdOf(r['Photo Folder'] || r.PhotoFolderID) || b.ph || '',
-lead: pick(r['PP Lead'] !== undefined ? r['PP Lead'] : r.PPLead, 'lead'), eml: pick(r['Extra Email Line'] !== undefined ? r['Extra Email Line'] : r.ExtraEmailLine, 'eml'),
-note: pick(r.Notes, 'note'), tag: pick(r['File Tag'] !== undefined ? r['File Tag'] : r.FileTag, 'tag'),
-flag: st === 'needs check', old: st === 'not 2026' ? (r.Notes || b.old || 'Not 2026') : ''
-};
-});
-SHEET_OK = true;
-}
-function loadCalendar() {
-return getJSON(20000).catch(function(){ return getJSON(20000); })
-.then(function(d){
-if (!d || !d.rows) throw new Error((d && d.error) || 'Bad response');
-CAL.eblast = d.rows || []; CAL.story = d.story || []; CAL_OK = true;
-if (d.tracker) TRACKER = d.tracker;
-if (d.mine) MINE = d.mine;
-if (d.sponsors) applySponsors(d.sponsors);
-return CAL;
-});
-}
-
-// Writes: fire-and-forget (no-cors). Apps Script's POST reply redirect is
-// unreliable in browsers, so every write is confirmed by re-reading the sheet.
-function post(params) {
-var body = Object.keys(params).map(function(k){
-return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
-}).join('&');
-return fetch(GAS_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: body});
-}
-function sleep(ms) { return new Promise(function(r){ setTimeout(r, ms); }); }
-// Re-read until check(CAL) passes (or give up after ~15s).
-function confirmWrite(check) {
-var tries = 0;
-function go() {
-return loadCalendar().then(function(){
-if (check()) return true;
-if (++tries >= 4) return false;
-return sleep(2500).then(go);
-});
-}
-return sleep(1200).then(go);
-}
-
-function isLocked(st) { return st === 'booked' || st === 'approved' || st === 'blocked'; }
-function rowFor(type, date) {
-var rows = CAL[type];
-for (var i = 0; i < rows.length; i++) if (rows[i].date === date) return rows[i];
-return null;
-}
-function hasSponsor(row, name) {
-return row && row.sponsors.split(',').map(function(x){ return x.trim(); }).indexOf(name) !== -1;
-}
-function fmtDate(s) {
-var p = s.split('-');
-return new Date(+p[0], +p[1]-1, +p[2]).toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric', year:'numeric'});
-}
-function esc(s) { return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
-
-// ---------- Client view ----------
 var PICK = { eblast: [], story: [] };
 var VIEW = { eblast: null, story: null };
-var SPONSOR = '';
-var MAXP = { eblast: MAX_EBLAST_DATES, story: MAX_STORY_DATES };
-// "Pick 2 dates for Eblast 1, then 2 for Eblast 2" — order of taps = which item and which choice.
-function pickText(owed, type) {
-var word = type === 'eblast' ? 'eblast' : 'Instagram story', words = type === 'eblast' ? 'eblasts' : 'Instagram stories';
-if (!owed) return 'Tap up to ' + MAXP[type] + ' dates, in order of preference.';
-if (owed === 1) return 'Tap 2 dates for your ' + word + ': your 1st choice, then your 2nd. We\'ll confirm one.';
-return 'Tap 2 dates for each of your ' + owed + ' ' + words + ' (' + (2 * owed) + ' total), in order: 1st and 2nd choice for ' + (type === 'eblast' ? 'Eblast' : 'Story') + ' 1, then for ' + (type === 'eblast' ? 'Eblast' : 'Story') + ' 2' + (owed > 2 ? ', and so on' : '') + '. We\'ll confirm one date for each.';
+var MAXP = { eblast: 4, story: 2 };
+// Items the sponsor still picks dates for, in order (from the server: no date yet, not declined / done).
+function openItems(type) { return (MINE || []).filter(function(m){ return m.type === type && m.pick; }).map(function(m){ return m.item; }); }
+function pickText(items, type) {
+if (!items.length) return 'Tap up to ' + MAXP[type] + ' dates, in order of preference.';
+if (items.length === 1) return 'Tap 2 dates for your ' + items[0] + ': your 1st choice, then your 2nd. We\'ll confirm one.';
+return 'Tap 2 dates for each of ' + andList(items) + ' (' + (2 * items.length) + ' total), in order: 1st and 2nd choice for '
++ items[0] + ', then for ' + items[1] + (items.length > 2 ? ', and so on' : '') + '. We\'ll confirm one date for each.';
 }
-
-function renderClient(sponsor, drive) {
-SPONSOR = sponsor;
-document.getElementById('pgTitle').textContent = sponsor + ' - Eblast Kit';
+function renderClient(sp, drive) {
+SPONSOR = sp.n;
+document.getElementById('pgTitle').textContent = hubName(sp);
 document.getElementById('pgSub').textContent = 'Your post-event eblast assets for Pines Party 2026.';
-var chip = document.getElementById('pgChip');
-chip.textContent = sponsor;
-chip.style.display = 'inline-block';
-
-var uploadHTML = drive
-? '<a class="btn btn-pink" href="'+esc(encodeURI(drive))+'" target="_blank">Upload Your Assets &rarr;</a>'
+var chip = document.getElementById('pgChip'); chip.textContent = sp.n; chip.style.display = 'inline-block';
+var folder = sp.id ? driveUrl(sp.id) : drive;
+var uploadHTML = folder
+? '<a class="btn btn-pink" href="'+esc(encodeURI(folder))+'" target="_blank">Upload Your Assets &rarr;</a>'
 : '<div class="err">Upload folder not set. Contact <a href="mailto:mario.guardado@pinesparty.com" style="color:#c0304a">Mario</a> for your link.</div>';
-
+var doEb = !!ebLeft(sp), doSo = hasSocial(sp);
+var ebItems = openItems('eblast'), soItems = openItems('story');
+MAXP.eblast = 2 * (MINE ? ebItems.length : ebLeft(sp));
+MAXP.story = 2 * (MINE ? soItems.length : socOwed(sp));
 function pickerHTML(type) {
+if (!MAXP[type]) return '<div class="msg info" style="display:block">All your ' + (type === 'eblast' ? 'eblast' : 'story') + ' dates are set. See &ldquo;Where things stand&rdquo; above.</div>';
 return '<div class="legend"><span><i style="background:var(--pink)"></i>Your picks</span>'
 +'<span><i style="background:#e6f4ea"></i>Confirmed for you</span>'
 +'<span><i style="background:#eee"></i>Unavailable</span></div>'
-+'<div class="cal" id="cal-'+type+'"><div class="hint">Loading available dates&hellip;</div></div>'
++'<div class="cal" id="cal-'+type+'"></div>'
 +'<div class="picked" id="picked-'+type+'"></div>';
 }
-
-var reg = findSponsor(sponsor);
-var doEb = reg ? !!ebLeft(reg) : true, doSo = reg ? hasSocial(reg) : true;
-// Sponsors pick 2 dates per item owed (1st + 2nd choice); the team selects one per item.
-if (reg && ebLeft(reg)) MAXP.eblast = 2 * ebLeft(reg);
-if (reg && socOwed(reg)) MAXP.story = 2 * socOwed(reg);
-if (reg) document.getElementById('pgTitle').textContent = hubName(reg);
-var pk = reg ? pkgItems(reg) : [];
-var n = 0;
+function goBtn(type, cls, label) { return MAXP[type] ? '<button class="btn '+cls+'" id="go-'+type+'" onclick="submitDates(\''+type+'\')">'+label+' &rarr;</button>' : ''; }
+var pk = pkgItems(sp), n = 0;
 function step(inner) { n++; return '<div class="step"><div class="num">'+n+'</div><div style="flex:1;min-width:0">'+inner+'</div></div>'; }
 document.getElementById('main').innerHTML =
 (pk.length ? '<div class="pkg"><div class="sec" style="margin:0 0 8px">Your Pines Party 2026 package</div><ul>'+pk.map(function(x){ return '<li>'+esc(x)+'</li>'; }).join('')+'</ul></div>' : '')
@@ -642,34 +550,23 @@ document.getElementById('main').innerHTML =
 +'<a class="btn btn-outline" href="'+STORY_GEN+'" target="_blank">Open the Story Generator &rarr;</a>') : '')
 +step('<h2>Upload Your Assets</h2>'
 +'<p>'+(doEb ? 'Upload your logo, 1-2 photos and completed copy template'+(doSo?', plus the story video and brief from the Story Generator':'') : 'Upload the story video and brief you download from the Story Generator')+' to your sponsor folder. You\'ll need to be signed in to any Google account. Your event photos will be in this folder too.</p>'
-+(reg ? namingHTML(reg) : '')
-+uploadHTML)
-+(doEb ? step('<h2>Request Your Eblast Send Date'+(reg && ebLeft(reg) > 1 ? 's' : '')+'</h2>'
-+'<p>'+pickText(reg ? ebLeft(reg) : 0, 'eblast')+' Greyed-out dates are already taken. A request is not a booking.</p>'
-+pickerHTML('eblast')
-+'<button class="btn btn-pink" id="go-eblast" onclick="submitDates(\'eblast\')">Request Eblast Date(s) &rarr;</button>'
++namingHTML(sp) + uploadHTML)
++(doEb ? step('<h2>Request Your Eblast Send Date'+(MAXP.eblast > 2 ? 's' : '')+'</h2>'
++(MAXP.eblast ? '<p>'+pickText(ebItems, 'eblast')+' Greyed-out dates are already taken. A request is not a booking.</p>' : '')
++pickerHTML('eblast') + goBtn('eblast', 'btn-pink', 'Request Eblast Date(s)')
 +'<div class="msg" id="msg-eblast"></div>') : '')
-+(doSo ? step('<h2>Request Your Instagram Story Date'+(MAXP.story > 1 ? 's' : '')+'</h2>'
-+'<p>'+pickText(reg ? socOwed(reg) : 0, 'story')+(reg && socSplit(reg) && socSplit(reg).shouts ? ' Your shout-outs are scheduled by our team.' : '')+'</p>'
-+pickerHTML('story')
-+'<button class="btn btn-outline" id="go-story" onclick="submitDates(\'story\')">Request Story Date(s) &rarr;</button>'
++(doSo ? step('<h2>Request Your Instagram Story Date'+(MAXP.story > 2 ? 's' : '')+'</h2>'
++(MAXP.story ? '<p>'+pickText(soItems, 'story')+(sp.sh ? ' Your shout-outs are scheduled by our team.' : '')+'</p>' : '')
++pickerHTML('story') + goBtn('story', 'btn-outline', 'Request Story Date(s)')
 +'<div class="msg" id="msg-story"></div>') : '')
 +'</div>'
 +'<div class="sec">Questions? Contact us</div>'
 +'<div class="contacts">'+contactsHTML()+'</div>';
-
 var now = new Date();
 VIEW.eblast = new Date(now.getFullYear(), now.getMonth(), 1);
 VIEW.story = new Date(now.getFullYear(), now.getMonth(), 1);
-loadCalendar().then(function(){
 ['eblast','story'].forEach(function(t){ if (document.getElementById('cal-'+t)) { drawCal(t); showExisting(t); } });
 drawMine();
-}).catch(function(){
-['eblast','story'].filter(function(t){ return document.getElementById('cal-'+t); }).forEach(function(t){
-drawCal(t);
-setMsg(t, 'bad', 'Couldn\'t load availability right now. You can still pick dates &mdash; we\'ll check for conflicts before confirming.');
-});
-});
 }
 
 // "Where things stand": one line per item, client-friendly status from the sheet.
@@ -677,7 +574,7 @@ var MINE_CLS = {'Scheduled':'dt-b','Sent':'dt-x','Posted':'dt-x','Dates requeste
 function drawMine() {
 var el = document.getElementById('mystatus');
 if (!el || !MINE || !MINE.length) return;
-el.innerHTML = '<div class="sec" style="margin:0">Where things stand</div><ul class="mine">' + MINE.map(function(m){
+el.innerHTML = '<div class="sec" style="margin:0">Where things stand</div><ul class="mine-list">' + MINE.map(function(m){
 return '<li><b>' + esc(m.item) + '</b><span><span class="dt ' + (MINE_CLS[m.status] || 'dt-o') + '" style="margin:0">' + esc(m.status) + (m.date && /Scheduled|Sent|Posted/.test(m.status) ? ' ' + fmtDate(m.date) : '') + '</span>'
 + (m.proposed ? '<div style="font-size:12px;color:var(--muted);margin-top:3px">We suggested ' + fmtDate(m.proposed) + '. Reply to our email to confirm, or request another date below.</div>' : '') + '</span></li>';
 }).join('') + '</ul>';
@@ -687,23 +584,19 @@ function showExisting(type) {
 var mine = CAL[type].filter(function(r){ return hasSponsor(r, SPONSOR) && r.date >= DATE_MIN; });
 if (!mine.length) return;
 var booked = mine.filter(function(r){ return isLocked(r.status); });
-var txt = booked.length
-? 'Confirmed: <strong>' + booked.map(function(r){ return fmtDate(r.date); }).join(', ') + '</strong>'
-: 'Already requested: ' + mine.map(function(r){ return fmtDate(r.date); }).join(', ') + '. Submitting again updates your ranking.';
-setMsg(type, booked.length ? 'ok' : 'info', txt);
+var reqd = mine.filter(function(r){ return !isLocked(r.status); });
+setMsg(type, booked.length ? 'ok' : 'info', (booked.length ? 'Confirmed: <strong>' + booked.map(function(r){ return fmtDate(r.date); }).join(', ') + '</strong>' : '')
++ (booked.length && reqd.length ? '<br>' : '')
++ (reqd.length ? 'Already requested: ' + reqd.map(function(r){ return fmtDate(r.date); }).join(', ') + '. Submitting again replaces these.' : ''));
 }
-
-function setMsg(type, cls, html) {
-var m = document.getElementById('msg-'+type);
-m.className = 'msg ' + cls; m.innerHTML = html;
-}
-
 function drawCal(type) {
 var el = document.getElementById('cal-'+type);
+if (!el) return;
 var v = VIEW[type], y = v.getFullYear(), mo = v.getMonth();
 var first = new Date(y, mo, 1).getDay(), days = new Date(y, mo+1, 0).getDate();
 var minM = DATE_MIN.slice(0,7), maxM = DATE_MAX.slice(0,7), curM = ymd(v).slice(0,7);
-var h = '<div class="cal-hd"><button class="cal-nav" '+(curM<=minM?'disabled':'')+' onclick="shiftCal(\''+type+'\',-1)">&lsaquo;</button>'
+var h = (CAL_OK ? '' : '<div class="hint">Couldn\'t load availability right now. You can still pick dates; we\'ll check for conflicts before confirming.</div>')
++'<div class="cal-hd"><button class="cal-nav" '+(curM<=minM?'disabled':'')+' onclick="shiftCal(\''+type+'\',-1)">&lsaquo;</button>'
 +'<strong>'+v.toLocaleDateString('en-US',{month:'long',year:'numeric'})+'</strong>'
 +'<button class="cal-nav" '+(curM>=maxM?'disabled':'')+' onclick="shiftCal(\''+type+'\',1)">&rsaquo;</button></div>'
 +'<div class="cal-grid">';
@@ -721,9 +614,7 @@ h += '<button class="'+cls+'" '+(dis?'disabled':'onclick="togglePick(\''+type+'\
 el.innerHTML = h + '</div>';
 drawPicked(type);
 }
-
 function shiftCal(type, n) { var v = VIEW[type]; VIEW[type] = new Date(v.getFullYear(), v.getMonth()+n, 1); drawCal(type); }
-
 function togglePick(type, ds) {
 var arr = PICK[type], i = arr.indexOf(ds);
 if (i !== -1) arr.splice(i, 1);
@@ -731,85 +622,83 @@ else if (arr.length >= MAXP[type]) { setMsg(type, 'bad', 'You can pick up to '+M
 else arr.push(ds);
 drawCal(type);
 }
-
 function drawPicked(type) {
 document.getElementById('picked-'+type).innerHTML = PICK[type].map(function(ds, i){
 return '<span class="pchip">#'+(i+1)+' '+fmtDate(ds)+'<button onclick="togglePick(\''+type+'\',\''+ds+'\')" aria-label="Remove">&times;</button></span>';
 }).join('');
 }
-
 function submitDates(type) {
 var picked = PICK[type].slice();
 if (!picked.length) { setMsg(type, 'bad', 'Tap at least one date on the calendar first.'); return; }
-var btn = document.getElementById('go-'+type);
+var btn = document.getElementById('go-'+type), label = btn.innerHTML;
 btn.disabled = true; btn.innerHTML = 'Sending&hellip;';
-function mineOn(ds) { var r = rowFor(type, ds); return r && (hasSponsor(r, SPONSOR) || r.sponsors === SPONSOR); }
-function takenOn(ds) { var r = rowFor(type, ds); return r && isLocked(r.status) && r.sponsors !== SPONSOR; }
-post({action:'request', type:type, sponsor:SPONSOR, dates:picked.join(',')})
-.then(function(){
-return confirmWrite(function(){ return picked.every(function(ds){ return mineOn(ds) || takenOn(ds); }); });
-})
-.then(function(done){
-if (!done) throw new Error('unconfirmed');
+var items = openItems(type).slice(0, Math.ceil(picked.length / 2));
+post({action:'request', type:type, sponsor:SPONSOR, dates:picked.join(','), items:items.join(',')})
+.then(function(d){
 PICK[type] = [];
-drawCal(type);
-var saved = picked.filter(mineOn), conflicts = picked.filter(takenOn);
-var html = 'Request received for: <strong>' + saved.map(fmtDate).join(', ') + '</strong>. We\'ll confirm your date by email.';
-if (conflicts.length) html += '<br>Just taken by another sponsor: ' + conflicts.map(fmtDate).join(', ') + '.';
-setMsg(type, saved.length ? 'ok' : 'bad', saved.length ? html : 'Those dates were just taken by another sponsor. Please pick different dates.');
+var saved = d.saved || [], conflicts = d.conflicts || [];
+var html = saved.length ? 'Request received for: <strong>' + saved.map(fmtDate).join(', ') + '</strong>. We\'ll confirm your date by email.' : 'Those dates were just taken by another sponsor. Please pick different dates.';
+if (saved.length && conflicts.length) html += '<br>Just taken by another sponsor: ' + conflicts.map(fmtDate).join(', ') + '.';
+return loadCalendar().catch(function(){}).then(function(){ drawCal(type); drawMine(); setMsg(type, saved.length ? 'ok' : 'bad', html); });
 })
-.catch(function(){
-setMsg(type, 'bad', 'Something went wrong saving your request. Please try again, or email <a href="mailto:'+TEAM[0].e+'">'+TEAM[0].e+'</a> with your dates.');
+.catch(function(e){
+setMsg(type, 'bad', 'Your request wasn\'t saved: ' + esc(e.message) + ' Please try again, or email <a href="mailto:'+TEAM[0].e+'">'+TEAM[0].e+'</a> with your dates.');
 })
-.then(function(){
-btn.disabled = false;
-btn.innerHTML = type === 'story' ? 'Request Story Slot(s) &rarr;' : 'Request Eblast Date(s) &rarr;';
-});
+.then(function(){ btn.disabled = false; btn.innerHTML = label; });
 }
 
-// ---------- Team view: obligations tracker + calendar ----------
+// ---------- Team view: one admin screen (Sponsors table). The Calendar tab is read-only.
 var OB = { q:'', f:'all' };
 var OB_FILTERS = [['all','All'],['owed','Eblast owed'],['req','Has requests'],['flag','Needs check'],['platinum','Platinum'],['gold','Gold'],['silver','Silver'],['bronze','Bronze'],['vipbag','VIP Bag'],['nofolder','No folder'],['old','Not 2026']];
-var TODAY = ymd(new Date());
 
 // Live calendar rows for one sponsor and type ('eblast' | 'story').
 function calFor(type, name) {
 var out = {booked:[], req:[]};
 (CAL[type] || []).forEach(function(row){
-if (!hasSponsor(row, name) && row.sponsors !== name) return;
-if (row.status === 'blocked') return;
+if (!hasSponsor(row, name) || row.status === 'blocked') return;
 (isLocked(row.status) ? out.booked : out.req).push(row);
 });
 out.booked.sort(function(a,b){ return a.date < b.date ? -1 : 1; });
 out.req.sort(function(a,b){ return a.date < b.date ? -1 : 1; });
 return out;
 }
-function shortDate(s) { var p = s.split('-'); return (+p[1])+'/'+(+p[2]); }
 function rankOf(row, name) {
 var hit = (row.notes||'').split(';').map(function(x){ return x.trim().match(/^(.*) #(\d+)$/); }).filter(function(m){ return m && m[1] === name; })[0];
 return hit ? '#'+hit[2]+' ' : '';
-}
-
-// Status cell: booked dates (Scheduled, then Sent/Posted once the date passes) and
-// requested dates with inline approve. Click a booked date twice to release it.
-function ownedLine(type, s) {
-if (type === 'eblast') return s.eb ? s.eb + ' owed' : 'None owed';
-var x = socSplit(s);
-if (x) return x.stories + ' stor' + (x.stories===1?'y':'ies') + (x.shouts ? ' + ' + x.shouts + ' shout-out' + (x.shouts===1?'':'s') : '');
-return s.soc ? s.soc.replace(/"/g,'') : 'None owed';
 }
 // Internal Tracker status per item (Eblast 1, Story 1, Shout-out 1...) from the sheet.
 var ST_CLS = {'Sent':'dt-x','Posted':'dt-x','Scheduled':'dt-b','Selected Date':'dt-r','In progress':'dt-r','Pending Client Approval':'dt-r',
 'Not sent':'dt-n','Not posted':'dt-n','No reply':'dt-n','Client declined':'dt-x'};
 function itemAbbr(it) { return String(it).replace(/^Eblast\s*/,'E').replace(/^Story\s*/,'S').replace(/^Shout-out\s*/,'SO'); }
-var ST_LIST = ['Email sent','No reply','Client replied','Client declined','Selected Date','In progress','Pending Client Approval','Scheduled','Not sent','Not posted','Sent','Posted'];
+function statusesFor(item) { var t = itemType(item); return STATUSES.filter(function(s){ return !s.only || s.only === t; }).map(function(s){ return s.status; }); }
 function trackerRow(sp, item) { for (var i = 0; i < TRACKER.length; i++) if (TRACKER[i]['Sponsor Name'] === sp && TRACKER[i].Item === item) return TRACKER[i]; return null; }
-// Change an item's status from the dashboard (saved to the tracker sheet; the status check won't override it for 5 days).
+function trackerOnDate(sp, type, date) {
+for (var i = 0; i < TRACKER.length; i++) { var r = TRACKER[i]; if (r['Sponsor Name'] === sp && itemType(r.Item) === type && r['Assigned Date'] === date) return r; }
+return null;
+}
+// What a booked date says: the tracker's status for that item (Scheduled / Not sent / Sent ...), never a guess.
+function bookedLabel(sp, type, date) {
+var r = trackerOnDate(sp, type, date);
+if (r && r.Status) return r.Status;
+return date < TODAY ? 'Date passed' : 'Scheduled';
+}
+function needKey(msgId) {
+if (ADMIN.key) return false;
+setMsg(msgId || 'ob', 'bad', 'Enter the admin key above first.'); var k = document.getElementById('obKey'); if (k) k.focus();
+return true;
+}
+// After any write: re-read everything and redraw, then show the result.
+function afterWrite(okHtml) {
+return loadCalendar().catch(function(){}).then(function(){ drawAll(); if (okHtml) setMsg('ob', 'ok', okHtml); });
+}
+function fail(e) { drawAll(); setMsg('ob', 'bad', esc(e.message)); }
+
+// Change an item's status (+ date) from the dashboard. The automatic check won't override it for 5 days.
 function stEditOpen(btn) {
-if (!ADMIN.key) { setMsg('ob', 'bad', 'Enter the admin key above first.'); document.getElementById('obKey').focus(); return; }
+if (needKey()) return;
 var sp = btn.getAttribute('data-s'), it = btn.getAttribute('data-i'), r = trackerRow(sp, it) || {};
 var box = document.createElement('span'); box.className = 'rjbox';
-box.innerHTML = esc(it) + ': <select>' + ['<option value="">(blank)</option>'].concat(ST_LIST.map(function(x){ return '<option' + (x === r.Status ? ' selected' : '') + '>' + x + '</option>'; })).join('') + '</select>'
+box.innerHTML = esc(it) + ': <select>' + ['<option value="">(blank)</option>'].concat(statusesFor(it).map(function(x){ return '<option' + (x === r.Status ? ' selected' : '') + '>' + x + '</option>'; })).join('') + '</select>'
 + ' Date <input type="date" value="' + esc(r['Assigned Date'] || '') + '"/>'
 + '<button class="dt dt-b" style="margin:0">Save</button><button class="dt dt-x" style="margin:0">Cancel</button>';
 var bs = box.querySelectorAll('button');
@@ -821,16 +710,9 @@ function stEditSave(sp, it, st, date, oldDate, b) {
 b.disabled = true; b.textContent = 'Saving…';
 var q = {action:'editStatus', sponsor:sp, item:it, status:st, by:(signer() || 'Team page'), key:ADMIN.key};
 if (date) q.date = date; else if (oldDate) q.clearDate = '1';
-post(q).then(function(){ return confirmWrite(function(){ var r = trackerRow(sp, it); return r && r.Status === st && (r['Assigned Date'] || '') === date; }); })
-.then(function(ok){
-drawOb();
-if (!ok) throw new Error('Not saved. Check the admin key and try again.');
-setMsg('ob', 'ok', esc(sp) + ' ' + esc(it) + ' set to ' + esc(st || '(blank)') + (date ? ' (' + fmtDate(date) + ')' : '') + '.');
-})
-.catch(function(e){ drawOb(); setMsg('ob', 'bad', esc(e.message)); });
+post(q).then(function(){ return afterWrite(esc(sp) + ' ' + esc(it) + ' set to ' + esc(st || '(blank)') + (date ? ' (' + fmtDate(date) + ')' : '') + '.'); }).catch(fail);
 }
 function trackerChips(type, s) {
-if (!TRACKER.length) return '';
 var re = type === 'eblast' ? /^Eblast/ : /^(Story|Shout)/;
 var rows = TRACKER.filter(function(r){ return r['Sponsor Name'] === s.n && re.test(r.Item || ''); });
 if (!rows.length) return '';
@@ -840,17 +722,14 @@ var tip = r.Item + ': ' + st + (r['Assigned Date'] ? ' (' + r['Assigned Date'] +
 return '<button class="dt ' + (ST_CLS[st] || 'dt-o') + '" title="' + esc(tip + ' | Click to change') + '" data-s="' + esc(s.n) + '" data-i="' + esc(r.Item) + '" onclick="stEditOpen(this)">' + esc(itemAbbr(r.Item)) + ' ' + esc(st) + fl + (r['Assigned Date'] ? ' ' + shortDate(r['Assigned Date']) : '') + '</button>';
 }).join('') + '</div>';
 }
+// Status cell: booked dates (label from the tracker; click twice to release) and requested dates (approve / reject).
 function statusCell(type, s, owed) {
-var sx = type === 'story' ? socSplit(s) : null;
-var tail = sx && sx.shouts ? '<span class="dt dt-x" title="Shout-outs are scheduled by the team">+'+sx.shouts+' shout-out'+(sx.shouts===1?'':'s')+'</span>' : '';
-if (type === 'story' && !sx && s.soc && s.st == null) tail = '<span class="dt dt-x">'+esc(s.soc.replace(/"/g,''))+'</span>';
-var head = '';
 if (s.old) return '<span class="dt dt-x">'+esc(s.old)+'</span>';
 if (!CAL_OK) return '<span class="dash">loading&hellip;</span>';
-var c = calFor(type, s.n), h = '', done = type === 'eblast' ? 'Sent' : 'Posted';
+var c = calFor(type, s.n), h = '';
 c.booked.forEach(function(r){
-var past = r.date < TODAY;
-h += '<button class="dt '+(past?'dt-x':'dt-b')+'" title="Click twice to release" data-t="'+type+'" data-d="'+r.date+'" onclick="obAct(\'release\',this)">'+(past?done:'Scheduled')+' '+shortDate(r.date)+'</button>';
+var lab = bookedLabel(s.n, type, r.date);
+h += '<button class="dt '+(/^(Sent|Posted)$/.test(lab)?'dt-x':/^Not /.test(lab)?'dt-n':'dt-b')+'" title="Click twice to release" data-act="release" data-t="'+type+'" data-d="'+r.date+'" onclick="obAct(\'release\',this)">'+esc(lab)+' '+shortDate(r.date)+'</button>';
 });
 c.req.forEach(function(r){
 h += '<button class="dt dt-r" title="Click to approve this date" data-t="'+type+'" data-d="'+r.date+'" data-s="'+esc(s.n)+'" onclick="obAct(\'approve\',this)">'+rankOf(r, s.n)+'Req '+shortDate(r.date)+' &#10003;</button>'
@@ -858,24 +737,11 @@ h += '<button class="dt dt-r" title="Click to approve this date" data-t="'+type+
 });
 if (owed) { var left = owed - c.booked.length; if (left > 0) h += '<span class="dt dt-n">'+left+' to book</span>'; }
 else if (type === 'eblast' && (c.booked.length || c.req.length)) h += '<span class="dt dt-n">Not owed: check</span>';
-h += tail;
+if (type === 'story' && s.sh) h += '<span class="dt dt-x" title="Shout-outs are scheduled by the team">+'+s.sh+' shout-out'+(s.sh===1?'':'s')+'</span>';
 h += trackerChips(type, s);
 return h || '<span class="dash">&mdash;</span>';
 }
-
-// Social owed -> stories the sponsor requests + shout-outs the team decides.
-// "N posts + M shout-outs" -> N stories; a plain total N -> half are stories (rounded up).
-function socSplit(s) {
-if (s.st != null) { var tot = (s.st||0) + (s.sh||0); return tot ? {total: tot, stories: s.st||0, shouts: s.sh||0} : null; }
-var t = s.soc || '', m = t.match(/^(\d+)\s*posts?\s*\+\s*(\d+)\s*shout/i);
-if (m) return {total: +m[1] + +m[2], stories: +m[1], shouts: +m[2]};
-m = t.match(/^(\d+)/); if (!m) return null;
-var n = +m[1], st = Math.ceil(n/2); return {total: n, stories: st, shouts: n - st};
-}
-function socOwed(s) { var x = socSplit(s); return x ? x.stories : 0; }
-
 function hasReq(s) { return CAL_OK && (calFor('eblast', s.n).req.length || calFor('story', s.n).req.length); }
-
 function obMatch(s) {
 var f = OB.f;
 if (f === 'old') { if (!s.old) return false; }
@@ -885,20 +751,16 @@ if (f === 'req' && !hasReq(s)) return false;
 if (f === 'flag' && !s.flag) return false;
 if (f === 'nofolder' && s.id) return false;
 if (TIER_LABEL[f] && s.t !== f) return false;
-if (OB.q) {
-var hay = [s.n, s.aka, s.ct, s.em, s.lead, s.note, s.soc].join(' ').toLowerCase();
-if (hay.indexOf(OB.q) === -1) return false;
-}
+if (OB.q && [s.n, s.aka, s.ct, s.em, s.lead, s.note].join(' ').toLowerCase().indexOf(OB.q) === -1) return false;
 return true;
 }
-
 function contactCell(s) {
 if (!s.em) return '<span class="dash">'+(ADMIN.key ? '&mdash;' : 'Enter admin key')+'</span>';
 return (s.ct ? '<div>'+esc(s.ct)+'</div>' : '')
 + s.em.split(',').map(function(e){ e = e.trim(); return '<a class="em" href="mailto:'+esc(e)+'">'+esc(e)+'</a>'; }).join('');
 }
-
 function obRows() {
+if (!SPONSORS.length) return '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">'+(CAL_OK ? 'No sponsors loaded.' : 'Loading&hellip;')+'</td></tr>';
 var rows = SPONSORS.map(function(s, i){ return {s:s, i:i}; }).filter(function(o){ return obMatch(o.s); });
 if (!rows.length) return '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">No sponsors match.</td></tr>';
 return rows.map(function(o){
@@ -906,7 +768,8 @@ var s = o.s, i = o.i;
 var acts = ((s.eb || hasSocial(s)) && s.em ? '<button class="mini mini-p" onclick="draftEmail(this,'+i+')">Email Draft</button>' : '')
 + (s.id ? '<a class="mini mini-s" href="'+driveUrl(s.id)+'" target="_blank" title="Open their Drive asset folder">Asset Link</a>' : '')
 + '<button class="mini mini-s" title="Copy the Hub link we share with this client: their package, upload folder and date requests" onclick="copyText(this, sponsorLink(SPONSORS['+i+'].n))">'+esc(hubShort(s))+' Hub</button>';
-var name = s.id ? '<a class="sp-name" href="'+driveUrl(s.id)+'" target="_blank" title="Open their Drive folder">'+esc(s.n)+'</a>' : '<div class="sp-name">'+esc(s.n)+'</div><div class="sp-lead">No Drive folder</div>';
+var name = s.id ? '<a class="sp-name" href="'+driveUrl(s.id)+'" target="_blank" title="Open their Drive folder">'+esc(s.n)+'</a>'
+: '<div class="sp-name">'+esc(s.n)+'</div>'+(ADMIN.key ? '<div class="sp-lead">No Drive folder</div>' : '');
 return '<tr class="'+(s.flag?'flag ':'')+(s.old?'old':'')+'">'
 +'<td>'+name+(s.aka?'<div class="sp-lead">aka '+esc(s.aka)+'</div>':'')+'</td>'
 +'<td><span class="tier tier-'+s.t+'" style="margin-left:0">'+TIER_LABEL[s.t]+'</span></td>'
@@ -917,7 +780,6 @@ return '<tr class="'+(s.flag?'flag ':'')+(s.old?'old':'')+'">'
 +'<td><div class="note'+(s.flag?' fl':'')+'">'+(s.note?esc(s.note):'')+'</div></td></tr>';
 }).join('');
 }
-
 function obStats() {
 var live = SPONSORS.filter(function(s){ return !s.old; });
 var owedS = live.filter(function(s){ return s.eb; });
@@ -925,7 +787,7 @@ var owed = owedS.reduce(function(a,s){ return a + s.eb; }, 0);
 var booked = 0, sent = 0, reqS = 0, sOwed = 0, sBooked = 0;
 live.forEach(function(s){ sOwed += socOwed(s); });
 if (CAL_OK) {
-owedS.forEach(function(s){ var b = calFor('eblast', s.n).booked.slice(0, s.eb); booked += b.length; sent += b.filter(function(r){ return r.date < TODAY; }).length; });
+owedS.forEach(function(s){ var b = calFor('eblast', s.n).booked.slice(0, s.eb); booked += b.length; sent += b.filter(function(r){ return bookedLabel(s.n, 'eblast', r.date) === 'Sent'; }).length; });
 live.forEach(function(s){ if (hasReq(s)) reqS++; var n = socOwed(s); if (n) sBooked += Math.min(calFor('story', s.n).booked.length, n); });
 }
 function st(v, l, c) { return '<div class="stat '+(c||'')+'"><b>'+v+'</b><span>'+l+'</span></div>'; }
@@ -935,86 +797,54 @@ return st(live.length, 'Sponsors (2026)') + st(owed, 'Eblasts owed', 'pink') + s
 + st(sOwed, 'Stories owed', 'pink') + st(w(sBooked), 'Stories booked', 'ok') + st(w(sOwed - sBooked), 'Stories to book', 'warn') + st(w(reqS), 'Sponsors w/ requests', 'pink')
 + st(live.filter(function(s){ return s.flag; }).length, 'Needs check', 'warn');
 }
-
+// Date requests waiting for a decision (upcoming dates only).
+function pendingHTML() {
+if (!CAL_OK) return '';
+var who = [];
+SPONSORS.forEach(function(s){
+var parts = [];
+['eblast','story'].forEach(function(t){
+var d = calFor(t, s.n).req.filter(function(r){ return r.date >= TODAY; }).map(function(r){ return shortDate(r.date); });
+if (d.length) parts.push((t === 'eblast' ? 'Eblast ' : 'Story ') + d.join(', '));
+});
+if (parts.length) who.push('<b>' + esc(s.n) + '</b> (' + parts.join('; ') + ')');
+});
+if (!who.length) return '';
+return '<div class="msg info" id="pendingBanner" style="display:block;margin:0 0 12px">'
++ '<b>Date requests waiting: ' + plural(who.length, 'sponsor', 'sponsors') + '.</b> ' + who.join(' · ')
++ ' <button class="mini mini-p" onclick="setOb(\'req\')">Show them</button></div>';
+}
 function drawOb() {
 if (!document.getElementById('obBody')) return;
+document.getElementById('obPending').innerHTML = pendingHTML();
 document.getElementById('obStats').innerHTML = obStats();
 document.getElementById('obChips').innerHTML = OB_FILTERS.map(function(f){
 return '<button class="fchip'+(OB.f===f[0]?' on':'')+'" onclick="setOb(\''+f[0]+'\')">'+f[1]+'</button>';
 }).join('');
 document.getElementById('obBody').innerHTML = obRows();
+var lg = document.getElementById('lgS');
+if (lg && !lg.options.length) lg.innerHTML = SPONSORS.filter(function(s){ return !s.old; }).map(function(s){ return '<option>'+esc(s.n)+'</option>'; }).join('');
 }
-var MCAL = null;
-function monthGridHTML() {
-if (!MCAL) { var t = new Date(); MCAL = new Date(t.getFullYear(), t.getMonth(), 1); }
-var y = MCAL.getFullYear(), m = MCAL.getMonth(), first = new Date(y, m, 1).getDay(), days = new Date(y, m+1, 0).getDate();
-function items(ds) {
-var out = [];
-['eblast','story'].forEach(function(type){
-(CAL[type]||[]).forEach(function(r){
-if (r.date !== ds || !(r.sponsors || r.status)) return;
-var lab = type === 'eblast' ? 'Eblast' : 'Story';
-var st = r.status === 'blocked' ? 'x' : isLocked(r.status) ? (r.date < TODAY ? 'd' : 'b') : 'r';
-var who = r.status === 'blocked' ? 'Blocked' : r.sponsors;
-var tag = st === 'r' ? 'Req' : st === 'd' ? (type === 'eblast' ? 'Sent' : 'Posted') : st === 'b' ? 'Sched' : '';
-out.push('<div class="ev ev-'+st+'" title="'+esc(lab+' · '+tag+' · '+who)+'"><b>'+lab+'</b> '+esc(who)+(tag?' <i>'+tag+'</i>':'')+'</div>');
-});
-});
-return out.join('');
-}
-var h = '<div class="mc-hd"><button class="cal-nav" onclick="shiftMonth(-1)">&lsaquo;</button><strong>'
-+ MCAL.toLocaleDateString('en-US',{month:'long',year:'numeric'}) + '</strong><button class="cal-nav" onclick="shiftMonth(1)">&rsaquo;</button></div>'
-+ (CAL_OK ? '' : '<div class="hint" style="margin-bottom:8px">Couldn\'t reach the calendar right now. Showing the grid; press Refresh to retry.</div>')
-+ '<div class="mc">';
-['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(function(d){ h += '<div class="mc-dow">'+d+'</div>'; });
-for (var i = 0; i < first; i++) h += '<div class="mc-day off"></div>';
-for (var d = 1; d <= days; d++) {
-var ds = ymd(new Date(y, m, d));
-h += '<div class="mc-day'+(ds===TODAY?' today':'')+'"><div class="mc-n">'+d+'</div>'+items(ds)+'</div>';
-}
-return h + '</div><div class="legend" style="margin-top:8px"><span><i style="background:#fdf0d8"></i>Requested</span><span><i style="background:#e6f4ea"></i>Scheduled</span><span><i style="background:#e9e6ea"></i>Sent / posted</span></div>';
-}
-function shiftMonth(n) { MCAL = new Date(MCAL.getFullYear(), MCAL.getMonth()+n, 1); drawMonth(); }
-function drawMonth() { var el = document.getElementById('monthGrid'); if (el) el.innerHTML = monthGridHTML(); }
-
-// Log something that already went out (or schedule one directly) without a sponsor request.
-function logHTML() {
-var opts = SPONSORS.filter(function(s){ return !s.old && (s.eb || hasSocial(s)); }).map(function(s){ return '<option>'+esc(s.n)+'</option>'; }).join('');
-return '<div class="logbox"><div class="card-title" style="margin-bottom:8px">Log a send / post</div>'
-+ '<div class="hint" style="margin-bottom:10px">For eblasts and stories that already went out (or a date agreed by email). A past date shows as Sent / Posted; a future date shows as Scheduled.</div>'
-+ '<div class="ob-bar"><select id="lgS" class="ob-search">'+opts+'</select>'
-+ '<select id="lgT" class="ob-search" style="flex:0 1 150px"><option value="eblast">Eblast</option><option value="story">Instagram story</option></select>'
-+ '<input id="lgD" type="date" class="ob-search" style="flex:0 1 170px"/>'
-+ '<button class="fchip on" onclick="logSend(this)">Save</button></div><div class="msg" id="msg-log"></div></div>';
-}
-function logSend(btn) {
-if (!ADMIN.key) { setMsg('log', 'bad', 'Enter the admin key above first.'); return; }
-var sp = document.getElementById('lgS').value, t = document.getElementById('lgT').value, d = document.getElementById('lgD').value;
-if (!d) { setMsg('log', 'bad', 'Pick a date.'); return; }
-btn.disabled = true; btn.textContent = 'Saving…';
-post({action:'approve', type:t, date:d, sponsor:sp, key:ADMIN.key})
-.then(function(){ return confirmWrite(function(){ var r = rowFor(t, d); return r && isLocked(r.status) && r.sponsors === sp; }); })
-.then(function(ok){
-drawOb(); drawMonth(); if (document.getElementById('tracker')) drawTracker();
-setMsg('log', ok ? 'ok' : 'bad', ok ? 'Saved: ' + esc(sp) + ' ' + (t==='story'?'story':'eblast') + ' on ' + fmtDate(d) + (d < TODAY ? ' (sent/posted).' : ' (scheduled).') : 'Not saved. That date may already be taken, or the admin key is wrong.');
-})
-.catch(function(){ setMsg('log', 'bad', 'Not saved. Try again.'); })
-.then(function(){ btn.disabled = false; btn.textContent = 'Save'; });
-}
-function showView(v) {
-document.getElementById('view-s').style.display = v==='s' ? '' : 'none';
-document.getElementById('view-c').style.display = v==='c' ? '' : 'none';
-document.getElementById('vt-s').className = 'tab' + (v==='s'?' on':'');
-document.getElementById('vt-c').className = 'tab' + (v==='c'?' on':'');
-document.getElementById('obChips').style.display = v==='s' ? '' : 'none';
-}
+function drawAll() { drawOb(); drawMonth(); drawTracker(); }
 function setOb(f) { OB.f = f; drawOb(); }
 function searchOb(v) { OB.q = v.trim().toLowerCase(); drawOb(); }
 
-// Approve / release straight from the table.
-// Reject one sponsor's request for a date; optionally propose another date (it becomes their pick, approve it later).
+// Approve / release (two clicks on the same chip) straight from the table.
+function obAct(action, btn) {
+if (needKey()) return;
+if (action === 'release' && btn.getAttribute('data-arm') !== '1') {
+document.querySelectorAll('[data-arm="1"]').forEach(function(b){ b.removeAttribute('data-arm'); });
+btn.setAttribute('data-arm','1'); btn.textContent = 'Click again to release'; return;
+}
+var t = btn.getAttribute('data-t'), d = btn.getAttribute('data-d'), sp = btn.getAttribute('data-s') || '';
+btn.disabled = true; btn.textContent = 'Saving…';
+post({action:action, type:t, date:d, sponsor:sp, key:ADMIN.key})
+.then(function(){ return afterWrite((action==='approve' ? 'Approved '+esc(sp)+' '+(t==='story'?'story':'eblast')+' for ' : 'Released ') + fmtDate(d) + '.'); })
+.catch(fail);
+}
+// Reject one sponsor's request for a date; optionally propose another date (it becomes their pick; approve it later).
 function obRejectOpen(btn) {
-if (!ADMIN.key) { setMsg('ob', 'bad', 'Enter the admin key above first.'); document.getElementById('obKey').focus(); return; }
+if (needKey()) return;
 var t = btn.getAttribute('data-t'), d = btn.getAttribute('data-d'), sp = btn.getAttribute('data-s');
 var box = document.createElement('span'); box.className = 'rjbox';
 box.innerHTML = 'Reject ' + shortDate(d) + '? Propose instead (optional): <input type="date" min="' + TODAY + '"/>'
@@ -1027,57 +857,125 @@ btn.style.display = 'none'; btn.parentNode.insertBefore(box, btn.nextSibling);
 function obReject(t, d, sp, prop, b) {
 b.disabled = true; b.textContent = 'Saving…';
 var q = {action:'reject', type:t, date:d, sponsor:sp, key:ADMIN.key}; if (prop) q.propose = prop;
-post(q).then(function(){ return confirmWrite(function(){
-var r = rowFor(t, d), gone = !r || !hasSponsor(r, sp);
-var p2 = !prop || (rowFor(t, prop) && hasSponsor(rowFor(t, prop), sp));
-return gone && p2;
-}); })
-.then(function(ok){
-drawOb(); if (document.getElementById('tracker')) drawTracker();
-if (!ok) throw new Error('Not saved. Check the admin key and try again.');
-setMsg('ob', 'ok', 'Rejected ' + esc(sp) + ' request for ' + fmtDate(d) + (prop ? '; proposed ' + fmtDate(prop) + ' (shows as their pick; approve it once they agree).' : '.'));
-})
-.catch(function(e){ drawOb(); setMsg('ob', 'bad', esc(e.message)); });
+post(q).then(function(){ return afterWrite('Rejected ' + esc(sp) + ' request for ' + fmtDate(d) + (prop ? '; proposed ' + fmtDate(prop) + ' (shows as their pick; approve it once they agree).' : '.')); })
+.catch(fail);
 }
-function obAct(action, btn) {
-if (!ADMIN.key) { setMsg('ob', 'bad', 'Enter the admin key above first.'); document.getElementById('obKey').focus(); return; }
-if (action === 'release' && btn.getAttribute('data-arm') !== '1') {
-btn.setAttribute('data-arm','1'); btn.textContent = 'Click again to release'; return;
+// Log something that already went out (or a date agreed by email) without a sponsor request.
+function logHTML() {
+return '<div class="logbox"><div class="card-title" style="margin-bottom:8px">Log a send / post</div>'
++ '<div class="hint" style="margin-bottom:10px">For eblasts and stories that already went out, or a date agreed by email. A past date logs it as Sent / Posted; a future date schedules it.</div>'
++ '<div class="ob-bar"><select id="lgS" class="ob-search"></select>'
++ '<select id="lgT" class="ob-search" style="flex:0 1 150px"><option value="eblast">Eblast</option><option value="story">Instagram story</option></select>'
++ '<input id="lgD" type="date" class="ob-search" style="flex:0 1 170px"/>'
++ '<button class="fchip on" onclick="logSend(this)">Save</button></div><div class="msg" id="msg-log"></div></div>';
 }
-var t = btn.getAttribute('data-t'), d = btn.getAttribute('data-d'), sp = btn.getAttribute('data-s') || '';
+function logSend(btn) {
+if (needKey('log')) return;
+var sp = document.getElementById('lgS').value, t = document.getElementById('lgT').value, d = document.getElementById('lgD').value;
+if (!d) { setMsg('log', 'bad', 'Pick a date.'); return; }
 btn.disabled = true; btn.textContent = 'Saving…';
-post({action:action, type:t, date:d, sponsor:sp, key:ADMIN.key})
-.then(function(){ return confirmWrite(function(){
-var r = rowFor(t, d);
-return action === 'approve' ? (r && isLocked(r.status) && r.sponsors === sp) : !r;
-}); })
-.then(function(ok){
-drawOb(); if (document.getElementById('tracker')) drawTracker();
-if (!ok) throw new Error('Not saved. Check the admin key and try again.');
-setMsg('ob', 'ok', (action==='approve' ? 'Approved '+esc(sp)+' '+(t==='story'?'social post':'eblast')+' for ' : 'Released ') + fmtDate(d) + '.');
-})
-.catch(function(e){ drawOb(); setMsg('ob', 'bad', esc(e.message)); });
+post({action:'approve', type:t, date:d, sponsor:sp, key:ADMIN.key})
+.then(function(){ return afterWrite(); })
+.then(function(){ setMsg('log', 'ok', 'Saved: ' + esc(sp) + ' ' + (t==='story'?'story':'eblast') + ' on ' + fmtDate(d) + (d < TODAY ? ' (sent/posted).' : ' (scheduled).')); })
+.catch(function(e){ setMsg('log', 'bad', esc(e.message)); })
+.then(function(){ btn.disabled = false; btn.textContent = 'Save'; });
+}
+
+// Calendar tab (read-only): month grid + list by date.
+var MCAL = null;
+function monthGridHTML() {
+if (!MCAL) { var t = new Date(); MCAL = new Date(t.getFullYear(), t.getMonth(), 1); }
+var y = MCAL.getFullYear(), m = MCAL.getMonth(), first = new Date(y, m, 1).getDay(), days = new Date(y, m+1, 0).getDate();
+function items(ds) {
+var out = [];
+['eblast','story'].forEach(function(type){
+(CAL[type]||[]).forEach(function(r){
+if (r.date !== ds || !(r.sponsors || r.status)) return;
+var lab = type === 'eblast' ? 'Eblast' : 'Story';
+var st = r.status === 'blocked' ? 'x' : isLocked(r.status) ? (r.date < TODAY ? 'd' : 'b') : 'r';
+var who = r.status === 'blocked' ? 'Blocked' : r.sponsors;
+var tag = st === 'r' ? 'Req' : st === 'x' ? '' : (r.sponsors ? bookedLabel(r.sponsors, type, r.date) : 'Booked');
+out.push('<div class="ev ev-'+st+'" title="'+esc(lab+' · '+tag+' · '+who)+'"><b>'+lab+'</b> '+esc(who)+(tag?' <i>'+esc(tag)+'</i>':'')+'</div>');
+});
+});
+return out.join('');
+}
+var h = '<div class="mc-hd"><button class="cal-nav" onclick="shiftMonth(-1)">&lsaquo;</button><strong>'
++ MCAL.toLocaleDateString('en-US',{month:'long',year:'numeric'}) + '</strong><button class="cal-nav" onclick="shiftMonth(1)">&rsaquo;</button></div>'
++ (CAL_OK ? '' : '<div class="hint" style="margin-bottom:8px">Couldn\'t reach the calendar right now. Press Refresh to retry.</div>')
++ '<div class="mc">';
+['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(function(d){ h += '<div class="mc-dow">'+d+'</div>'; });
+for (var i = 0; i < first; i++) h += '<div class="mc-day off"></div>';
+for (var d = 1; d <= days; d++) {
+var ds = ymd(new Date(y, m, d));
+h += '<div class="mc-day'+(ds===TODAY?' today':'')+'"><div class="mc-n">'+d+'</div>'+items(ds)+'</div>';
+}
+return h + '</div><div class="legend" style="margin-top:8px"><span><i style="background:#fdf0d8"></i>Requested</span><span><i style="background:#e6f4ea"></i>Scheduled</span><span><i style="background:#e9e6ea"></i>Date passed</span></div>';
+}
+function shiftMonth(n) { MCAL = new Date(MCAL.getFullYear(), MCAL.getMonth()+n, 1); drawMonth(); }
+function drawMonth() { var el = document.getElementById('monthGrid'); if (el) el.innerHTML = monthGridHTML(); }
+
+var LIST = { type: 'eblast', past: false };
+function trackerHTML() {
+return '<div class="card"><div class="card-title">Calendar by Date</div>'
++'<div class="hint" style="margin-bottom:12px">Read-only. Approve, reject and release in the Sponsors tab.</div>'
++'<div class="tabs"><button class="tab" id="tab-eblast" onclick="setTab(\'eblast\')">Eblasts</button>'
++'<button class="tab" id="tab-story" onclick="setTab(\'story\')">Stories</button>'
++'<button class="tab" id="tab-past" onclick="togglePast()">Show past</button></div>'
++'<div id="tracker"><div class="hint">Loading&hellip;</div></div></div>';
+}
+function setTab(t) { LIST.type = t; drawTracker(); }
+function togglePast() { LIST.past = !LIST.past; drawTracker(); }
+function drawTracker() {
+var el = document.getElementById('tracker');
+if (!el) return;
+['eblast','story'].forEach(function(t){ document.getElementById('tab-'+t).className = 'tab' + (LIST.type===t?' on':''); });
+document.getElementById('tab-past').className = 'tab' + (LIST.past?' on':'');
+var rows = CAL[LIST.type].filter(function(r){ return (r.sponsors || r.status) && (LIST.past || r.date >= DATE_MIN); })
+.sort(function(a,b){ return a.date < b.date ? -1 : 1; });
+if (!rows.length) { el.innerHTML = '<div class="hint">'+(CAL_OK ? 'No '+(LIST.type==='story'?'story':'eblast')+' requests yet.' : 'Couldn\'t reach the calendar backend.')+'</div>'; return; }
+el.innerHTML = rows.map(function(r){
+var st = isLocked(r.status) ? (r.status==='blocked'?'blocked':'booked') : 'requested';
+var names = r.sponsors ? r.sponsors.split(',').map(function(x){ return x.trim(); }).filter(Boolean) : [];
+var ranks = {};
+(r.notes||'').split(';').forEach(function(n){ var m = n.trim().match(/^(.*) #(\w+)$/); if (m) ranks[m[1]] = m[2]; });
+var sp = names.map(function(n){ return '<span class="spn">'+esc(n)+(ranks[n] && st==='requested' ? ' <span style="color:var(--muted)">#'+esc(ranks[n])+'</span>' : '')+'</span>'; }).join('')
++ (st !== 'requested' && r.notes ? '<span class="hint">'+esc(r.notes)+'</span>' : '');
+return '<div class="trow"><div class="trow-top"><span class="trow-date">'+fmtDate(r.date)+'</span>'
++'<span class="st st-'+st+'">'+st+'</span></div><div class="trow-sp">'+sp+'</div></div>';
+}).join('');
 }
 
 function obligationsHTML() {
 return '<div class="card"><div class="card-title">Sponsor Obligations &amp; Calendar</div>'
-+'<div class="ob-sub"><b>Owed</b> comes from the CGE PP Sponsors 2026 sheet (written agreements only). <b>Status</b> comes live from the date calendar. Click a yellow <b>Req</b> date to approve it; that locks it for everyone else. Click its <b>&#10005;</b> to reject it, optionally proposing another date. Click any item status (E1, S1, SO1&hellip;) to change it; the automatic status check won&rsquo;t override your change for 5 days. Social = the Instagram dates sponsors request on their page. Green = scheduled, grey = the date has passed (sent/posted). Click a scheduled date twice to release it. Contacts come from the CGE sheet.</div>'
++'<div class="ob-sub"><b>Owed</b> comes from the Obligations sheet. <b>Status</b> comes live from the date calendar and the tracker. Click a yellow <b>Req</b> date to approve it; that locks it for everyone else. Click its <b>&#10005;</b> to reject it, optionally proposing another date. Click any item status (E1, S1, SO1&hellip;) to change it and its date; the automatic status check won&rsquo;t override your change for 5 days. Click a scheduled date twice to release it. Contacts and notes need the admin key.</div>'
++'<div id="obPending"></div>'
 +'<div class="stats" id="obStats"></div>'
 +'<div class="ob-bar"><input class="ob-search" placeholder="Search sponsor, contact, email&hellip;" oninput="searchOb(this.value)"/>'
 +'<input id="obKey" class="ob-search" style="flex:0 1 220px;min-width:160px" type="password" placeholder="Admin key (to approve)" value="'+esc(ADMIN.key)+'" onchange="saveKey(this.value)"/>'
 +'<input id="obSigner" class="ob-search" style="flex:0 1 170px;min-width:130px" placeholder="Sign emails as (your name)" value="'+esc(signer())+'" onchange="saveSigner(this.value)"/>'
-+'<button class="fchip" onclick="refreshTracker()">Refresh</button></div>'
++'<button class="fchip" onclick="refreshAll()">Refresh</button></div>'
 +'<div class="ob-bar gen"><span class="gen-l">New sponsor link</span><input id="inS" class="ob-search" placeholder="Sponsor name"/><input id="inD" class="ob-search" placeholder="Drive folder URL"/><button class="fchip on" onclick="generate()">Generate</button><span id="outUrl" class="gen-out"></span></div>'
 +'<div class="msg" id="msg-ob"></div>'
 +'<div class="tabs" style="margin-top:6px"><button class="tab on" id="vt-s" onclick="showView(\'s\')">Sponsors</button><button class="tab" id="vt-c" onclick="showView(\'c\')">Calendar</button></div>'
 +'<div class="ob-bar" id="obChips"></div>'
 +'<div id="view-s"><div class="ob-wrap"><table class="ob"><thead><tr><th>Sponsor</th><th>Tier</th><th>Client Custom Page</th><th>Client email</th><th>Eblast</th><th>Social</th><th>Notes</th></tr></thead>'
-+'<tbody id="obBody"></tbody></table></div></div>'
-+'<div id="view-c" style="display:none"></div>'
++'<tbody id="obBody"></tbody></table></div>' + logHTML() + '</div>'
++'<div id="view-c" style="display:none"><div id="monthGrid"></div>' + trackerHTML() + '</div>'
 +'<div class="ob-foot">Orange bar = needs a decision. Click a sponsor name to open their Drive folder. Asset Link = opens their Drive asset folder. [Sponsor] Hub = copies the client\'s hub link to share (their package, upload folder and date requests). Email Draft = creates the Gmail draft.</div>'
 +'</div>';
 }
-
+function showView(v) {
+document.getElementById('view-s').style.display = v==='s' ? '' : 'none';
+document.getElementById('view-c').style.display = v==='c' ? '' : 'none';
+document.getElementById('vt-s').className = 'tab' + (v==='s'?' on':'');
+document.getElementById('vt-c').className = 'tab' + (v==='c'?' on':'');
+document.getElementById('obChips').style.display = v==='s' ? '' : 'none';
+}
+function saveKey(v) { ADMIN.key = v.trim(); try { localStorage.setItem('ppAdminKey', ADMIN.key); } catch (e) {} refreshAll(); }
+function refreshAll() {
+return loadCalendar().then(drawAll, function(){ drawAll(); setMsg('ob', 'bad', 'Couldn\'t reach the calendar backend. Press Refresh to retry.'); });
+}
 // Clipboard copy with a fallback for browsers that block navigator.clipboard.
 function copyText(btn, text) {
 function done(ok) { var o = btn.textContent; btn.textContent = ok ? 'Copied!' : 'Copy failed'; setTimeout(function(){ btn.textContent = o; }, 1500); }
@@ -1089,101 +987,6 @@ document.body.removeChild(ta); if (!ok) window.prompt('Copy this link:', text); 
 if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(function(){ done(true); }, legacy);
 else legacy();
 }
-function copyDirect(btn, url) { copyText(btn, url); }
-
-// ---------- Admin: date request tracker ----------
-var ADMIN = { type: 'eblast', key: '', past: false };
-try { ADMIN.key = localStorage.getItem('ppAdminKey') || ''; } catch (e) {}
-
-function trackerHTML() {
-return '<div class="card"><div class="card-title">Calendar by Date</div>'
-+'<div class="hint" style="margin-bottom:12px">Sponsor requests from the live calendar. Approve one date per eblast (up to two per sponsor) &mdash; it greys out for everyone else. Once a sponsor has two approved, their other requests clear.</div>'
-+'<div class="tabs"><button class="tab" id="tab-eblast" onclick="setTab(\'eblast\')">Eblasts</button>'
-+'<button class="tab" id="tab-story" onclick="setTab(\'story\')">Stories</button>'
-+'<button class="tab" id="tab-past" onclick="togglePast()">Show past</button>'
-+'<button class="tab" onclick="refreshTracker()">Refresh</button></div>'
-+'<div id="tracker"><div class="hint">Loading&hellip;</div></div>'
-+'<div class="msg" id="msg-admin"></div></div>';
-}
-
-function saveKey(v) { ADMIN.key = v.trim(); try { localStorage.setItem('ppAdminKey', ADMIN.key); } catch (e) {} if (document.getElementById('obBody')) refreshTracker(); }
-function setTab(t) { ADMIN.type = t; drawTracker(); }
-function togglePast() { ADMIN.past = !ADMIN.past; drawTracker(); }
-function refreshTracker() {
-document.getElementById('tracker').innerHTML = '<div class="hint">Loading&hellip;</div>';
-loadCalendar().then(function(){ drawTracker(); drawOb(); drawMonth(); }).catch(function(){ if (document.getElementById('obBody')) drawOb(); drawMonth();
-document.getElementById('tracker').innerHTML = '<div class="err">Couldn\'t reach the calendar backend.</div>';
-});
-}
-
-function drawTracker() {
-['eblast','story'].forEach(function(t){ document.getElementById('tab-'+t).className = 'tab' + (ADMIN.type===t?' on':''); });
-document.getElementById('tab-past').className = 'tab' + (ADMIN.past?' on':'');
-var rows = CAL[ADMIN.type].filter(function(r){
-return (r.sponsors || r.status) && (ADMIN.past || r.date >= DATE_MIN);
-}).sort(function(a,b){ return a.date < b.date ? -1 : 1; });
-var el = document.getElementById('tracker');
-if (!rows.length) { el.innerHTML = '<div class="hint">No '+(ADMIN.type==='story'?'story':'eblast')+' requests yet.</div>'; return; }
-el.innerHTML = rows.map(function(r){
-var st = isLocked(r.status) ? (r.status==='blocked'?'blocked':'booked') : 'requested';
-var names = r.sponsors ? r.sponsors.split(',').map(function(x){ return x.trim(); }).filter(Boolean) : [];
-var ranks = {};
-(r.notes||'').split(';').forEach(function(n){ var m = n.trim().match(/^(.*) #(\d+)$/); if (m) ranks[m[1]] = m[2]; });
-var sp = st === 'requested'
-? names.map(function(n){
-return '<span class="spn">'+esc(n)+(ranks[n]?' <span style="color:var(--muted)">#'+ranks[n]+'</span>':'')+'</span>'
-+'<button class="mini mini-p" data-d="'+r.date+'" data-s="'+esc(n)+'" onclick="adminAct(\'approve\',this)">Approve</button>';
-}).join('')
-: (names.length ? '<span class="spn">'+esc(names.join(', '))+'</span>' : '')
-+ (r.notes ? '<span class="hint">'+esc(r.notes)+'</span>' : '')
-+ '<button class="mini mini-s" data-d="'+r.date+'" onclick="adminAct(\'release\',this)">Release</button>';
-return '<div class="trow"><div class="trow-top"><span class="trow-date">'+fmtDate(r.date)+'</span>'
-+'<span class="st st-'+st+'">'+st+'</span></div><div class="trow-sp">'+sp+'</div></div>';
-}).join('');
-}
-
-function adminAct(action, btn) {
-if (!ADMIN.key) { setMsg('admin', 'bad', 'Enter the admin key first.'); document.getElementById('obKey').focus(); return; }
-var d = btn.getAttribute('data-d'), s = btn.getAttribute('data-s') || '';
-if (action === 'release' && !confirmRelease(d)) return;
-btn.disabled = true;
-var t = ADMIN.type;
-post({action:action, type:t, date:d, sponsor:s, key:ADMIN.key})
-.then(function(){
-return confirmWrite(function(){
-var r = rowFor(t, d);
-return action === 'approve' ? (r && isLocked(r.status) && r.sponsors === s) : !r;
-});
-})
-.then(function(done){
-drawTracker();
-if (!done) throw new Error('Not saved. Check the admin key and try again.');
-setMsg('admin', 'ok', (action==='approve' ? 'Approved '+esc(s)+' for ' : 'Released ') + fmtDate(d) + '.');
-})
-.catch(function(err){ btn.disabled = false; setMsg('admin', 'bad', esc(err.message)); });
-}
-
-function confirmRelease(d) {
-var b = document.querySelector('[data-d="'+d+'"]');
-if (b && b.getAttribute('data-arm') === '1') return true;
-if (b) { b.setAttribute('data-arm','1'); b.textContent = 'Click again to release'; }
-return false;
-}
-
-function renderAdmin() {
-document.body.className = 'admin';
-document.getElementById('pgTitle').textContent = 'Sponsor Obligations Tracker';
-document.getElementById('pgSub').textContent = 'Team view: who we owe, what we owe, and the live eblast + social calendar.';
-document.getElementById('main').innerHTML =
-obligationsHTML()
-+'<div class="sec">Team</div>'
-+'<div class="contacts">'+contactsHTML()+'</div>';
-document.getElementById('view-c').innerHTML = '<div id="monthGrid"></div>' + logHTML() + trackerHTML();
-drawMonth();
-drawOb();
-refreshTracker();
-}
-
 function generate() {
 var n = (document.getElementById('inS').value||'').trim(), d = (document.getElementById('inD').value||'').trim();
 if (!n) { document.getElementById('inS').focus(); return; }
@@ -1192,24 +995,18 @@ var out = document.getElementById('outUrl');
 out.innerHTML = '<a href="'+esc(url)+'" target="_blank">'+esc(url)+'</a> <button class="mini mini-s" id="genCopy">Copy</button>';
 document.getElementById('genCopy').onclick = function(){ copyText(this, url); };
 }
-
-function copyLink() {
-var url = document.getElementById('outUrl').textContent;
-navigator.clipboard.writeText(url).then(function(){
-var b = document.querySelector('#out .cbtn');
-b.textContent = 'Copied!';
-setTimeout(function(){ b.textContent = 'Copy Link'; }, 2000);
-});
+function renderAdmin() {
+document.body.className = 'admin';
+document.getElementById('pgTitle').textContent = 'Sponsor Obligations Tracker';
+document.getElementById('pgSub').textContent = 'Team view: who we owe, what we owe, and the live eblast + social calendar.';
+document.getElementById('main').innerHTML = obligationsHTML() + '<div class="sec">Team</div><div class="contacts">'+contactsHTML()+'</div>';
+drawAll();
+refreshAll();
 }
 
 (function(){
 var p = getParams();
-if (p.sponsor) {
-var go = function(){ var q = getParams(); if (q.view === 'photos') renderPhotos(q.reg || null, q.drive); else renderClient(q.sponsor, q.drive); };
-var done = false; var once = function(){ if (!done) { done = true; go(); } };
-setTimeout(once, 6000); getJSON(6000).then(function(d){ if (d && d.sponsors) applySponsors(d.sponsors); }).catch(function(){}).then(once);
-}
-else renderAdmin();
+if (p.key) bootHub(p); else renderAdmin();
 })();
 </script>
 </body>
