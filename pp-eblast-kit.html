@@ -266,7 +266,9 @@ return aka.length === 1 ? aka[0] : null;
 }
 function hubShort(sp) { return HUB_SHORT[sp.n] || String(sp.n).split(/\s*[\/(]/)[0].trim(); }
 function hubName(sp) { return hubShort(sp) + ' Pines Party Hub'; }
-function sponsorLink(name) { return window.location.origin + window.location.pathname + '?s=' + slug(name); }
+// A sponsor's Hub link carries the start of their Drive folder ID (hard to guess). No folder -> no link.
+var HUB_F_LEN = 12;
+function sponsorLink(sp) { return sp.id ? window.location.origin + window.location.pathname + '?s=' + slug(sp.n) + '&f=' + encodeURIComponent(sp.id.slice(0, HUB_F_LEN)) : ''; }
 function linkFor(name, driveLink) {
 return window.location.origin + window.location.pathname + '?sponsor=' + encodeURIComponent(name) + (driveLink ? '&drive=' + encodeURIComponent(driveLink) : '');
 }
@@ -292,6 +294,7 @@ var ME = null;     // this sponsor's own Obligations row (Hub view)
 var ME_ERR = '';   // why ME is missing: unknown | not2026 | unavailable
 var STATUSES = []; // [{status, only}] from the server: the one status list
 var HUB_Q = '';    // Hub: the ?s= key (or old ?sponsor= name) sent with every read
+var HUB_PROOF = {}; // Hub: {f} or {drive} from the link; the server checks it against the sponsor's folder
 var SPONSOR = '';  // Hub: the sponsor's canonical name (from the server)
 var ADMIN = { key: '', ok: false, cc: '' }; // ok/cc: set when the server accepts the key
 try { ADMIN.key = localStorage.getItem('ppAdminKey') || ''; } catch (e) {}
@@ -300,7 +303,8 @@ try { ADMIN.key = localStorage.getItem('ppAdminKey') || ''; } catch (e) {}
 function getJSON(ms) {
 var ctl = window.AbortController ? new AbortController() : null;
 var t = setTimeout(function(){ if (ctl) ctl.abort(); }, ms);
-var q = HUB_Q ? '&sponsor=' + encodeURIComponent(HUB_Q) : (ADMIN.key ? '&key=' + encodeURIComponent(ADMIN.key) : '');
+var q = HUB_Q ? '&sponsor=' + encodeURIComponent(HUB_Q) + Object.keys(HUB_PROOF).map(function(k){ return '&' + k + '=' + encodeURIComponent(HUB_PROOF[k]); }).join('')
+: (ADMIN.key ? '&key=' + encodeURIComponent(ADMIN.key) : '');
 return fetch(GAS_URL + '?_t=' + Date.now() + q, ctl ? {signal: ctl.signal} : {})
 .then(function(r){ clearTimeout(t); return r.json(); });
 }
@@ -375,18 +379,11 @@ return ['We\'ll email you once your dates are locked in. After the event, we\'ll
         'Thanks again for being part of this. If anything comes up, just reply here and I\'ll help.'];
 }
 function emailSubject(sp) { return 'Pines Party 2026: Your ' + hubName(sp); }
-function sponsorEmailText(sp) { // plain-text part (clipboard fallback): names only, no URLs
-return 'Hi ' + greetName(sp) + ',\n\n'
-+ 'Thank you so much for supporting Pines Party 2026. As a ' + TIER_LABEL[sp.t] + ' sponsor, your package includes ' + pkgSentence(sp) + '.\n\n'
-+ 'To make things easy, we\'ve put everything in one place: your ' + hubName(sp) + '.\n\n'
-+ 'From there you can:\n' + emailSteps(sp).map(function(x, k){ return (k+1) + '. ' + x.replace(SG, 'Story Generator'); }).join('\n') + '\n\n'
-+ (sp.eml ? sp.eml + '\n\n' : '') + emailClose().join('\n\n') + '\n\nThanks again for your support,\n' + signer();
-}
 function sponsorEmailHTML(sp) {
 return '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#222">'
 + '<p>Hi ' + esc(greetName(sp)) + ',</p>'
 + '<p>Thank you so much for supporting Pines Party 2026. As a ' + TIER_LABEL[sp.t] + ' sponsor, your package includes ' + esc(pkgSentence(sp)) + '.</p>'
-+ '<p>To make things easy, we\'ve put everything in one place: <a href="' + esc(sponsorLink(sp.n)) + '"><b>' + esc(hubName(sp)) + '</b></a></p>'
++ '<p>To make things easy, we\'ve put everything in one place: <a href="' + esc(sponsorLink(sp)) + '"><b>' + esc(hubName(sp)) + '</b></a></p>'
 + '<p>From there you can:</p><ol>' + emailSteps(sp).map(function(x){ return '<li>' + esc(x).replace(SG, '<a href="' + STORY_GEN + '"><b>Story Generator</b></a>') + '</li>'; }).join('') + '</ol>'
 + (sp.eml ? '<p>' + esc(sp.eml) + '</p>' : '')
 + emailClose().map(function(x){ return '<p>' + esc(x) + '</p>'; }).join('')
@@ -472,10 +469,11 @@ window.open('https://mail.google.com/mail/?authuser=mario.guardado@pinesparty.co
 // ---------- Hub (sponsor view): ?s=<key>
 function getParams() {
 var p = new URLSearchParams(window.location.search);
-return {key: p.get('s') || p.get('sponsor') || '', drive: p.get('drive') || '', view: p.get('v') || ''};
+return {key: p.get('s') || p.get('sponsor') || '', f: p.get('f') || '', drive: p.get('drive') || '', view: p.get('v') || ''};
 }
 function bootHub(p) {
 HUB_Q = p.key;
+if (p.f) HUB_PROOF.f = p.f; else if (p.drive) HUB_PROOF.drive = p.drive;
 document.getElementById('main').innerHTML = '<div class="hint" style="padding:24px 0">Loading your Hub&hellip;</div>';
 loadCalendar().catch(function(){ ME_ERR = 'unavailable'; }).then(function(){
 var sp = ME ? fromRow(ME) : null;
@@ -483,7 +481,7 @@ var sp = ME ? fromRow(ME) : null;
 if (!sp && p.drive && ME_ERR !== 'not2026') sp = fromRow({Sponsor: p.key});
 if (!sp) {
 var why = ME_ERR === 'not2026' ? 'This Hub was for an earlier Pines Party season.'
-: ME_ERR === 'unknown' ? 'We don\'t recognise this Hub link. Please check the link in our email.'
+: ME_ERR === 'unknown' || ME_ERR === 'link' ? 'We don\'t recognise this Hub link. Please use the full link from our email.'
 : 'We couldn\'t load your Hub right now. Please refresh in a minute.';
 document.getElementById('main').innerHTML = '<div class="err">' + why + ' Questions? Email <a href="mailto:'+TEAM[0].e+'" style="color:#c0304a">'+TEAM[0].e+'</a>.</div>'
 + '<div class="sec">Questions? Contact us</div><div class="contacts">'+contactsHTML()+'</div>';
@@ -641,7 +639,7 @@ if (!picked.length) { setMsg(type, 'bad', 'Tap at least one date on the calendar
 var btn = document.getElementById('go-'+type), label = btn.innerHTML;
 btn.disabled = true; btn.innerHTML = 'Sending&hellip;';
 var items = openItems(type).slice(0, Math.ceil(picked.length / 2));
-post({action:'request', type:type, sponsor:SPONSOR, dates:picked.join(','), items:items.join(',')})
+post(Object.assign({action:'request', type:type, sponsor:SPONSOR, dates:picked.join(','), items:items.join(',')}, HUB_PROOF))
 .then(function(d){
 PICK[type] = [];
 var saved = d.saved || [], conflicts = d.conflicts || [];
@@ -775,9 +773,10 @@ var rows = SPONSORS.map(function(s, i){ return {s:s, i:i}; }).filter(function(o)
 if (!rows.length) return '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">No sponsors match.</td></tr>';
 return rows.map(function(o){
 var s = o.s, i = o.i;
-var acts = ((s.eb || hasSocial(s)) && s.em ? '<button class="mini mini-p" onclick="draftEmail(this,'+i+')">Email Draft</button>' : '')
+var acts = ((s.eb || hasSocial(s)) && s.em && s.id ? '<button class="mini mini-p" onclick="draftEmail(this,'+i+')">Email Draft</button>' : '')
 + (s.id ? '<a class="mini mini-s" href="'+esc(driveUrl(s.id))+'" target="_blank" title="Open their Drive asset folder">Asset Link</a>' : '')
-+ '<button class="mini mini-s" title="Copy the Hub link we share with this client: their package, upload folder and date requests" onclick="copyText(this, sponsorLink(SPONSORS['+i+'].n))">'+esc(hubShort(s))+' Hub</button>';
++ (s.id ? '<button class="mini mini-s" title="Copy the Hub link we share with this client: their package, upload folder and date requests" onclick="copyText(this, sponsorLink(SPONSORS['+i+']))">'+esc(hubShort(s))+' Hub</button>'
+       : (ADMIN.ok ? '<span class="dash" title="Hub links use the sponsor\'s Drive folder ID">Add a folder for a Hub link</span>' : ''));
 var name = s.id ? '<a class="sp-name" href="'+esc(driveUrl(s.id))+'" target="_blank" title="Open their Drive folder">'+esc(s.n)+'</a>'
 : '<div class="sp-name">'+esc(s.n)+'</div>'+(ADMIN.ok ? '<div class="sp-lead">No Drive folder</div>' : '');
 return '<tr class="'+(s.flag?'flag ':'')+(s.old?'old':'')+'">'
@@ -1004,7 +1003,7 @@ else legacy();
 function generate() {
 var n = (document.getElementById('inS').value||'').trim(), d = (document.getElementById('inD').value||'').trim();
 if (!n) { document.getElementById('inS').focus(); return; }
-var url = findSponsor(n) ? sponsorLink(findSponsor(n).n) : linkFor(n, d);
+var sp = findSponsor(n), url = sp && sp.id ? sponsorLink(sp) : linkFor(n, d);
 var out = document.getElementById('outUrl');
 out.innerHTML = '<a href="'+esc(url)+'" target="_blank">'+esc(url)+'</a> <button class="mini mini-s" id="genCopy">Copy</button>';
 document.getElementById('genCopy').onclick = function(){ copyText(this, url); };
