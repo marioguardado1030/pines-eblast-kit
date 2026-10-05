@@ -214,8 +214,6 @@ var TEAM = [
 {n:'Tim Dejsiriudom', e:'tdejsiriudom@pinesparty.com', i:'TD', cc:true},
 {n:'Tejesh Mistry', e:'tj@pinesparty.com', i:'TM', cc:true}
 ];
-// CC on every sponsor email draft (team rules).
-var MAIL_CC = 'tdejsiriudom@pinesparty.com,nammaturo@pinesparty.com,tj@pinesparty.com,mario.guardado1030@gmail.com';
 
 // Live backend — Apps Script Web App (PinePartyCalenar). Hardcoded: every device hits the same backend.
 var GAS_URL = 'https://script.google.com/macros/s/AKfycbwkXN4_2_PWGGurtNTPZc7m-NwBGFN6lElJB7b0WJPbseXDjppwAbJgq5TrGvLFujlnjQ/exec';
@@ -234,8 +232,9 @@ var HUB_SHORT = {'Gilead Sciences': 'Gilead', 'Tryst Hospitality / MISTR': 'Trys
 function slug(name) { return String(name || '').toLowerCase().replace(/&/g,'and').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
 function esc(s) { return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function num(v) { var n = parseInt(v, 10); return isNaN(n) ? 0 : n; }
-function driveUrl(id) { return 'https://drive.google.com/drive/folders/'+id; }
-function folderIdOf(v) { var m = String(v || '').match(/folders\/([\w-]+)/); return m ? m[1] : String(v || '').trim(); }
+function driveUrl(id) { return 'https://drive.google.com/drive/folders/'+encodeURIComponent(id); }
+// Drive folder id from a link or a bare id; anything else -> '' (never trusted into an href).
+function folderIdOf(v) { var m = String(v || '').match(/folders\/([\w-]+)/), id = m ? m[1] : String(v || '').trim(); return /^[\w-]{10,}$/.test(id) ? id : ''; }
 function fmtDate(s) { var p = s.split('-'); return new Date(+p[0], +p[1]-1, +p[2]).toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric', year:'numeric'}); }
 function shortDate(s) { var p = s.split('-'); return (+p[1])+'/'+(+p[2]); }
 function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
@@ -257,14 +256,13 @@ id: folderIdOf(r['Asset Folder']) || null, id2: folderIdOf(r['Asset Folder 2']) 
 flag: st === 'needs check', old: st === 'not 2026' ? (r.Notes || 'Not 2026') : ''
 };
 }
+// Exact name / key first; an aka only if exactly one sponsor has it (same rule as the server).
 function findSponsor(key) {
 var k = slug(key);
-for (var i = 0; i < SPONSORS.length; i++) {
-var sp = SPONSORS[i];
-if (slug(sp.n) === k || sp.key === k) return sp;
-if (sp.aka && sp.aka.split(',').some(function(a){ return slug(a) === k; })) return sp;
-}
-return null;
+var exact = SPONSORS.filter(function(sp){ return slug(sp.n) === k || sp.key === k; });
+if (exact.length) return exact[0];
+var aka = SPONSORS.filter(function(sp){ return sp.aka && sp.aka.split(',').some(function(a){ return slug(a) === k; }); });
+return aka.length === 1 ? aka[0] : null;
 }
 function hubShort(sp) { return HUB_SHORT[sp.n] || String(sp.n).split(/\s*[\/(]/)[0].trim(); }
 function hubName(sp) { return hubShort(sp) + ' Pines Party Hub'; }
@@ -291,10 +289,11 @@ var CAL = { eblast: [], story: [] }, CAL_OK = false;
 var TRACKER = [];  // Internal Tracker rows (team view; needs the admin key)
 var MINE = null;   // this sponsor's items (Hub view; client wording)
 var ME = null;     // this sponsor's own Obligations row (Hub view)
+var ME_ERR = '';   // why ME is missing: unknown | not2026 | unavailable
 var STATUSES = []; // [{status, only}] from the server: the one status list
 var HUB_Q = '';    // Hub: the ?s= key (or old ?sponsor= name) sent with every read
 var SPONSOR = '';  // Hub: the sponsor's canonical name (from the server)
-var ADMIN = { key: '' };
+var ADMIN = { key: '', ok: false, cc: '' }; // ok/cc: set when the server accepts the key
 try { ADMIN.key = localStorage.getItem('ppAdminKey') || ''; } catch (e) {}
 
 // Reads: GET with a timeout. Hub reads are scoped to the sponsor; team reads send the key if there is one.
@@ -311,6 +310,8 @@ return getJSON(15000).catch(function(){ return getJSON(15000); })
 if (!d || !d.rows) throw new Error((d && d.error) || 'Bad response');
 CAL.eblast = d.rows || []; CAL.story = d.story || []; CAL_OK = true;
 TRACKER = d.tracker || [];
+ADMIN.ok = !!d.admin; ADMIN.cc = d.draftCc || '';
+ME_ERR = d.meError || '';
 if (d.statuses) STATUSES = d.statuses;
 if (HUB_Q) { ME = d.me || null; MINE = d.mine || null; if (ME) SPONSOR = ME.Sponsor; }
 else if (d.sponsors && d.sponsors.length) SPONSORS = d.sponsors.filter(function(r){ return r.Sponsor; }).map(fromRow);
@@ -320,7 +321,8 @@ return d;
 // Writes: POST, read the JSON reply. Rejects with the server's own error message.
 function post(params) {
 return fetch(GAS_URL, {method:'POST', body: new URLSearchParams(params)})
-.then(function(r){ return r.json(); }, function(){ throw new Error('Couldn\'t reach the server. Check your connection and try again.'); })
+.then(function(r){ return r.text(); }, function(){ throw new Error('Couldn\'t reach the server. Check your connection and try again.'); })
+.then(function(t){ try { return JSON.parse(t); } catch (e) { throw new Error('The server sent an unexpected reply. Try again in a minute.'); } })
 .then(function(d){ if (!d || d.ok === false) throw new Error((d && d.error) || 'The server didn\'t answer.'); return d; });
 }
 
@@ -412,8 +414,8 @@ function namingHTML(sp) {
 var f = filePrefixes(sp);
 if (!f.length) return '';
 return '<div class="naming"><div class="naming-h">Name your files so we know what each one is for</div>'
-+ f.map(function(x){ return '<div class="nrow"><code>'+x.p+'</code><span>'+x.ex.join(' &middot; ')+'</span></div>'; }).join('')
-+ '<div class="hint">Everything goes in the same folder. Shared files (like your logo) can be named <code>'+fileTag(sp)+'_All_Logo.png</code>.</div></div>';
++ f.map(function(x){ return '<div class="nrow"><code>'+esc(x.p)+'</code><span>'+x.ex.map(esc).join(' &middot; ')+'</span></div>'; }).join('')
++ '<div class="hint">Everything goes in the same folder. Shared files (like your logo) can be named <code>'+esc(fileTag(sp))+'_All_Logo.png</code>.</div></div>';
 }
 // No signer yet: ask right next to the button, then continue drafting.
 function askSigner(btn, i) {
@@ -433,7 +435,7 @@ function draftEmail(btn, i, replace) {
 var sp = SPONSORS[i];
 if (!signer()) { askSigner(btn, i); return; }
 var orig = 'Email Draft'; btn.disabled = true; btn.textContent = 'Drafting…';
-var q = {action:'draft', key:ADMIN.key, to:(sp.em||'').replace(/\s+/g,''), cc:MAIL_CC, subject:emailSubject(sp), html:sponsorEmailHTML(sp)};
+var q = {action:'draft', key:ADMIN.key, to:(sp.em||'').replace(/\s+/g,''), subject:emailSubject(sp), html:sponsorEmailHTML(sp)};
 if (replace) q.replace = '1';
 post(q).then(function(d){
 if (d.existing) {
@@ -464,7 +466,7 @@ document.execCommand('copy'); sel.removeAllRanges();
 } catch (x) {}
 div.remove();
 // Body left empty on purpose: a plain-text body would show raw URLs. The formatted email is on the clipboard.
-window.open('https://mail.google.com/mail/?authuser=mario.guardado@pinesparty.com&view=cm&fs=1&to=' + encodeURIComponent((sp.em||'').replace(/\s+/g,'')) + '&cc=' + encodeURIComponent(MAIL_CC) + '&su=' + encodeURIComponent(emailSubject(sp)), '_blank');
+window.open('https://mail.google.com/mail/?authuser=mario.guardado@pinesparty.com&view=cm&fs=1&to=' + encodeURIComponent((sp.em||'').replace(/\s+/g,'')) + '&cc=' + encodeURIComponent(ADMIN.cc) + '&su=' + encodeURIComponent(emailSubject(sp)), '_blank');
 }
 
 // ---------- Hub (sponsor view): ?s=<key>
@@ -475,13 +477,18 @@ return {key: p.get('s') || p.get('sponsor') || '', drive: p.get('drive') || '', 
 function bootHub(p) {
 HUB_Q = p.key;
 document.getElementById('main').innerHTML = '<div class="hint" style="padding:24px 0">Loading your Hub&hellip;</div>';
-loadCalendar().catch(function(){ return null; }).then(function(){
-if (!ME) {
-document.getElementById('main').innerHTML = '<div class="err">We couldn\'t load this Hub right now. Please refresh in a minute, or email <a href="mailto:'+TEAM[0].e+'" style="color:#c0304a">'+TEAM[0].e+'</a>.</div>'
+loadCalendar().catch(function(){ ME_ERR = 'unavailable'; }).then(function(){
+var sp = ME ? fromRow(ME) : null;
+// Not in the sheet (or the server is down) but the link carries a folder: still show the upload / photos page.
+if (!sp && p.drive && ME_ERR !== 'not2026') sp = fromRow({Sponsor: p.key});
+if (!sp) {
+var why = ME_ERR === 'not2026' ? 'This Hub was for an earlier Pines Party season.'
+: ME_ERR === 'unknown' ? 'We don\'t recognise this Hub link. Please check the link in our email.'
+: 'We couldn\'t load your Hub right now. Please refresh in a minute.';
+document.getElementById('main').innerHTML = '<div class="err">' + why + ' Questions? Email <a href="mailto:'+TEAM[0].e+'" style="color:#c0304a">'+TEAM[0].e+'</a>.</div>'
 + '<div class="sec">Questions? Contact us</div><div class="contacts">'+contactsHTML()+'</div>';
 return;
 }
-var sp = fromRow(ME);
 if (p.view === 'photos') renderPhotos(sp, p.drive); else renderClient(sp, p.drive);
 });
 }
@@ -505,7 +512,7 @@ document.getElementById('main').innerHTML =
 
 var PICK = { eblast: [], story: [] };
 var VIEW = { eblast: null, story: null };
-var MAXP = { eblast: 4, story: 2 };
+var MAXP = { eblast: 0, story: 0 }; // 2 per open item (set in renderClient)
 // Items the sponsor still picks dates for, in order (from the server: no date yet, not declined / done).
 function openItems(type) { return (MINE || []).filter(function(m){ return m.type === type && m.pick; }).map(function(m){ return m.item; }); }
 function pickText(items, type) {
@@ -524,6 +531,7 @@ var uploadHTML = folder
 ? '<a class="btn btn-pink" href="'+esc(encodeURI(folder))+'" target="_blank">Upload Your Assets &rarr;</a>'
 : '<div class="err">Upload folder not set. Contact <a href="mailto:mario.guardado@pinesparty.com" style="color:#c0304a">Mario</a> for your link.</div>';
 var doEb = !!ebLeft(sp), doSo = hasSocial(sp);
+if (!ME) { doEb = false; doSo = false; } // not in the sheet yet: upload only
 var ebItems = openItems('eblast'), soItems = openItems('story');
 MAXP.eblast = 2 * (MINE ? ebItems.length : ebLeft(sp));
 MAXP.story = 2 * (MINE ? soItems.length : socOwed(sp));
@@ -650,6 +658,7 @@ setMsg(type, 'bad', 'Your request wasn\'t saved: ' + esc(e.message) + ' Please t
 // ---------- Team view: one admin screen (Sponsors table). The Calendar tab is read-only.
 var OB = { q:'', f:'all' };
 var OB_FILTERS = [['all','All'],['owed','Eblast owed'],['req','Has requests'],['flag','Needs check'],['platinum','Platinum'],['gold','Gold'],['silver','Silver'],['bronze','Bronze'],['vipbag','VIP Bag'],['nofolder','No folder'],['old','Not 2026']];
+function obFilters() { return OB_FILTERS.filter(function(f){ return f[0] !== 'nofolder' || ADMIN.ok; }); } // folders need the key
 
 // Live calendar rows for one sponsor and type ('eblast' | 'story').
 function calFor(type, name) {
@@ -683,8 +692,8 @@ if (r && r.Status) return r.Status;
 return date < TODAY ? 'Date passed' : 'Scheduled';
 }
 function needKey(msgId) {
-if (ADMIN.key) return false;
-setMsg(msgId || 'ob', 'bad', 'Enter the admin key above first.'); var k = document.getElementById('obKey'); if (k) k.focus();
+if (ADMIN.key && ADMIN.ok) return false;
+setMsg(msgId || 'ob', 'bad', ADMIN.key ? 'The admin key wasn\'t accepted. Check it above.' : 'Enter the admin key above first.'); var k = document.getElementById('obKey'); if (k) k.focus();
 return true;
 }
 // After any write: re-read everything and redraw, then show the result.
@@ -698,7 +707,8 @@ function stEditOpen(btn) {
 if (needKey()) return;
 var sp = btn.getAttribute('data-s'), it = btn.getAttribute('data-i'), r = trackerRow(sp, it) || {};
 var box = document.createElement('span'); box.className = 'rjbox';
-box.innerHTML = esc(it) + ': <select>' + ['<option value="">(blank)</option>'].concat(statusesFor(it).map(function(x){ return '<option' + (x === r.Status ? ' selected' : '') + '>' + x + '</option>'; })).join('') + '</select>'
+var opts = statusesFor(it); if (r.Status && opts.indexOf(r.Status) === -1) opts = [r.Status].concat(opts);
+box.innerHTML = esc(it) + ': <select>' + ['<option value="">(blank)</option>'].concat(opts.map(function(x){ return '<option' + (x === r.Status ? ' selected' : '') + '>' + esc(x) + '</option>'; })).join('') + '</select>'
 + ' Date <input type="date" value="' + esc(r['Assigned Date'] || '') + '"/>'
 + '<button class="dt dt-b" style="margin:0">Save</button><button class="dt dt-x" style="margin:0">Cancel</button>';
 var bs = box.querySelectorAll('button');
@@ -729,11 +739,11 @@ if (!CAL_OK) return '<span class="dash">loading&hellip;</span>';
 var c = calFor(type, s.n), h = '';
 c.booked.forEach(function(r){
 var lab = bookedLabel(s.n, type, r.date);
-h += '<button class="dt '+(/^(Sent|Posted)$/.test(lab)?'dt-x':/^Not /.test(lab)?'dt-n':'dt-b')+'" title="Click twice to release" data-act="release" data-t="'+type+'" data-d="'+r.date+'" onclick="obAct(\'release\',this)">'+esc(lab)+' '+shortDate(r.date)+'</button>';
+h += '<button class="dt '+(/^(Sent|Posted)$/.test(lab)?'dt-x':/^Not /.test(lab)?'dt-n':'dt-b')+'" title="Click twice to release" data-act="release" data-label="'+esc(lab+' '+shortDate(r.date))+'" data-t="'+type+'" data-d="'+esc(r.date)+'" onclick="obAct(\'release\',this)">'+esc(lab)+' '+shortDate(r.date)+'</button>';
 });
 c.req.forEach(function(r){
-h += '<button class="dt dt-r" title="Click to approve this date" data-t="'+type+'" data-d="'+r.date+'" data-s="'+esc(s.n)+'" onclick="obAct(\'approve\',this)">'+rankOf(r, s.n)+'Req '+shortDate(r.date)+' &#10003;</button>'
-+'<button class="dt dt-rej" title="Reject this request (optionally propose another date)" data-t="'+type+'" data-d="'+r.date+'" data-s="'+esc(s.n)+'" onclick="obRejectOpen(this)">&#10005;</button>';
+h += '<button class="dt dt-r" title="Click to approve this date" data-t="'+type+'" data-d="'+esc(r.date)+'" data-s="'+esc(s.n)+'" onclick="obAct(\'approve\',this)">'+rankOf(r, s.n)+'Req '+shortDate(r.date)+' &#10003;</button>'
++'<button class="dt dt-rej" title="Reject this request (optionally propose another date)" data-t="'+type+'" data-d="'+esc(r.date)+'" data-s="'+esc(s.n)+'" onclick="obRejectOpen(this)">&#10005;</button>';
 });
 if (owed) { var left = owed - c.booked.length; if (left > 0) h += '<span class="dt dt-n">'+left+' to book</span>'; }
 else if (type === 'eblast' && (c.booked.length || c.req.length)) h += '<span class="dt dt-n">Not owed: check</span>';
@@ -755,7 +765,7 @@ if (OB.q && [s.n, s.aka, s.ct, s.em, s.lead, s.note].join(' ').toLowerCase().ind
 return true;
 }
 function contactCell(s) {
-if (!s.em) return '<span class="dash">'+(ADMIN.key ? '&mdash;' : 'Enter admin key')+'</span>';
+if (!s.em) return '<span class="dash">'+(ADMIN.ok ? '&mdash;' : 'Enter admin key')+'</span>';
 return (s.ct ? '<div>'+esc(s.ct)+'</div>' : '')
 + s.em.split(',').map(function(e){ e = e.trim(); return '<a class="em" href="mailto:'+esc(e)+'">'+esc(e)+'</a>'; }).join('');
 }
@@ -766,10 +776,10 @@ if (!rows.length) return '<tr><td colspan="7" style="text-align:center;color:var
 return rows.map(function(o){
 var s = o.s, i = o.i;
 var acts = ((s.eb || hasSocial(s)) && s.em ? '<button class="mini mini-p" onclick="draftEmail(this,'+i+')">Email Draft</button>' : '')
-+ (s.id ? '<a class="mini mini-s" href="'+driveUrl(s.id)+'" target="_blank" title="Open their Drive asset folder">Asset Link</a>' : '')
++ (s.id ? '<a class="mini mini-s" href="'+esc(driveUrl(s.id))+'" target="_blank" title="Open their Drive asset folder">Asset Link</a>' : '')
 + '<button class="mini mini-s" title="Copy the Hub link we share with this client: their package, upload folder and date requests" onclick="copyText(this, sponsorLink(SPONSORS['+i+'].n))">'+esc(hubShort(s))+' Hub</button>';
-var name = s.id ? '<a class="sp-name" href="'+driveUrl(s.id)+'" target="_blank" title="Open their Drive folder">'+esc(s.n)+'</a>'
-: '<div class="sp-name">'+esc(s.n)+'</div>'+(ADMIN.key ? '<div class="sp-lead">No Drive folder</div>' : '');
+var name = s.id ? '<a class="sp-name" href="'+esc(driveUrl(s.id))+'" target="_blank" title="Open their Drive folder">'+esc(s.n)+'</a>'
+: '<div class="sp-name">'+esc(s.n)+'</div>'+(ADMIN.ok ? '<div class="sp-lead">No Drive folder</div>' : '');
 return '<tr class="'+(s.flag?'flag ':'')+(s.old?'old':'')+'">'
 +'<td>'+name+(s.aka?'<div class="sp-lead">aka '+esc(s.aka)+'</div>':'')+'</td>'
 +'<td><span class="tier tier-'+s.t+'" style="margin-left:0">'+TIER_LABEL[s.t]+'</span></td>'
@@ -818,14 +828,18 @@ function drawOb() {
 if (!document.getElementById('obBody')) return;
 document.getElementById('obPending').innerHTML = pendingHTML();
 document.getElementById('obStats').innerHTML = obStats();
-document.getElementById('obChips').innerHTML = OB_FILTERS.map(function(f){
+document.getElementById('obChips').innerHTML = obFilters().map(function(f){
 return '<button class="fchip'+(OB.f===f[0]?' on':'')+'" onclick="setOb(\''+f[0]+'\')">'+f[1]+'</button>';
 }).join('');
 document.getElementById('obBody').innerHTML = obRows();
 var lg = document.getElementById('lgS');
 if (lg && !lg.options.length) lg.innerHTML = SPONSORS.filter(function(s){ return !s.old; }).map(function(s){ return '<option>'+esc(s.n)+'</option>'; }).join('');
 }
-function drawAll() { drawOb(); drawMonth(); drawTracker(); }
+function drawAll() {
+drawOb(); drawMonth(); drawTracker();
+var k = document.getElementById('keyNote');
+if (k) k.innerHTML = ADMIN.key && CAL_OK && !ADMIN.ok ? '<div class="msg bad" style="display:block;margin:0 0 10px">Admin key not accepted. Contacts, folders, statuses and editing stay hidden until the key is right.</div>' : '';
+}
 function setOb(f) { OB.f = f; drawOb(); }
 function searchOb(v) { OB.q = v.trim().toLowerCase(); drawOb(); }
 
@@ -833,7 +847,7 @@ function searchOb(v) { OB.q = v.trim().toLowerCase(); drawOb(); }
 function obAct(action, btn) {
 if (needKey()) return;
 if (action === 'release' && btn.getAttribute('data-arm') !== '1') {
-document.querySelectorAll('[data-arm="1"]').forEach(function(b){ b.removeAttribute('data-arm'); });
+Array.prototype.forEach.call(document.querySelectorAll('[data-arm="1"]'), function(b){ b.removeAttribute('data-arm'); if (b.getAttribute('data-label')) b.textContent = b.getAttribute('data-label'); });
 btn.setAttribute('data-arm','1'); btn.textContent = 'Click again to release'; return;
 }
 var t = btn.getAttribute('data-t'), d = btn.getAttribute('data-d'), sp = btn.getAttribute('data-s') || '';
@@ -949,7 +963,7 @@ return '<div class="trow"><div class="trow-top"><span class="trow-date">'+fmtDat
 function obligationsHTML() {
 return '<div class="card"><div class="card-title">Sponsor Obligations &amp; Calendar</div>'
 +'<div class="ob-sub"><b>Owed</b> comes from the Obligations sheet. <b>Status</b> comes live from the date calendar and the tracker. Click a yellow <b>Req</b> date to approve it; that locks it for everyone else. Click its <b>&#10005;</b> to reject it, optionally proposing another date. Click any item status (E1, S1, SO1&hellip;) to change it and its date; the automatic status check won&rsquo;t override your change for 5 days. Click a scheduled date twice to release it. Contacts and notes need the admin key.</div>'
-+'<div id="obPending"></div>'
++'<div id="keyNote"></div><div id="obPending"></div>'
 +'<div class="stats" id="obStats"></div>'
 +'<div class="ob-bar"><input class="ob-search" placeholder="Search sponsor, contact, email&hellip;" oninput="searchOb(this.value)"/>'
 +'<input id="obKey" class="ob-search" style="flex:0 1 220px;min-width:160px" type="password" placeholder="Admin key (to approve)" value="'+esc(ADMIN.key)+'" onchange="saveKey(this.value)"/>'
