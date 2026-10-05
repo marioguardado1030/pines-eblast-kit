@@ -139,6 +139,8 @@ table.ob tr.old td{color:#999}
 .ob-n.zero{color:#c9b8c2;font-weight:400}
 .dash{color:#c9b8c2}
 .dt{display:inline-block;font-size:10.5px;font-weight:700;border-radius:5px;padding:2px 6px;margin:0 3px 3px 0;white-space:nowrap}
+.dt-o{background:#f1f1f4;color:#555} .trk{margin-top:4px;padding-top:4px;border-top:1px dashed var(--border)}
+.mine{list-style:none;padding:0;margin:8px 0 0} .mine li{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-top:1px solid var(--border);font-size:14px} .mine li:first-child{border-top:none} .mine b{font-weight:700}
 .dt-b{background:#e6f4ea;color:#1e7a3a} .dt-r{background:#fdf0d8;color:#9a6a12} .dt-n{background:#f6e2da;color:#b5502e} .dt-x{background:#eee;color:#888}
 .note{font-size:11.5px;color:#555;min-width:220px;max-width:320px}
 .note.fl{color:#9a4a10}
@@ -483,6 +485,7 @@ return window.location.origin + window.location.pathname
 // ---------- Backend ----------
 var CAL = { eblast: [], story: [] }, CAL_OK = false;
 var TRACKER = []; // Internal Tracker rows (team view only; needs the admin key)
+var MINE = null;  // this sponsor's item statuses (Hub view; client-friendly labels from the script)
 
 // Reads: GET with a timeout and one retry.
 function getJSON(ms) {
@@ -527,6 +530,7 @@ return getJSON(20000).catch(function(){ return getJSON(20000); })
 if (!d || !d.rows) throw new Error((d && d.error) || 'Bad response');
 CAL.eblast = d.rows || []; CAL.story = d.story || []; CAL_OK = true;
 if (d.tracker) TRACKER = d.tracker;
+if (d.mine) MINE = d.mine;
 if (d.sponsors) applySponsors(d.sponsors);
 return CAL;
 });
@@ -613,6 +617,7 @@ var n = 0;
 function step(inner) { n++; return '<div class="step"><div class="num">'+n+'</div><div style="flex:1;min-width:0">'+inner+'</div></div>'; }
 document.getElementById('main').innerHTML =
 (pk.length ? '<div class="pkg"><div class="sec" style="margin:0 0 8px">Your Pines Party 2026 package</div><ul>'+pk.map(function(x){ return '<li>'+esc(x)+'</li>'; }).join('')+'</ul></div>' : '')
++'<div class="pkg" id="mystatus" style="display:none"></div>'
 +'<div class="steps">'
 +(doEb ? step('<h2>Open the Kit</h2>'
 +'<p>Your kit includes a writing guide, blank template, and completed example &mdash; everything you need to prepare your eblast copy.</p>'
@@ -643,6 +648,7 @@ VIEW.eblast = new Date(now.getFullYear(), now.getMonth(), 1);
 VIEW.story = new Date(now.getFullYear(), now.getMonth(), 1);
 loadCalendar().then(function(){
 ['eblast','story'].forEach(function(t){ if (document.getElementById('cal-'+t)) { drawCal(t); showExisting(t); } });
+drawMine();
 }).catch(function(){
 ['eblast','story'].filter(function(t){ return document.getElementById('cal-'+t); }).forEach(function(t){
 drawCal(t);
@@ -651,6 +657,16 @@ setMsg(t, 'bad', 'Couldn\'t load availability right now. You can still pick date
 });
 }
 
+// "Where things stand": one line per item, client-friendly status from the sheet.
+var MINE_CLS = {'Scheduled':'dt-b','Sent':'dt-x','Posted':'dt-x','Dates requested':'dt-r','In progress':'dt-r','Waiting for your approval':'dt-n','Declined':'dt-x'};
+function drawMine() {
+var el = document.getElementById('mystatus');
+if (!el || !MINE || !MINE.length) return;
+el.innerHTML = '<div class="sec" style="margin:0">Where things stand</div><ul class="mine">' + MINE.map(function(m){
+return '<li><b>' + esc(m.item) + '</b><span class="dt ' + (MINE_CLS[m.status] || 'dt-o') + '" style="margin:0">' + esc(m.status) + (m.date && /Scheduled|Sent|Posted/.test(m.status) ? ' ' + fmtDate(m.date) : '') + '</span></li>';
+}).join('') + '</ul>';
+el.style.display = '';
+}
 function showExisting(type) {
 var mine = CAL[type].filter(function(r){ return hasSponsor(r, SPONSOR) && r.date >= DATE_MIN; });
 if (!mine.length) return;
@@ -766,6 +782,21 @@ var x = socSplit(s);
 if (x) return x.stories + ' stor' + (x.stories===1?'y':'ies') + (x.shouts ? ' + ' + x.shouts + ' shout-out' + (x.shouts===1?'':'s') : '');
 return s.soc ? s.soc.replace(/"/g,'') : 'None owed';
 }
+// Internal Tracker status per item (Eblast 1, Story 1, Shout-out 1...) from the sheet.
+var ST_CLS = {'Sent':'dt-x','Posted':'dt-x','Scheduled':'dt-b','Selected Date':'dt-r','In progress':'dt-r','Pending Client Approval':'dt-r',
+'Not sent':'dt-n','Not posted':'dt-n','No reply':'dt-n','Client declined':'dt-x'};
+function itemAbbr(it) { return String(it).replace(/^Eblast\s*/,'E').replace(/^Story\s*/,'S').replace(/^Shout-out\s*/,'SO'); }
+function trackerChips(type, s) {
+if (!TRACKER.length) return '';
+var re = type === 'eblast' ? /^Eblast/ : /^(Story|Shout)/;
+var rows = TRACKER.filter(function(r){ return r['Sponsor Name'] === s.n && re.test(r.Item || ''); });
+if (!rows.length) return '';
+return '<div class="trk">' + rows.map(function(r){
+var st = r.Status || 'Not started', fl = r.Flag ? ' &#9888;' : '';
+var tip = r.Item + ': ' + st + (r['Assigned Date'] ? ' (' + r['Assigned Date'] + ')' : '') + (r.Evidence ? ' | ' + r.Evidence : '') + (r.Flag ? ' | FLAG: ' + r.Flag : '');
+return '<span class="dt ' + (ST_CLS[st] || 'dt-o') + '" title="' + esc(tip) + '">' + esc(itemAbbr(r.Item)) + ' ' + esc(st) + fl + '</span>';
+}).join('') + '</div>';
+}
 function statusCell(type, s, owed) {
 var sx = type === 'story' ? socSplit(s) : null;
 var tail = sx && sx.shouts ? '<span class="dt dt-x" title="Shout-outs are scheduled by the team">+'+sx.shouts+' shout-out'+(sx.shouts===1?'':'s')+'</span>' : '';
@@ -784,6 +815,7 @@ h += '<button class="dt dt-r" title="Click to approve this date" data-t="'+type+
 if (owed) { var left = owed - c.booked.length; if (left > 0) h += '<span class="dt dt-n">'+left+' to book</span>'; }
 else if (type === 'eblast' && (c.booked.length || c.req.length)) h += '<span class="dt dt-n">Not owed: check</span>';
 h += tail;
+h += trackerChips(type, s);
 return h || '<span class="dash">&mdash;</span>';
 }
 
