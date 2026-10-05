@@ -148,6 +148,9 @@ td.acts{min-width:150px}
 td.acts .mini{padding:5px 8px;font-size:11px;margin:0 2px 3px 0;display:inline-block}
 .mini.off{opacity:.4;pointer-events:none}
 button.dt{border:none;cursor:pointer;font-family:inherit}
+button.dt-rej{background:#fde2e2;color:#b00020;margin-left:-2px} button.dt-rej:hover{outline:1.5px solid #b00020}
+.rjbox{display:inline-flex;flex-wrap:wrap;align-items:center;gap:4px;background:#fff5f5;border:1px solid #f3c4c4;border-radius:6px;padding:4px 6px;margin:0 3px 3px 0;font-size:11px}
+.rjbox input{font:inherit;font-size:11px;padding:1px 3px;border:1px solid var(--border);border-radius:4px}
 button.dt-r:hover{outline:1.5px solid #9a6a12}
 button.dt-b:hover,button.dt-x:hover{outline:1.5px solid #888}
 td.ct{font-size:11.5px;min-width:180px}
@@ -663,7 +666,8 @@ function drawMine() {
 var el = document.getElementById('mystatus');
 if (!el || !MINE || !MINE.length) return;
 el.innerHTML = '<div class="sec" style="margin:0">Where things stand</div><ul class="mine">' + MINE.map(function(m){
-return '<li><b>' + esc(m.item) + '</b><span class="dt ' + (MINE_CLS[m.status] || 'dt-o') + '" style="margin:0">' + esc(m.status) + (m.date && /Scheduled|Sent|Posted/.test(m.status) ? ' ' + fmtDate(m.date) : '') + '</span></li>';
+return '<li><b>' + esc(m.item) + '</b><span><span class="dt ' + (MINE_CLS[m.status] || 'dt-o') + '" style="margin:0">' + esc(m.status) + (m.date && /Scheduled|Sent|Posted/.test(m.status) ? ' ' + fmtDate(m.date) : '') + '</span>'
++ (m.proposed ? '<div style="font-size:12px;color:var(--muted);margin-top:3px">We suggested ' + fmtDate(m.proposed) + '. Reply to our email to confirm, or request another date below.</div>' : '') + '</span></li>';
 }).join('') + '</ul>';
 el.style.display = '';
 }
@@ -810,7 +814,8 @@ var past = r.date < TODAY;
 h += '<button class="dt '+(past?'dt-x':'dt-b')+'" title="Click twice to release" data-t="'+type+'" data-d="'+r.date+'" onclick="obAct(\'release\',this)">'+(past?done:'Scheduled')+' '+shortDate(r.date)+'</button>';
 });
 c.req.forEach(function(r){
-h += '<button class="dt dt-r" title="Click to approve this date" data-t="'+type+'" data-d="'+r.date+'" data-s="'+esc(s.n)+'" onclick="obAct(\'approve\',this)">'+rankOf(r, s.n)+'Req '+shortDate(r.date)+' &#10003;</button>';
+h += '<button class="dt dt-r" title="Click to approve this date" data-t="'+type+'" data-d="'+r.date+'" data-s="'+esc(s.n)+'" onclick="obAct(\'approve\',this)">'+rankOf(r, s.n)+'Req '+shortDate(r.date)+' &#10003;</button>'
++'<button class="dt dt-rej" title="Reject this request (optionally propose another date)" data-t="'+type+'" data-d="'+r.date+'" data-s="'+esc(s.n)+'" onclick="obRejectOpen(this)">&#10005;</button>';
 });
 if (owed) { var left = owed - c.booked.length; if (left > 0) h += '<span class="dt dt-n">'+left+' to book</span>'; }
 else if (type === 'eblast' && (c.booked.length || c.req.length)) h += '<span class="dt dt-n">Not owed: check</span>';
@@ -968,6 +973,33 @@ function setOb(f) { OB.f = f; drawOb(); }
 function searchOb(v) { OB.q = v.trim().toLowerCase(); drawOb(); }
 
 // Approve / release straight from the table.
+// Reject one sponsor's request for a date; optionally propose another date (it becomes their pick, approve it later).
+function obRejectOpen(btn) {
+if (!ADMIN.key) { setMsg('ob', 'bad', 'Enter the admin key above first.'); document.getElementById('obKey').focus(); return; }
+var t = btn.getAttribute('data-t'), d = btn.getAttribute('data-d'), sp = btn.getAttribute('data-s');
+var box = document.createElement('span'); box.className = 'rjbox';
+box.innerHTML = 'Reject ' + shortDate(d) + '? Propose instead (optional): <input type="date" min="' + TODAY + '"/>'
++ '<button class="dt dt-rej" style="margin:0">Reject</button><button class="dt dt-x" style="margin:0">Cancel</button>';
+var bs = box.querySelectorAll('button');
+bs[1].onclick = function(){ box.remove(); btn.style.display = ''; };
+bs[0].onclick = function(){ obReject(t, d, sp, box.querySelector('input').value, bs[0]); };
+btn.style.display = 'none'; btn.parentNode.insertBefore(box, btn.nextSibling);
+}
+function obReject(t, d, sp, prop, b) {
+b.disabled = true; b.textContent = 'Saving…';
+var q = {action:'reject', type:t, date:d, sponsor:sp, key:ADMIN.key}; if (prop) q.propose = prop;
+post(q).then(function(){ return confirmWrite(function(){
+var r = rowFor(t, d), gone = !r || !hasSponsor(r, sp);
+var p2 = !prop || (rowFor(t, prop) && hasSponsor(rowFor(t, prop), sp));
+return gone && p2;
+}); })
+.then(function(ok){
+drawOb(); if (document.getElementById('tracker')) drawTracker();
+if (!ok) throw new Error('Not saved. Check the admin key and try again.');
+setMsg('ob', 'ok', 'Rejected ' + esc(sp) + ' request for ' + fmtDate(d) + (prop ? '; proposed ' + fmtDate(prop) + ' (shows as their pick; approve it once they agree).' : '.'));
+})
+.catch(function(e){ drawOb(); setMsg('ob', 'bad', esc(e.message)); });
+}
 function obAct(action, btn) {
 if (!ADMIN.key) { setMsg('ob', 'bad', 'Enter the admin key above first.'); document.getElementById('obKey').focus(); return; }
 if (action === 'release' && btn.getAttribute('data-arm') !== '1') {
@@ -990,7 +1022,7 @@ setMsg('ob', 'ok', (action==='approve' ? 'Approved '+esc(sp)+' '+(t==='story'?'s
 
 function obligationsHTML() {
 return '<div class="card"><div class="card-title">Sponsor Obligations &amp; Calendar</div>'
-+'<div class="ob-sub"><b>Owed</b> comes from the CGE PP Sponsors 2026 sheet (written agreements only). <b>Status</b> comes live from the date calendar. Click a yellow <b>Req</b> date to approve it; that locks it for everyone else. Social = the Instagram dates sponsors request on their page. Green = scheduled, grey = the date has passed (sent/posted). Click a scheduled date twice to release it. Contacts come from the CGE sheet.</div>'
++'<div class="ob-sub"><b>Owed</b> comes from the CGE PP Sponsors 2026 sheet (written agreements only). <b>Status</b> comes live from the date calendar. Click a yellow <b>Req</b> date to approve it; that locks it for everyone else. Click its <b>&#10005;</b> to reject it, optionally proposing another date. Social = the Instagram dates sponsors request on their page. Green = scheduled, grey = the date has passed (sent/posted). Click a scheduled date twice to release it. Contacts come from the CGE sheet.</div>'
 +'<div class="stats" id="obStats"></div>'
 +'<div class="ob-bar"><input class="ob-search" placeholder="Search sponsor, contact, email&hellip;" oninput="searchOb(this.value)"/>'
 +'<input id="obKey" class="ob-search" style="flex:0 1 220px;min-width:160px" type="password" placeholder="Admin key (to approve)" value="'+esc(ADMIN.key)+'" onchange="saveKey(this.value)"/>'
