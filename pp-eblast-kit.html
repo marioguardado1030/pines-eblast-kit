@@ -149,6 +149,8 @@ td.acts .mini{padding:5px 8px;font-size:11px;margin:0 2px 3px 0;display:inline-b
 .mini.off{opacity:.4;pointer-events:none}
 button.dt{border:none;cursor:pointer;font-family:inherit}
 button.dt-rej{background:#fde2e2;color:#b00020;margin-left:-2px} button.dt-rej:hover{outline:1.5px solid #b00020}
+.signbox{position:relative;z-index:5;display:block;min-width:260px;background:#fff;border:2px solid var(--pink);border-radius:10px;padding:12px 14px;margin:6px 0;box-shadow:0 6px 20px rgba(0,0,0,.15);font-size:13px;white-space:normal}
+.signbox input{font:inherit;padding:6px 8px;border:1px solid var(--border);border-radius:6px;width:100%;box-sizing:border-box;margin-bottom:8px}
 .rjbox{display:inline-flex;flex-wrap:wrap;align-items:center;gap:4px;background:#fff5f5;border:1px solid #f3c4c4;border-radius:6px;padding:4px 6px;margin:0 3px 3px 0;font-size:11px}
 .rjbox input{font:inherit;font-size:11px;padding:1px 3px;border:1px solid var(--border);border-radius:4px}
 button.dt-r:hover{outline:1.5px solid #9a6a12}
@@ -425,9 +427,22 @@ return 'https://mail.google.com/mail/?authuser=' + encodeURIComponent(MAIL_FROM)
 + '&cc=' + encodeURIComponent(MAIL_CC) + '&su=' + encodeURIComponent(su)
 + '&body=' + encodeURIComponent(sponsorEmailText(sp));
 }
+// No signer yet: ask right next to the button (a modal-style box), then continue drafting.
+function askSigner(btn, i) {
+var old = document.querySelector('.signbox'); if (old) old.remove();
+var box = document.createElement('div'); box.className = 'signbox';
+box.innerHTML = '<b>Who is signing this email?</b><div style="font-size:12px;color:var(--muted);margin:2px 0 8px">Your name goes at the bottom of the email. We\'ll remember it on this computer.</div>'
++ '<input type="text" placeholder="Your name, e.g. Mario"/> <button class="mini mini-p">Sign &amp; draft email</button> <button class="mini mini-s">Cancel</button>';
+var inp = box.querySelector('input'), bs = box.querySelectorAll('button');
+function go() { var v = inp.value.trim(); if (!v) { inp.focus(); inp.style.borderColor = '#b00020'; return; }
+saveSigner(v); var f = document.getElementById('obSigner'); if (f) f.value = v; box.remove(); draftEmail(btn, i); }
+bs[0].onclick = go; bs[1].onclick = function(){ box.remove(); };
+inp.onkeydown = function(e){ if (e.key === 'Enter') go(); if (e.key === 'Escape') box.remove(); };
+btn.parentNode.insertBefore(box, btn.nextSibling); inp.focus();
+}
 function draftEmail(btn, i) {
 var sp = SPONSORS[i];
-if (!signer()) { setMsg('ob', 'bad', 'Type your name in "Sign emails as" first, so the email is signed by you.'); var f = document.getElementById('obSigner'); if (f) f.focus(); return; }
+if (!signer()) { askSigner(btn, i); return; }
 var orig = btn.textContent; btn.disabled = true; btn.textContent = 'Drafting…';
 var q = '?action=draft&key=' + encodeURIComponent(ADMIN.key)
 + '&to=' + encodeURIComponent((sp.em||'').replace(/\s+/g,''))
