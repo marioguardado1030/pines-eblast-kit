@@ -444,13 +444,9 @@ function draftEmail(btn, i) {
 var sp = SPONSORS[i];
 if (!signer()) { askSigner(btn, i); return; }
 var orig = btn.textContent; btn.disabled = true; btn.textContent = 'Drafting…';
-var q = '?action=draft&key=' + encodeURIComponent(ADMIN.key)
-+ '&to=' + encodeURIComponent((sp.em||'').replace(/\s+/g,''))
-+ '&cc=' + encodeURIComponent(MAIL_CC)
-+ '&subject=' + encodeURIComponent(emailSubject(sp))
-+ '&text=' + encodeURIComponent(sponsorEmailText(sp))
-+ '&html=' + encodeURIComponent(sponsorEmailHTML(sp));
-fetch(GAS_URL + q).then(function(r){ return r.json(); }).then(function(d){
+// Real Gmail draft (HTML, links embedded as text, never pasted as raw URLs). Sent as a POST: the body is too long for a URL.
+var body = new URLSearchParams({action:'draft', key:ADMIN.key, to:(sp.em||'').replace(/\s+/g,''), cc:MAIL_CC, subject:emailSubject(sp), html:sponsorEmailHTML(sp)});
+fetch(GAS_URL, {method:'POST', body:body}).then(function(r){ return r.json(); }).then(function(d){
 if (d && d.ok && d.draft) {
 setMsg('ob', 'ok', (d.existing ? 'A draft already exists for ' : 'Gmail draft created for ') + esc(sp.n) + ' in mario.guardado@pinesparty.com. Review it in Drafts before sending.');
 btn.textContent = d.existing ? 'Draft exists' : 'Drafted ✓';
@@ -463,8 +459,9 @@ if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
 navigator.clipboard.write([new ClipboardItem({'text/html': new Blob([sponsorEmailHTML(sp)], {type:'text/html'}), 'text/plain': new Blob([sponsorEmailText(sp)], {type:'text/plain'})})]);
 }
 } catch (x) {}
-window.open(sponsorEmailUrl(sp), '_blank');
-setMsg('ob', 'info', 'Opened a Gmail draft for ' + esc(sp.n) + ' with To, CC, subject and body filled in. The formatted version is copied too: select the body and paste (Cmd+V) to swap it in.');
+// Body left empty on purpose: a plain-text body would show raw URLs. The formatted email (links embedded) is on the clipboard.
+window.open('https://mail.google.com/mail/?authuser=mario.guardado@pinesparty.com&view=cm&fs=1&to=' + encodeURIComponent((sp.em||'').replace(/\s+/g,'')) + '&cc=' + encodeURIComponent(MAIL_CC) + '&su=' + encodeURIComponent(emailSubject(sp)), '_blank');
+setMsg('ob', 'bad', 'Couldn\'t create the Gmail draft automatically (' + esc(e.message) + '). Opened a new Gmail email for ' + esc(sp.n) + ' with To, CC and subject. The formatted email is copied: click in the body and paste (Cmd+V). Links stay embedded.');
 btn.textContent = orig;
 }).then(function(){ btn.disabled = false; });
 }
