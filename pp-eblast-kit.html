@@ -139,7 +139,7 @@ table.ob tr.old td{color:#999}
 .ob-n.zero{color:#c9b8c2;font-weight:400}
 .dash{color:#c9b8c2}
 .dt{display:inline-block;font-size:10.5px;font-weight:700;border-radius:5px;padding:2px 6px;margin:0 3px 3px 0;white-space:nowrap}
-.dt-o{background:#f1f1f4;color:#555} .trk{margin-top:4px;padding-top:4px;border-top:1px dashed var(--border)}
+.dt-o{background:#f1f1f4;color:#555} .rcpt{display:inline-block;font-size:11px;margin:0 6px 2px 0;color:#c2185b;text-decoration:none;white-space:nowrap} .rcpt:hover{text-decoration:underline} .trk{margin-top:4px;padding-top:4px;border-top:1px dashed var(--border)}
 .mine-list{list-style:none;padding:0;margin:8px 0 0} .mine-list li{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-top:1px solid var(--border);font-size:14px} .mine-list li:first-child{border-top:none} .mine-list b{font-weight:700}
 .dt-b{background:#e6f4ea;color:#1e7a3a} .dt-r{background:#fdf0d8;color:#9a6a12} .dt-n{background:#f6e2da;color:#b5502e} .dt-x{background:#eee;color:#888}
 .note{font-size:11.5px;color:#555;min-width:220px;max-width:320px}
@@ -740,8 +740,19 @@ if (!rows.length) return '';
 return '<div class="trk">' + rows.map(function(r){
 var st = r.Status || 'Not started', fl = r.Flag ? ' &#9888;' : '';
 var tip = r.Item + ': ' + st + (r['Assigned Date'] ? ' (' + r['Assigned Date'] + ')' : '') + (r.Evidence ? ' | ' + r.Evidence : '') + (r.Flag ? ' | FLAG: ' + r.Flag : '');
-return '<button class="dt ' + (ST_CLS[st] || 'dt-o') + '" title="' + esc(tip + ' | Click to change') + '" data-s="' + esc(s.n) + '" data-i="' + esc(r.Item) + '" onclick="stEditOpen(this)">' + esc(itemAbbr(r.Item)) + ' ' + esc(st) + fl + (r['Assigned Date'] ? ' ' + shortDate(r['Assigned Date']) : '') + '</button>';
+return '<button class="dt ' + (ST_CLS[st] || 'dt-o') + '" title="' + esc(tip + ' | Click to change') + '" data-s="' + esc(s.n) + '" data-i="' + esc(r.Item) + '" onclick="stEditOpen(this)">' + esc(itemAbbr(r.Item)) + ' ' + esc(st) + fl + (r['Assigned Date'] ? ' ' + shortDate(r['Assigned Date']) : '') + '</button>' + receipts(r.Evidence);
 }).join('') + '</div>';
+}
+// Evidence receipts: every URL in the Evidence text becomes a clickable link (Gmail / IG / iCloud / Drive);
+// the full Evidence text stays in the link's tooltip.
+function receipts(ev) {
+var urls = String(ev || '').match(/https?:\/\/[^\s;,)'"]+/g) || [];
+var seen = {}, note = String(ev || '').replace(/https?:\/\/[^\s;,)'"]+/g, '').replace(/\s+/g, ' ').trim();
+return urls.filter(function(u){ if (seen[u]) return false; seen[u] = 1; return true; }).map(function(u){
+var lab = /mail\.google\./.test(u) ? 'Gmail' : /instagram\.com/.test(u) ? 'IG' : /icloud\.com/.test(u) ? 'iCloud'
+: /drive\.google\.|docs\.google\./.test(u) ? 'Drive' : /ccsend\.com/.test(u) ? 'CC copy' : 'Link';
+return '<a class="rcpt" href="' + esc(u) + '" target="_blank" rel="noopener" title="' + esc(note) + '">' + lab + ' &#8599;</a>';
+}).join('');
 }
 // Status cell: booked dates (label from the tracker; click twice to release) and requested dates (approve / reject).
 function statusCell(type, s, owed) {
