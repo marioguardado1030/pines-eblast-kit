@@ -336,9 +336,15 @@ return d;
 });
 }
 // Writes: POST, read the JSON reply. Rejects with the server's own error message.
-function post(params) {
-return fetch(GAS_URL, {method:'POST', body: new URLSearchParams(params)})
-.then(function(r){ return r.text(); }, function(){ throw new Error('Couldn\'t reach the server. Check your connection and try again.'); })
+function post(params, ms) {
+var ctl = ms && window.AbortController ? new AbortController() : null;
+var t = ctl ? setTimeout(function(){ ctl.abort(); }, ms) : null;
+return fetch(GAS_URL, ctl ? {method:'POST', body: new URLSearchParams(params), signal: ctl.signal} : {method:'POST', body: new URLSearchParams(params)})
+.then(function(r){ return r.text(); }, function(){ throw new Error('net'); })
+.then(function(txt){ clearTimeout(t); return txt; }, function(){
+clearTimeout(t);
+if (ctl && ctl.signal.aborted) { var e = new Error('No answer from the server after ' + Math.round(ms / 1000) + ' seconds.'); e.timedOut = true; throw e; }
+throw new Error('Couldn\'t reach the server. Check your connection and try again.'); })
 .then(function(t){ try { return JSON.parse(t); } catch (e) { throw new Error('The server sent an unexpected reply. Try again in a minute.'); } })
 .then(function(d){ if (!d || d.ok === false) throw new Error((d && d.error) || 'The server didn\'t answer.'); return d; });
 }
@@ -441,31 +447,61 @@ bs[0].onclick = go; bs[1].onclick = function(){ box.remove(); };
 inp.onkeydown = function(e){ if (e.key === 'Enter') go(); if (e.key === 'Escape') box.remove(); };
 btn.parentNode.insertBefore(box, btn.nextSibling); inp.focus();
 }
-// Creates a real Gmail draft (never sends). If one exists, the button turns into "Replace draft".
+// Creates a real Gmail draft (never sends) and opens it in a new tab. If one exists, it opens that one and the
+// button turns into "Replace draft". If the server fails, the tab becomes a Gmail compose window instead.
+var GMAIL = 'https://mail.google.com/mail/?authuser=mario.guardado@pinesparty.com';
+var DRAFT_WAIT_MS = 90000; // the server normally answers in a few seconds; never wait forever
+function gmailDraftUrl(messageId) { return GMAIL + (messageId ? '#drafts?compose=' + encodeURIComponent(messageId) : '#drafts'); }
+function gmailComposeUrl(sp) {
+// Body left empty on purpose: a plain-text body would show raw URLs. The formatted email is copied separately.
+return GMAIL + '&view=cm&fs=1&to=' + encodeURIComponent((sp.em||'').replace(/\s+/g,'')) + '&cc=' + encodeURIComponent(ADMIN.cc) + '&su=' + encodeURIComponent(emailSubject(sp));
+}
+// The user may have closed the tab while we waited: never let that break the page.
+function sendTab(tab, url) { if (!tab) return; try { if (!tab.closed) tab.location.replace(url); } catch (x) {} }
+// Must run inside the click: browsers only allow new tabs opened directly from one.
+function openPendingTab(sp) {
+var tab = null;
+try { tab = window.open('', '_blank'); } catch (x) {}
+if (tab) { try { tab.opener = null; } catch (x) {} try { tab.document.title = 'Creating draft…'; tab.document.body.innerHTML = '<p style="font:15px Arial,sans-serif;padding:24px;color:#444">Creating the Gmail draft for ' + esc(sp.n) + '&hellip;</p>'; } catch (x) {} }
+return tab;
+}
 function draftEmail(btn, i, replace, signed) {
 var sp = SPONSORS[i];
 if (!signed) { askSigner(btn, i, replace); return; }
 var orig = 'Email Draft'; btn.disabled = true; btn.textContent = 'Drafting…';
+var tab = openPendingTab(sp);
 var q = {action:'draft', key:ADMIN.key, to:(sp.em||'').replace(/\s+/g,''), subject:emailSubject(sp), html:sponsorEmailHTML(sp)};
 if (replace) q.replace = '1';
-post(q).then(function(d){
+post(q, DRAFT_WAIT_MS).then(function(d){
+var url = gmailDraftUrl(d.messageId);
+sendTab(tab, url);
+var open = ' <a href="' + esc(url) + '" target="_blank" rel="noopener">Open it in Gmail</a>.';
 if (d.existing) {
-setMsg('ob', 'info', 'A draft already exists for ' + esc(sp.n) + ' in mario.guardado@pinesparty.com. Click <b>Replace draft</b> to swap it for a fresh one.');
+setMsg('ob', 'info', 'A draft already exists for ' + esc(sp.n) + ' in mario.guardado@pinesparty.com.' + open + ' Click <b>Replace draft</b> to swap it for a fresh one.');
 btn.textContent = 'Replace draft'; btn.onclick = function(){ draftEmail(btn, i, true); };
 } else {
-setMsg('ob', 'ok', 'Gmail draft ' + (d.replaced ? 'replaced' : 'created') + ' for ' + esc(sp.n) + ' in mario.guardado@pinesparty.com. Review it in Drafts before sending.');
+setMsg('ob', 'ok', 'Gmail draft ' + (d.replaced ? 'replaced' : 'created') + ' for ' + esc(sp.n) + ' in mario.guardado@pinesparty.com.' + open + ' Review it before sending.');
 btn.textContent = 'Email Draft ✓'; btn.onclick = function(){ draftEmail(btn, i); };
 }
 }).catch(function(e){
-// Manual fallback. Opening Gmail and copying must happen inside a click, so it gets its own button.
-setMsg('ob', 'bad', 'Couldn\'t create the Gmail draft (' + esc(e.message) + '). '
-+ '<button class="mini mini-p" id="gmailFallback">Open Gmail + copy the email</button> Then click in the body and paste (Cmd+V); links stay embedded.');
-document.getElementById('gmailFallback').onclick = function(){ openGmailFallback(sp); };
 btn.textContent = orig;
+if (e.timedOut) {
+// The server may still finish: send them to Drafts, not to a second (duplicate) compose window.
+sendTab(tab, gmailDraftUrl(''));
+setMsg('ob', 'bad', esc(e.message) + ' It may still have been created: check Drafts before trying again.');
+return;
+}
+// Server said no: the tab becomes a Gmail compose window (to, CC, subject filled); the body is one click away.
+sendTab(tab, gmailComposeUrl(sp));
+setMsg('ob', 'bad', 'Couldn\'t create the Gmail draft (' + esc(e.message) + '). '
++ (tab ? 'A Gmail compose window is open in a new tab. <button class="mini mini-p" id="gmailFallback">Copy the email</button>'
+       : '<button class="mini mini-p" id="gmailFallback">Open Gmail + copy the email</button>')
++ ' Then click in the Gmail body and paste (Cmd+V); links stay embedded.');
+document.getElementById('gmailFallback').onclick = function(){ copyEmailHTML(sp); if (!tab) window.open(gmailComposeUrl(sp), '_blank'); };
 }).then(function(){ btn.disabled = false; });
 }
-// Runs inside the click: a synchronous rich-text copy first (keeps the click's popup permission), then Gmail.
-function openGmailFallback(sp) {
+// Runs inside a click: synchronous rich-text copy, so links stay embedded when pasted into Gmail.
+function copyEmailHTML(sp) {
 var div = document.createElement('div');
 div.contentEditable = 'true'; div.style.position = 'fixed'; div.style.left = '-9999px';
 div.innerHTML = sponsorEmailHTML(sp);
@@ -476,8 +512,6 @@ var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
 document.execCommand('copy'); sel.removeAllRanges();
 } catch (x) {}
 div.remove();
-// Body left empty on purpose: a plain-text body would show raw URLs. The formatted email is on the clipboard.
-window.open('https://mail.google.com/mail/?authuser=mario.guardado@pinesparty.com&view=cm&fs=1&to=' + encodeURIComponent((sp.em||'').replace(/\s+/g,'')) + '&cc=' + encodeURIComponent(ADMIN.cc) + '&su=' + encodeURIComponent(emailSubject(sp)), '_blank');
 }
 
 // ---------- Hub (sponsor view): ?s=<key>
