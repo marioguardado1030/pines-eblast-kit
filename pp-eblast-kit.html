@@ -427,23 +427,24 @@ return '<div class="naming"><div class="naming-h">Name your files so we know wha
 + f.map(function(x){ return '<div class="nrow"><code>'+esc(x.p)+'</code><span>'+x.ex.map(esc).join(' &middot; ')+'</span></div>'; }).join('')
 + '<div class="hint">Everything goes in the same folder. Shared files (like your logo) can be named <code>'+esc(fileTag(sp))+'_All_Logo.png</code>.</div></div>';
 }
-// No signer yet: ask right next to the button, then continue drafting.
-function askSigner(btn, i) {
+// Ask who is signing on every draft (last name pre-filled), then continue drafting.
+function askSigner(btn, i, replace) {
 var old = document.querySelector('.signbox'); if (old) old.remove();
 var box = document.createElement('div'); box.className = 'signbox';
-box.innerHTML = '<b>Who is signing this email?</b><div style="font-size:12px;color:var(--muted);margin:2px 0 8px">Your name goes at the bottom of the email. We\'ll remember it on this computer.</div>'
+box.innerHTML = '<b>Who is signing this email?</b><div style="font-size:12px;color:var(--muted);margin:2px 0 8px">Your name goes at the bottom of the email. Last name used is filled in. Press Enter to keep it.</div>'
 + '<input type="text" placeholder="Your name, e.g. Mario"/> <button class="mini mini-p">Sign &amp; draft email</button> <button class="mini mini-s">Cancel</button>';
 var inp = box.querySelector('input'), bs = box.querySelectorAll('button');
+inp.value = signer();
 function go() { var v = inp.value.trim(); if (!v) { inp.focus(); inp.style.borderColor = '#b00020'; return; }
-saveSigner(v); box.remove(); drawKey(); draftEmail(btn, i); }
+saveSigner(v); box.remove(); drawKey(); draftEmail(btn, i, replace, true); }
 bs[0].onclick = go; bs[1].onclick = function(){ box.remove(); };
 inp.onkeydown = function(e){ if (e.key === 'Enter') go(); if (e.key === 'Escape') box.remove(); };
 btn.parentNode.insertBefore(box, btn.nextSibling); inp.focus();
 }
 // Creates a real Gmail draft (never sends). If one exists, the button turns into "Replace draft".
-function draftEmail(btn, i, replace) {
+function draftEmail(btn, i, replace, signed) {
 var sp = SPONSORS[i];
-if (!signer()) { askSigner(btn, i); return; }
+if (!signed) { askSigner(btn, i, replace); return; }
 var orig = 'Email Draft'; btn.disabled = true; btn.textContent = 'Drafting…';
 var q = {action:'draft', key:ADMIN.key, to:(sp.em||'').replace(/\s+/g,''), subject:emailSubject(sp), html:sponsorEmailHTML(sp)};
 if (replace) q.replace = '1';
