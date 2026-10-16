@@ -243,6 +243,7 @@ var HUB_SHORT = {'Gilead Sciences': 'Gilead', 'Tryst Hospitality / MISTR': 'Trys
 
 // ---------- small helpers
 function slug(name) { return String(name || '').toLowerCase().replace(/&/g,'and').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+function storyGenLink(sp) { return sp && sp.n ? STORY_GEN + '?s=' + slug(sp.n) : STORY_GEN; } // own draft slot + prefilled sponsor per Hub
 function esc(s) { return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function num(v) { var n = parseInt(v, 10); return isNaN(n) ? 0 : n; }
 function driveUrl(id) { return 'https://drive.google.com/drive/folders/'+encodeURIComponent(id); }
@@ -394,7 +395,7 @@ if (k) st.push('Pick your Instagram story dates. ' + (k === 1 ? 'Choose two opti
 return st;
 }
 function emailClose() {
-return ['We\'ll email you once your dates are locked in. After the event, we\'ll also add your photos to your folder, so you\'ll find them on the same page.',
+return ['We\'ll email you once your dates are locked in. We\'ll also be adding your event photos to your folder, so you\'ll find them on the same page.',
         'Thanks again for being part of this. If anything comes up, just reply here and I\'ll help.'];
 }
 function emailSubject(sp) { return 'Pines Party 2026: Your ' + hubName(sp); }
@@ -403,7 +404,7 @@ return '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-h
 + '<p>Hi ' + esc(greetName(sp)) + ',</p>'
 + '<p>Thank you so much for supporting Pines Party 2026. As a ' + TIER_LABEL[sp.t] + ' sponsor, your package includes ' + esc(pkgSentence(sp)) + '.</p>'
 + '<p>To make things easy, we\'ve put everything in one place: <a href="' + esc(sponsorLink(sp)) + '"><b>' + esc(hubName(sp)) + '</b></a></p>'
-+ '<p>From there you can:</p><ol>' + emailSteps(sp).map(function(x){ return '<li>' + esc(x).replace(SG, '<a href="' + STORY_GEN + '"><b>Story Generator</b></a>') + '</li>'; }).join('') + '</ol>'
++ '<p>From there you can:</p><ol>' + emailSteps(sp).map(function(x){ return '<li>' + esc(x).replace(SG, '<a href="' + esc(storyGenLink(sp)) + '"><b>Story Generator</b></a>') + '</li>'; }).join('') + '</ol>'
 + (sp.eml ? '<p>' + esc(sp.eml) + '</p>' : '')
 + emailClose().map(function(x){ return '<p>' + esc(x) + '</p>'; }).join('')
 + '<p>Thanks again for your support,<br>' + esc(signer()) + '</p></div>';
@@ -601,7 +602,7 @@ document.getElementById('main').innerHTML =
 +'<a class="btn btn-outline" href="'+KIT+'" target="_blank">Open Kit Folder &rarr;</a>') : '')
 +(doSo ? step('<h2>Build Your Instagram Story</h2>'
 +'<p>We\'ve made it easy to build a story, download it and share it with us, then select your desired dates below.</p>'
-+'<a class="btn btn-outline" href="'+STORY_GEN+'" target="_blank">Open the Story Generator &rarr;</a>') : '')
++'<a class="btn btn-outline" href="'+esc(storyGenLink(sp))+'" target="_blank">Open the Story Generator &rarr;</a>') : '')
 +step('<h2>Upload Your Assets</h2>'
 +'<p>'+(doEb ? 'Upload your logo, 1-2 photos and completed copy template'+(doSo?', plus the story video and brief from the Story Generator':'') : 'Upload the story video and brief you download from the Story Generator')+' to your sponsor folder. You\'ll need to be signed in to any Google account. Your event photos will be in this folder too.</p>'
 +namingHTML(sp) + uploadHTML)
