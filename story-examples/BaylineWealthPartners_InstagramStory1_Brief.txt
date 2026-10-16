@@ -1,0 +1,21 @@
+PINES PARTY 2026: INSTAGRAM STORY BRIEF
+
+Sponsor: Bayline Wealth Partners
+Story: 1
+Video file: BaylineWealthPartners_InstagramStory1_Video.mp4
+Length: 17.2s (4 slides + opening card)
+Look: Brand color #1b6b7d (rich), accent #f7f0a0
+
+SLIDES
+  1. [center] Text: "Summer's over. Time to plan."
+  2. [panel] Text: "October is National Financial Planning Month."
+  3. [center] Text: "A complimentary 30-minute consult for the Pines Party community."
+  4. [center] Text: "Book yours with the link below."
+
+STICKER
+  Type: link  |  On slide 4
+  Link: https://example.com
+  Link sticker text: Book a consult
+
+TAG: (none)
+HASHTAGS: (none)

@@ -1,0 +1,22 @@
+PINES PARTY 2026: INSTAGRAM STORY BRIEF
+
+Sponsor: Saltline Travel Co.
+Story: 1
+Video file: SaltlineTravelCo_InstagramStory1_Video.mp4
+Length: 16.5s (4 slides + opening card)
+Look: LORE / Lore · The Siren (event artwork), accent #f6c86e
+
+SLIDES
+  1. [center] Text: "Already dreaming about next summer?"
+  2. [full] Photo (trv_night.jpg): "Fire Island, *after dark*."
+  3. [split] Photo (trv_stage.jpg): "Group trips and weekend escapes, planned for *our community*."
+  4. [split] Text: "Tell us where you're headed next."
+
+STICKER
+  Type: poll  |  On slide 4
+  Question / name: Where to next?
+  Option 1: Back to the Pines
+  Option 2: Somewhere new
+
+TAG: (none)
+HASHTAGS: (none)

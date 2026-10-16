@@ -1,0 +1,21 @@
+PINES PARTY 2026: INSTAGRAM STORY BRIEF
+
+Sponsor: Tidewater Spritz
+Story: 1
+Video file: TidewaterSpritz_InstagramStory1_Video.mp4
+Length: 16.2s (4 slides + opening card)
+Look: SOLARIS / Solaris · The Sun Mask (event artwork), accent #ffe08a
+
+SLIDES
+  1. [full] Photo (bev_crowd.jpg): "Cheers to the *weekend*."
+  2. [full] Photo (bev_dj.jpg): "Poured poolside, all weekend long."
+  3. [split] Photo (bev_pool.jpg): "Light, bright and made for *island afternoons*."
+  4. [center] Text: "Find Tidewater Spritz at your favorite island bar."
+
+STICKER
+  Type: link  |  On slide 4
+  Link: https://example.com
+  Link sticker text: Find a bar near you
+
+TAG: (none)
+HASHTAGS: (none)

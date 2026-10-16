@@ -1,0 +1,21 @@
+PINES PARTY 2026: INSTAGRAM STORY BRIEF
+
+Sponsor: Maison Dune
+Story: 1
+Video file: MaisonDune_InstagramStory1_Video.mp4
+Length: 15.1s (4 slides + opening card)
+Look: SEMI-SOLID / Midnight, accent #f7f0a0
+
+SLIDES
+  1. [framed] Photo (app_bw.jpg): "Dressed for the *after-party*."
+  2. [full] Photo (app_pink.jpg): "Matching, on purpose."
+  3. [full] Photo (app_stage.jpg): "Made for the *main stage*."
+  4. [panel] Text: "The Fall Edit is here. Shop the collection."
+
+STICKER
+  Type: link  |  On slide 4
+  Link: https://example.com
+  Link sticker text: Shop the Fall Edit
+
+TAG: (none)
+HASHTAGS: (none)
