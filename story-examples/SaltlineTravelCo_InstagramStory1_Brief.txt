@@ -4,7 +4,7 @@ Sponsor: Saltline Travel Co.
 Story: 1
 Video file: SaltlineTravelCo_InstagramStory1_Video.mp4
 Length: 16.5s (4 slides + opening card)
-Look: LORE / Lore · The Siren (event artwork), accent #f6c86e
+Look: LORE / Lore · The Siren (event artwork), accent #ff9e7a
 
 SLIDES
   1. [center] Text: "Already dreaming about next summer?"

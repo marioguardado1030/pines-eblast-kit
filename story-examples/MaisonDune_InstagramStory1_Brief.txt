@@ -4,7 +4,7 @@ Sponsor: Maison Dune
 Story: 1
 Video file: MaisonDune_InstagramStory1_Video.mp4
 Length: 15.1s (4 slides + opening card)
-Look: SEMI-SOLID / Midnight, accent #f7f0a0
+Look: SEMI-SOLID / Midnight, accent #f4a7c4
 
 SLIDES
   1. [framed] Photo (app_bw.jpg): "Dressed for the *after-party*."

@@ -19,17 +19,30 @@ main{max-width:1160px;margin:0 auto;padding:28px 16px 48px}
 .note b{color:var(--ink);font-weight:600}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:22px}
 .card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
-video{display:block;width:100%;aspect-ratio:9/16;background:#141216;object-fit:cover}
+.thumb{position:relative;display:block;width:100%;aspect-ratio:9/16;padding:0;border:0;background:#141216;cursor:pointer}
+.thumb img{display:block;width:100%;height:100%;object-fit:cover}
+.thumb .play{position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;background:rgba(20,14,30,.6);border:2px solid rgba(255,255,255,.85);display:grid;place-items:center;transition:transform .15s}
+.thumb .play::after{content:"";margin-left:5px;border-style:solid;border-width:12px 0 12px 19px;border-color:transparent transparent transparent #fff}
+.thumb:hover .play,.thumb:focus-visible .play{transform:scale(1.08)}
+.thumb:focus-visible{outline:3px solid var(--brand);outline-offset:-3px}
 .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
 .tag{align-self:flex-start;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--brand);background:#ece7f8;border-radius:99px;padding:3px 10px}
 .card h2{margin:2px 0 0;font-size:17px;font-weight:600}
 .card p{margin:0;font-size:13.5px;color:var(--muted)}
+.card p.cta-note{font-size:12.5px;background:var(--light);border-radius:8px;padding:8px 10px;color:var(--ink)}
 .links{margin-top:auto;padding-top:8px;display:flex;gap:14px;font-size:13px}
 .links a{color:var(--brand);font-weight:600;text-decoration:none}
 .links a:hover{text-decoration:underline}
 .cta{text-align:center;margin-top:34px}
 .btn{display:inline-block;background:var(--brand);color:#fff;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:10px}
 footer{text-align:center;font-size:12px;color:var(--muted);padding:0 16px 32px}
+/* player: phone-sized, never stretched */
+.modal{position:fixed;inset:0;background:rgba(12,8,20,.86);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+.modal.open{display:flex}
+.modal video{display:block;height:min(88vh,calc((100vw - 32px)*16/9));width:auto;max-width:100%;aspect-ratio:9/16;border-radius:16px;background:#000;object-fit:contain}
+video:fullscreen{object-fit:contain;background:#000}
+.close{position:absolute;top:12px;right:14px;width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;font-size:26px;line-height:44px;cursor:pointer}
+.close:hover{background:rgba(255,255,255,.26)}
 </style>
 </head>
 <body>
@@ -38,41 +51,61 @@ footer{text-align:center;font-size:12px;color:var(--muted);padding:0 16px 32px}
   <p>Five sample stories built with the Pines Party Story Generator, using the weekend's colors, artwork and photos.</p>
 </header>
 <main>
-  <div class="note"><b>These are examples only.</b> The brands below are made up to show what the tool can do. Some lean on photos, others on text slides. Every story opens with a co-branded card (your logo &times; Pines Party), and each download comes with a short brief for our team.</div>
+  <div class="note"><b>These are examples only.</b> The brands below are made up to show what the tool can do. Some lean on photos, others on text slides. Every story opens with a co-branded card (your logo &times; Pines Party), ends on your logo, and each download comes with a short brief for our team.<br><br><b>About the link and poll boxes:</b> the dashed box on each last slide shows where the Instagram sticker will sit. It's for display only. Instagram adds the real sticker when we post, so please send us your click-through URL (or poll question) and we'll attach it to your story.</div>
   <div class="grid">
     <article class="card">
-      <video controls playsinline preload="none" poster="story-examples/TidewaterSpritz_poster.jpg" src="story-examples/TidewaterSpritz_InstagramStory1_Video.mp4"></video>
+      <button class="thumb" data-v="story-examples/TidewaterSpritz_InstagramStory1_Video.mp4" aria-label="Play Tidewater Spritz example"><img src="story-examples/TidewaterSpritz_poster.jpg" alt="" loading="lazy"><span class="play"></span></button>
       <div class="body"><span class="tag">Beverage · photo-led</span><h2>Tidewater Spritz</h2>
-        <p>Three event photos and a closing line. Solaris artwork, link sticker to find a bar.</p>
+        <p>Three event photos and a closing line on Solaris artwork, with aqua highlights.</p>
+        <p class="cta-note">Last slide: link sticker placement, for display only. Send us your URL and we'll attach it when posting.</p>
         <div class="links"><a href="story-examples/TidewaterSpritz_InstagramStory1_Video.mp4" download>Video</a><a href="story-examples/TidewaterSpritz_InstagramStory1_Brief.txt">Brief</a></div></div>
     </article>
     <article class="card">
-      <video controls playsinline preload="none" poster="story-examples/MaisonDune_poster.jpg" src="story-examples/MaisonDune_InstagramStory1_Video.mp4"></video>
+      <button class="thumb" data-v="story-examples/MaisonDune_InstagramStory1_Video.mp4" aria-label="Play Maison Dune example"><img src="story-examples/MaisonDune_poster.jpg" alt="" loading="lazy"><span class="play"></span></button>
       <div class="body"><span class="tag">Apparel · photo-led</span><h2>Maison Dune</h2>
-        <p>Framed, full-bleed and stage photos with short captions, then a card slide. Midnight theme.</p>
+        <p>Framed, full-bleed and stage photos, then a card slide. Midnight theme with cream text and blush highlights.</p>
+        <p class="cta-note">Last slide: link sticker placement, for display only. Send us your URL and we'll attach it when posting.</p>
         <div class="links"><a href="story-examples/MaisonDune_InstagramStory1_Video.mp4" download>Video</a><a href="story-examples/MaisonDune_InstagramStory1_Brief.txt">Brief</a></div></div>
     </article>
     <article class="card">
-      <video controls playsinline preload="none" poster="story-examples/SaltlineTravelCo_poster.jpg" src="story-examples/SaltlineTravelCo_InstagramStory1_Video.mp4"></video>
+      <button class="thumb" data-v="story-examples/SaltlineTravelCo_InstagramStory1_Video.mp4" aria-label="Play Saltline Travel Co. example"><img src="story-examples/SaltlineTravelCo_poster.jpg" alt="" loading="lazy"><span class="play"></span></button>
       <div class="body"><span class="tag">Travel · mixed</span><h2>Saltline Travel Co.</h2>
-        <p>Text, two photos, then a question. Lore artwork, poll sticker on the last slide.</p>
+        <p>Text, two photos, then a question. Lore artwork with coral highlights.</p>
+        <p class="cta-note">Last slide: poll sticker placement, for display only. Send us your poll question and any URL and we'll add them when posting.</p>
         <div class="links"><a href="story-examples/SaltlineTravelCo_InstagramStory1_Video.mp4" download>Video</a><a href="story-examples/SaltlineTravelCo_InstagramStory1_Brief.txt">Brief</a></div></div>
     </article>
     <article class="card">
-      <video controls playsinline preload="none" poster="story-examples/TheHarborlineHotel_poster.jpg" src="story-examples/TheHarborlineHotel_InstagramStory1_Video.mp4"></video>
+      <button class="thumb" data-v="story-examples/TheHarborlineHotel_InstagramStory1_Video.mp4" aria-label="Play The Harborline Hotel example"><img src="story-examples/TheHarborlineHotel_poster.jpg" alt="" loading="lazy"><span class="play"></span></button>
       <div class="body"><span class="tag">Hotel · text-led</span><h2>The Harborline Hotel</h2>
-        <p>Three text slides around one framed photo. Transcendence dusk colors, link sticker to book.</p>
+        <p>Three text slides around one framed photo. Light cream-to-amber theme with dark text and burgundy highlights.</p>
+        <p class="cta-note">Last slide: link sticker placement, for display only. Send us your URL and we'll attach it when posting.</p>
         <div class="links"><a href="story-examples/TheHarborlineHotel_InstagramStory1_Video.mp4" download>Video</a><a href="story-examples/TheHarborlineHotel_InstagramStory1_Brief.txt">Brief</a></div></div>
     </article>
     <article class="card">
-      <video controls playsinline preload="none" poster="story-examples/BaylineWealthPartners_poster.jpg" src="story-examples/BaylineWealthPartners_InstagramStory1_Video.mp4"></video>
+      <button class="thumb" data-v="story-examples/BaylineWealthPartners_InstagramStory1_Video.mp4" aria-label="Play Bayline Wealth Partners example"><img src="story-examples/BaylineWealthPartners_poster.jpg" alt="" loading="lazy"><span class="play"></span></button>
       <div class="body"><span class="tag">Financial · text-only</span><h2>Bayline Wealth Partners</h2>
-        <p>Four text slides on the sponsor's own brand color. No photos needed.</p>
+        <p>Four text slides on the sponsor's own brand blue, with mint highlights. No photos needed.</p>
+        <p class="cta-note">Last slide: link sticker placement, for display only. Send us your URL and we'll attach it when posting.</p>
         <div class="links"><a href="story-examples/BaylineWealthPartners_InstagramStory1_Video.mp4" download>Video</a><a href="story-examples/BaylineWealthPartners_InstagramStory1_Brief.txt">Brief</a></div></div>
     </article>
   </div>
   <div class="cta"><a class="btn" href="https://marioguardado1030.github.io/pp2026-asset-builder/">Build your own story &rarr;</a></div>
 </main>
 <footer>Event photos: Krys Fox, Jeff Eason and Vito Fun for Pines Party.</footer>
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="Story preview">
+  <button class="close" id="close" aria-label="Close">&times;</button>
+  <video id="player" controls playsinline controlslist="nofullscreen noremoteplayback" disablepictureinpicture></video>
+</div>
+<script>
+(function(){
+  var m=document.getElementById('modal'),v=document.getElementById('player'),last=null;
+  function close(){v.pause();v.removeAttribute('src');v.load();m.classList.remove('open');if(last)last.focus();}
+  document.querySelectorAll('.thumb').forEach(function(b){b.addEventListener('click',function(){
+    last=b;v.src=b.getAttribute('data-v');m.classList.add('open');document.getElementById('close').focus();var p=v.play();if(p&&p.catch)p.catch(function(){});});});
+  document.getElementById('close').addEventListener('click',close);
+  m.addEventListener('click',function(e){if(e.target===m)close();});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&m.classList.contains('open'))close();});
+})();
+</script>
 </body>
 </html>

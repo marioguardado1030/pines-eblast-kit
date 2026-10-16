@@ -4,11 +4,11 @@ Sponsor: The Harborline Hotel
 Story: 1
 Video file: TheHarborlineHotel_InstagramStory1_Video.mp4
 Length: 17.3s (4 slides + opening card)
-Look: TRANSCENDENCE / Burnt Orange Dusk, accent #ffc870
+Look: TRANSCENDENCE / Warm Cream → Amber, accent #8a1d48
 
 SLIDES
   1. [center] Text: "Your island weekend, extended."
-  2. [split] Text: "Ocean-view rooms, a rooftop bar and late checkout."
+  2. [center] Text: "Ocean-view rooms, a rooftop bar and late checkout."
   3. [framed] Photo (htl_pool.jpg): "Poolside, *all season*."
   4. [panel] Text: "Our community saves on fall stays. Book with the link below."
 

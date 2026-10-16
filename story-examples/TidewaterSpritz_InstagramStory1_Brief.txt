@@ -4,7 +4,7 @@ Sponsor: Tidewater Spritz
 Story: 1
 Video file: TidewaterSpritz_InstagramStory1_Video.mp4
 Length: 16.2s (4 slides + opening card)
-Look: SOLARIS / Solaris · The Sun Mask (event artwork), accent #ffe08a
+Look: SOLARIS / Solaris · The Sun Mask (event artwork), accent #7ee8d8
 
 SLIDES
   1. [full] Photo (bev_crowd.jpg): "Cheers to the *weekend*."

@@ -4,7 +4,7 @@ Sponsor: Bayline Wealth Partners
 Story: 1
 Video file: BaylineWealthPartners_InstagramStory1_Video.mp4
 Length: 17.2s (4 slides + opening card)
-Look: Brand color #1b6b7d (rich), accent #f7f0a0
+Look: Brand color #1f3a8a (rich), accent #7ff0c0
 
 SLIDES
   1. [center] Text: "Summer's over. Time to plan."
