@@ -723,7 +723,7 @@ var hit = (row.notes||'').split(';').map(function(x){ return x.trim().match(/^(.
 return hit ? '#'+hit[2]+' ' : '';
 }
 // Internal Tracker status per item (Eblast 1, Story 1, Shout-out 1...) from the sheet.
-var ST_CLS = {'Sent':'dt-x','Posted':'dt-x','Scheduled':'dt-b','Selected Date':'dt-r','In progress':'dt-r','Pending Client Approval':'dt-r',
+var ST_CLS = {'Sent':'dt-x','Posted':'dt-x','Scheduled':'dt-b','Selected Date':'dt-r','In progress':'dt-r','Pending Client Approval':'dt-r','Awaiting client':'dt-r',
 'Not sent':'dt-n','Not posted':'dt-n','No reply':'dt-n','Client declined':'dt-x'};
 function itemAbbr(it) { return String(it).replace(/^Eblast\s*/,'E').replace(/^Story\s*/,'S').replace(/^Shout-out\s*/,'SO'); }
 function statusesFor(item) { var t = itemType(item); return STATUSES.filter(function(s){ return !s.only || s.only === t; }).map(function(s){ return s.status; }); }
