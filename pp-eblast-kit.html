@@ -221,6 +221,7 @@ select.ob-search{background:#fff}
 // Kit folder (writing guide, template, example) — shared by every sponsor
 var KIT = 'https://drive.google.com/drive/folders/1f-x19JB9m2c3_YA4Ia2f7_in78xCXDcT?usp=drive_link';
 var STORY_GEN = 'https://marioguardado1030.github.io/pp2026-asset-builder/';
+var STORY_EXAMPLES = 'https://marioguardado1030.github.io/pines-eblast-kit/story-examples.html';
 
 var TEAM = [
 {n:'Mario Guardado', e:'mario.guardado@pinesparty.com', i:'MG', cc:false},
@@ -373,29 +374,48 @@ var first = (sp.ct || '').split(/,|;|&|\//).map(function(x){ return x.trim().spl
 if (!first.length) return sp.n + ' team';
 return first.length === 1 ? first[0] : first.slice(0,-1).join(', ') + ' and ' + first[first.length-1];
 }
+// Where each owed item stands, from the tracker (team view). An eblast with no tracker row falls back to the sheet's "Eblasts Sent".
+// type: 'Eblast' | 'Story' | 'Shout-out' -> {owed, done (Sent/Posted), open: [item numbers still to deliver], dated (open items with a date)}
+function itemsLeft(sp, type) {
+var x = socSplit(sp), owed = type === 'Eblast' ? (sp.eb || 0) : type === 'Story' ? (x ? x.stories : 0) : (x ? x.shouts : 0);
+var o = {owed: owed, done: 0, open: [], dated: 0};
+for (var i = 1; i <= owed; i++) {
+var r = trackerRow(sp.n, type + ' ' + i), st = r ? r.Status : '';
+if (st === 'Sent' || st === 'Posted' || (!r && type === 'Eblast' && i <= (sp.ebSent || 0))) o.done++;
+else if (st !== 'Client declined') { o.open.push(i); if (r && r['Assigned Date']) o.dated++; }
+}
+return o;
+}
+// " (already sent)", " (one already posted)", " (both already posted)"
+function doneNote(o, verb) {
+if (!o.done) return '';
+return ' (' + (o.done < o.owed ? numw(o.done) + ' ' : o.owed === 2 ? 'both ' : o.owed > 2 ? 'all ' : '') + 'already ' + verb + ')';
+}
 function pkgSentence(sp) {
 var out = [], x = socSplit(sp);
-if (sp.eb) out.push(numw(sp.eb) + ' dedicated ' + (sp.eb === 1 ? 'eblast' : 'eblasts') + ' to the Pines Party list' + (sp.ebSent ? ' (' + (sp.ebSent >= sp.eb ? 'already sent' : numw(sp.ebSent) + ' already sent') + ')' : ''));
-if (x && x.stories) out.push(numw(x.stories) + ' Instagram ' + (x.stories === 1 ? 'story' : 'stories') + ' on the Pines Party account');
-if (x && x.shouts) out.push(numw(x.shouts) + ' ' + (x.shouts === 1 ? 'shout-out' : 'shout-outs') + ' that we schedule for you');
+if (sp.eb) out.push(numw(sp.eb) + ' dedicated ' + (sp.eb === 1 ? 'eblast' : 'eblasts') + ' to the Pines Party list' + doneNote(itemsLeft(sp, 'Eblast'), 'sent'));
+if (x && x.stories) out.push(numw(x.stories) + ' Instagram ' + (x.stories === 1 ? 'story' : 'stories') + ' on the Pines Party account' + doneNote(itemsLeft(sp, 'Story'), 'posted'));
+if (x && x.shouts) out.push(numw(x.shouts) + ' ' + (x.shouts === 1 ? 'shout-out' : 'shout-outs') + ' that we schedule for you' + doneNote(itemsLeft(sp, 'Shout-out'), 'posted'));
 return andList(out);
 }
-var SG = '{{STORY_GENERATOR}}'; // placeholder: becomes a link in HTML, plain words in text
+var SG = '{{STORY_GENERATOR}}', EX = '{{STORY_EXAMPLES}}'; // placeholders: become links in the HTML email
+// Steps cover only what is still open: nothing to build for delivered items, no date picks for items that already have a date.
 function emailSteps(sp) {
-var st = [], x = socSplit(sp), k = x ? x.stories : 0, e = ebLeft(sp);
-if (e) st.push('Open the writing kit, which has a guide, a template and an example, and draft your eblast copy');
-if (k) st.push('Build your Instagram ' + (k === 1 ? 'story' : 'stories') + ' with our ' + SG + '. We\'ve made it easy to build a story, download it and share it with us, then select your desired dates');
-var fp = filePrefixes(sp).map(function(f){ return f.p; });
-st.push((e ? 'Upload your logo, photos and copy' + (k ? ', plus your story video and brief' : '') : 'Upload the story video and brief you download from the Story Generator') + ' to your folder.'
-  + (fp.length ? ' Please start each file name with ' + andList(fp, 'or') + ' so we can keep everything straight' : ''));
-if (e) st.push('Pick your preferred send dates. ' + (e === 1 ? 'Choose two options for your eblast, and we\'ll confirm one'
-  : 'Choose two options for each eblast (' + numw(2 * e) + ' total), and we\'ll confirm one date for each'));
-if (k) st.push('Pick your Instagram story dates. ' + (k === 1 ? 'Choose two options for your story, and we\'ll confirm one'
-  : 'Choose two options for each story (' + numw(2 * k) + ' total), and we\'ll confirm one date for each'));
+var st = [], E = itemsLeft(sp, 'Eblast'), S = itemsLeft(sp, 'Story'), e = E.open.length, k = S.open.length, ep = e - E.dated, kp = k - S.dated;
+if (e) st.push('Open the writing kit, which has a guide, a template and an example, and draft your ' + (E.done ? 'remaining ' : '') + 'eblast copy');
+if (k) st.push('Build your ' + (S.done ? 'remaining ' : '') + 'Instagram ' + (k === 1 ? 'story' : 'stories') + ' with our ' + SG + '. We\'ve made it easy to build a story, download it and share it with us' + (kp ? ', then select your desired dates' : '') + '. For ideas, see our ' + EX);
+var t = fileTag(sp) + '_', fp = E.open.map(function(i){ return t + 'Eblast' + i + '_'; }).concat(S.open.map(function(i){ return t + 'InstagramStory' + i + '_'; }));
+if (e || k) st.push((e ? 'Upload your logo, photos and copy' + (k ? ', plus your story video and brief' : '') : 'Upload the story video and brief you download from the Story Generator') + ' to your folder.'
+  + ' Please start each file name with ' + andList(fp, 'or') + ' so we can keep everything straight');
+if (ep) st.push('Pick your preferred send dates. ' + (ep === 1 ? 'Choose two options for your eblast, and we\'ll confirm one'
+  : 'Choose two options for each eblast (' + numw(2 * ep) + ' total), and we\'ll confirm one date for each'));
+if (kp) st.push('Pick your Instagram story dates. ' + (kp === 1 ? 'Choose two options for your story, and we\'ll confirm one'
+  : 'Choose two options for each story (' + numw(2 * kp) + ' total), and we\'ll confirm one date for each'));
 return st;
 }
-function emailClose() {
-return ['We\'ll email you once your dates are locked in. We\'ll also be adding your event photos to your folder, so you\'ll find them on the same page.',
+function needsDates(sp) { var E = itemsLeft(sp, 'Eblast'), S = itemsLeft(sp, 'Story'); return E.open.length > E.dated || S.open.length > S.dated; }
+function emailClose(sp) {
+return [(needsDates(sp) ? 'We\'ll email you once your dates are locked in. ' : '') + 'We\'ll also be adding your event photos to your folder, so you\'ll find them on the same page.',
         'Thanks again for being part of this. If anything comes up, just reply here and I\'ll help.'];
 }
 function emailSubject(sp) { return 'Pines Party 2026: Your ' + hubName(sp); }
@@ -404,10 +424,15 @@ return '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-h
 + '<p>Hi ' + esc(greetName(sp)) + ',</p>'
 + '<p>Thank you so much for supporting Pines Party 2026. As a ' + TIER_LABEL[sp.t] + ' sponsor, your package includes ' + esc(pkgSentence(sp)) + '.</p>'
 + '<p>To make things easy, we\'ve put everything in one place: <a href="' + esc(sponsorLink(sp)) + '"><b>' + esc(hubName(sp)) + '</b></a></p>'
-+ '<p>From there you can:</p><ol>' + emailSteps(sp).map(function(x){ return '<li>' + esc(x).replace(SG, '<a href="' + esc(storyGenLink(sp)) + '"><b>Story Generator</b></a>') + '</li>'; }).join('') + '</ol>'
++ emailStepsHTML(sp)
 + (sp.eml ? '<p>' + esc(sp.eml) + '</p>' : '')
-+ emailClose().map(function(x){ return '<p>' + esc(x) + '</p>'; }).join('')
++ emailClose(sp).map(function(x){ return '<p>' + esc(x) + '</p>'; }).join('')
 + '<p>Thanks again for your support,<br>' + esc(signer()) + '</p></div>';
+}
+function emailStepsHTML(sp) {
+var st = emailSteps(sp);
+return st.length ? '<p>From there you can:</p><ol>' + st.map(function(x){ return '<li>' + esc(x).replace(SG, '<a href="' + esc(storyGenLink(sp)) + '"><b>Story Generator</b></a>')
+  .replace(EX, '<a href="' + esc(STORY_EXAMPLES) + '">sample stories</a>') + '</li>'; }).join('') + '</ol>' : '';
 }
 function pkgItems(sp) {
 var out = [], x = socSplit(sp);
@@ -602,7 +627,8 @@ document.getElementById('main').innerHTML =
 +'<a class="btn btn-outline" href="'+KIT+'" target="_blank">Open Kit Folder &rarr;</a>') : '')
 +(doSo ? step('<h2>Build Your Instagram Story</h2>'
 +'<p>We\'ve made it easy to build a story, download it and share it with us, then select your desired dates below.</p>'
-+'<a class="btn btn-outline" href="'+esc(storyGenLink(sp))+'" target="_blank">Open the Story Generator &rarr;</a>') : '')
++'<a class="btn btn-outline" href="'+esc(storyGenLink(sp))+'" target="_blank">Open the Story Generator &rarr;</a> '
++'<a class="btn btn-outline" href="'+esc(STORY_EXAMPLES)+'" target="_blank">See Story Examples &rarr;</a>') : '')
 +step('<h2>Upload Your Assets</h2>'
 +'<p>'+(doEb ? 'Upload your logo, 1-2 photos and completed copy template'+(doSo?', plus the story video and brief from the Story Generator':'') : 'Upload the story video and brief you download from the Story Generator')+' to your sponsor folder. You\'ll need to be signed in to any Google account. Your event photos will be in this folder too.</p>'
 +namingHTML(sp) + uploadHTML)
