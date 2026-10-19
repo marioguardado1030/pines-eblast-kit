@@ -625,12 +625,12 @@ drawMine();
 }
 
 // "Where things stand": one line per item, client-friendly status from the sheet.
-var MINE_CLS = {'Scheduled':'dt-b','Sent':'dt-x','Posted':'dt-x','Dates requested':'dt-r','In progress':'dt-r','Waiting for your approval':'dt-n','Declined':'dt-x'};
+var MINE_CLS = {'Scheduled':'dt-b','Date approved':'dt-b','Sent':'dt-x','Posted':'dt-x','Dates requested':'dt-r','In progress':'dt-r','Waiting for your approval':'dt-n','Declined':'dt-x'};
 function drawMine() {
 var el = document.getElementById('mystatus');
 if (!el || !MINE || !MINE.length) return;
 el.innerHTML = '<div class="sec" style="margin:0">Where things stand</div><ul class="mine-list">' + MINE.map(function(m){
-return '<li><b>' + esc(m.item) + '</b><span><span class="dt ' + (MINE_CLS[m.status] || 'dt-o') + '" style="margin:0">' + esc(m.status) + (m.date && /Scheduled|Sent|Posted/.test(m.status) ? ' ' + fmtDate(m.date) : '') + '</span>'
+return '<li><b>' + esc(m.item) + '</b><span><span class="dt ' + (MINE_CLS[m.status] || 'dt-o') + '" style="margin:0">' + esc(m.status) + (m.date && /Date approved|Scheduled|Sent|Posted/.test(m.status) ? ' ' + fmtDate(m.date) : '') + '</span>'
 + (m.proposed ? '<div style="font-size:12px;color:var(--muted);margin-top:3px">We suggested ' + fmtDate(m.proposed) + '. Reply to our email to confirm, or request another date below.</div>' : '') + '</span></li>';
 }).join('') + '</ul>';
 el.style.display = '';
@@ -726,10 +726,11 @@ return hit ? '#'+hit[2]+' ' : '';
 var ST_CLS = {'Sent':'dt-x','Posted':'dt-x','Scheduled':'dt-b','Date/s approved':'dt-b','Client has selected dates':'dt-r',
 'Awaiting client':'dt-r','Draft':'dt-r','Draft under client review':'dt-r','Revision 1':'dt-r','Final review':'dt-r',
 'Not sent':'dt-n','Not posted':'dt-n','No reply':'dt-n','Client declined':'dt-x'};
-// The date shown next to a status: the approved date once there is one, else the day the status was set.
+// The date next to a status: the approved date once there is one; for the waiting-on-email stages, the day it was set.
 var ON_DATE = {'Date/s approved':1,'Scheduled':1,'Not sent':1,'Not posted':1,'Sent':1,'Posted':1};
+var SET_DATE = {'Awaiting client':1,'No reply':1,'Client replied':1};
 function statusDate(r) {
-var d = ON_DATE[r.Status] && r['Assigned Date'] ? r['Assigned Date'] : String(r['Set At'] || '').slice(0, 10);
+var d = ON_DATE[r.Status] ? r['Assigned Date'] : SET_DATE[r.Status] ? String(r['Set At'] || '').slice(0, 10) : '';
 return /^\d{4}-\d{2}-\d{2}$/.test(d) ? shortDate(d) : '';
 }
 function itemAbbr(it) { return String(it).replace(/^Eblast\s*/,'E').replace(/^Story\s*/,'S').replace(/^Shout-out\s*/,'SO'); }
@@ -743,7 +744,7 @@ return null;
 function bookedLabel(sp, type, date) {
 var r = trackerOnDate(sp, type, date);
 if (r && r.Status) return r.Status;
-return date < TODAY ? 'Date passed' : 'Scheduled';
+return date < TODAY ? 'Date passed' : 'Date/s approved';
 }
 function needKey(msgId) {
 if (ADMIN.key && ADMIN.ok) return false;
@@ -857,7 +858,7 @@ live.forEach(function(s){ if (hasReq(s)) reqS++; var n = socOwed(s); if (n) sBoo
 }
 function st(v, l, c) { return '<div class="stat '+(c||'')+'"><b>'+v+'</b><span>'+l+'</span></div>'; }
 function w(v) { return CAL_OK ? v : '&hellip;'; }
-return st(live.length, 'Sponsors (2026)') + st(owed, 'Eblasts owed', 'pink') + st(w(booked - sent), 'Scheduled', 'ok')
+return st(live.length, 'Sponsors (2026)') + st(owed, 'Eblasts owed', 'pink') + st(w(booked - sent), 'Dates approved', 'ok')
 + st(w(sent), 'Sent') + st(w(owed - booked), 'Eblasts to book', 'warn')
 + st(sOwed, 'Stories owed', 'pink') + st(w(sBooked), 'Stories booked', 'ok') + st(w(sOwed - sBooked), 'Stories to book', 'warn') + st(w(reqS), 'Sponsors w/ requests', 'pink')
 + st(live.filter(function(s){ return s.flag; }).length, 'Needs check', 'warn');
@@ -1005,7 +1006,7 @@ for (var d = 1; d <= days; d++) {
 var ds = ymd(new Date(y, m, d));
 h += '<div class="mc-day'+(ds===TODAY?' today':'')+'"><div class="mc-n">'+d+'</div>'+items(ds)+'</div>';
 }
-return h + '</div><div class="legend" style="margin-top:8px"><span><i style="background:#fdf0d8"></i>Requested</span><span><i style="background:#e6f4ea"></i>Scheduled</span><span><i style="background:#e9e6ea"></i>Date passed</span></div>';
+return h + '</div><div class="legend" style="margin-top:8px"><span><i style="background:#fdf0d8"></i>Requested</span><span><i style="background:#e6f4ea"></i>Approved</span><span><i style="background:#e9e6ea"></i>Date passed</span></div>';
 }
 function shiftMonth(n) { MCAL = new Date(MCAL.getFullYear(), MCAL.getMonth()+n, 1); drawMonth(); }
 function drawMonth() { var el = document.getElementById('monthGrid'); if (el) el.innerHTML = monthGridHTML(); }
