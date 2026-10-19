@@ -723,8 +723,15 @@ var hit = (row.notes||'').split(';').map(function(x){ return x.trim().match(/^(.
 return hit ? '#'+hit[2]+' ' : '';
 }
 // Internal Tracker status per item (Eblast 1, Story 1, Shout-out 1...) from the sheet.
-var ST_CLS = {'Sent':'dt-x','Posted':'dt-x','Scheduled':'dt-b','Selected Date':'dt-r','In progress':'dt-r','Pending Client Approval':'dt-r',
+var ST_CLS = {'Sent':'dt-x','Posted':'dt-x','Scheduled':'dt-b','Date/s approved':'dt-b','Client has selected dates':'dt-r',
+'Awaiting client':'dt-r','Draft':'dt-r','Draft under client review':'dt-r','Revision 1':'dt-r','Final review':'dt-r',
 'Not sent':'dt-n','Not posted':'dt-n','No reply':'dt-n','Client declined':'dt-x'};
+// The date shown next to a status: the approved date once there is one, else the day the status was set.
+var ON_DATE = {'Date/s approved':1,'Scheduled':1,'Not sent':1,'Not posted':1,'Sent':1,'Posted':1};
+function statusDate(r) {
+var d = ON_DATE[r.Status] && r['Assigned Date'] ? r['Assigned Date'] : String(r['Set At'] || '').slice(0, 10);
+return /^\d{4}-\d{2}-\d{2}$/.test(d) ? shortDate(d) : '';
+}
 function itemAbbr(it) { return String(it).replace(/^Eblast\s*/,'E').replace(/^Story\s*/,'S').replace(/^Shout-out\s*/,'SO'); }
 function statusesFor(item) { var t = itemType(item); return STATUSES.filter(function(s){ return !s.only || s.only === t; }).map(function(s){ return s.status; }); }
 function trackerRow(sp, item) { for (var i = 0; i < TRACKER.length; i++) if (TRACKER[i]['Sponsor Name'] === sp && TRACKER[i].Item === item) return TRACKER[i]; return null; }
@@ -776,7 +783,7 @@ if (!rows.length) return '';
 return '<div class="trk">' + rows.map(function(r){
 var st = r.Status || 'Not started', fl = r.Flag ? ' &#9888;' : '';
 var tip = r.Item + ': ' + st + (r['Assigned Date'] ? ' (' + r['Assigned Date'] + ')' : '') + (r.Evidence ? ' | ' + r.Evidence : '') + (r.Flag ? ' | FLAG: ' + r.Flag : '');
-return '<button class="dt ' + (ST_CLS[st] || 'dt-o') + '" title="' + esc(tip + ' | Click to change') + '" data-s="' + esc(s.n) + '" data-i="' + esc(r.Item) + '" onclick="stEditOpen(this)">' + esc(itemAbbr(r.Item)) + ' ' + esc(st) + fl + (r['Assigned Date'] ? ' ' + shortDate(r['Assigned Date']) : '') + '</button>';
+return '<button class="dt ' + (ST_CLS[st] || 'dt-o') + '" title="' + esc(tip + ' | Click to change') + '" data-s="' + esc(s.n) + '" data-i="' + esc(r.Item) + '" onclick="stEditOpen(this)">' + esc(itemAbbr(r.Item)) + ' ' + esc(st) + (r.Status && statusDate(r) ? ' — ' + statusDate(r) : '') + fl + '</button>';
 }).join('') + '</div>';
 }
 // Status cell: booked dates (label from the tracker; click twice to release) and requested dates (approve / reject).
