@@ -375,14 +375,20 @@ if (!first.length) return sp.n + ' team';
 return first.length === 1 ? first[0] : first.slice(0,-1).join(', ') + ' and ' + first[first.length-1];
 }
 // Where each owed item stands, from the tracker (team view). An eblast with no tracker row falls back to the sheet's "Eblasts Sent".
-// type: 'Eblast' | 'Story' | 'Shout-out' -> {owed, done (Sent/Posted), open: [item numbers still to deliver], dated (open items with a date)}
+// type: 'Eblast' | 'Story' | 'Shout-out' -> {owed, done (Sent/Posted), open (not done, not declined),
+//   assets: [item numbers we still need assets for], dates (open items that need a date picked), picked (sponsor's picks awaiting our approval)}
+var PAST_ASSETS = {'Draft':1,'Draft under client review':1,'Revision 1':1,'Final review':1,'Scheduled':1,'Not sent':1,'Not posted':1};
 function itemsLeft(sp, type) {
 var x = socSplit(sp), owed = type === 'Eblast' ? (sp.eb || 0) : type === 'Story' ? (x ? x.stories : 0) : (x ? x.shouts : 0);
-var o = {owed: owed, done: 0, open: [], dated: 0};
+var o = {owed: owed, done: 0, open: 0, assets: [], dates: 0, picked: 0};
 for (var i = 1; i <= owed; i++) {
 var r = trackerRow(sp.n, type + ' ' + i), st = r ? r.Status : '';
-if (st === 'Sent' || st === 'Posted' || (!r && type === 'Eblast' && i <= (sp.ebSent || 0))) o.done++;
-else if (st !== 'Client declined') { o.open.push(i); if (r && r['Assigned Date']) o.dated++; }
+if (st === 'Sent' || st === 'Posted' || (!r && type === 'Eblast' && i <= (sp.ebSent || 0))) { o.done++; continue; }
+if (st === 'Client declined') continue;
+o.open++;
+if (!PAST_ASSETS[st]) o.assets.push(i);
+if (st === 'Client has selected dates') o.picked++;
+else if (st === 'Not sent' || st === 'Not posted' || !(r && r['Assigned Date'])) o.dates++; // a missed date needs a new one
 }
 return o;
 }
@@ -395,27 +401,29 @@ function pkgSentence(sp) {
 var out = [], x = socSplit(sp);
 if (sp.eb) out.push(numw(sp.eb) + ' dedicated ' + (sp.eb === 1 ? 'eblast' : 'eblasts') + ' to the Pines Party list' + doneNote(itemsLeft(sp, 'Eblast'), 'sent'));
 if (x && x.stories) out.push(numw(x.stories) + ' Instagram ' + (x.stories === 1 ? 'story' : 'stories') + ' on the Pines Party account' + doneNote(itemsLeft(sp, 'Story'), 'posted'));
-if (x && x.shouts) out.push(numw(x.shouts) + ' ' + (x.shouts === 1 ? 'shout-out' : 'shout-outs') + ' that we schedule for you' + doneNote(itemsLeft(sp, 'Shout-out'), 'posted'));
+if (x && x.shouts) out.push(numw(x.shouts) + ' ' + (x.shouts === 1 ? 'shout-out' : 'shout-outs') + ' from Pines Party' + doneNote(itemsLeft(sp, 'Shout-out'), 'posted'));
 return andList(out);
 }
+function allDelivered(sp) { return ['Eblast', 'Story', 'Shout-out'].every(function(t){ return !itemsLeft(sp, t).open; }); }
 var SG = '{{STORY_GENERATOR}}', EX = '{{STORY_EXAMPLES}}'; // placeholders: become links in the HTML email
-// Steps cover only what is still open: nothing to build for delivered items, no date picks for items that already have a date.
+// Steps cover only what is still open: assets only for items not yet in draft, date picks only for items with no date (or a missed one).
 function emailSteps(sp) {
-var st = [], E = itemsLeft(sp, 'Eblast'), S = itemsLeft(sp, 'Story'), e = E.open.length, k = S.open.length, ep = e - E.dated, kp = k - S.dated;
+var st = [], E = itemsLeft(sp, 'Eblast'), S = itemsLeft(sp, 'Story'), e = E.assets.length, k = S.assets.length;
 if (e) st.push('Open the writing kit, which has a guide, a template and an example, and draft your ' + (E.done ? 'remaining ' : '') + 'eblast copy');
-if (k) st.push('Build your ' + (S.done ? 'remaining ' : '') + 'Instagram ' + (k === 1 ? 'story' : 'stories') + ' with our ' + SG + '. We\'ve made it easy to build a story, download it and share it with us' + (kp ? ', then select your desired dates' : '') + '. For ideas, see our ' + EX);
-var t = fileTag(sp) + '_', fp = E.open.map(function(i){ return t + 'Eblast' + i + '_'; }).concat(S.open.map(function(i){ return t + 'InstagramStory' + i + '_'; }));
+if (k) st.push('Build your ' + (S.done ? 'remaining ' : '') + 'Instagram ' + (k === 1 ? 'story' : 'stories') + ' with our ' + SG + ' (see our ' + EX + ' for ideas). We\'ve made it easy to build a story, download it and share it with us' + (S.dates ? ', then select your desired dates' : ''));
+var t = fileTag(sp) + '_', fp = E.assets.map(function(i){ return t + 'Eblast' + i + '_'; }).concat(S.assets.map(function(i){ return t + 'InstagramStory' + i + '_'; }));
 if (e || k) st.push((e ? 'Upload your logo, photos and copy' + (k ? ', plus your story video and brief' : '') : 'Upload the story video and brief you download from the Story Generator') + ' to your folder.'
   + ' Please start each file name with ' + andList(fp, 'or') + ' so we can keep everything straight');
-if (ep) st.push('Pick your preferred send dates. ' + (ep === 1 ? 'Choose two options for your eblast, and we\'ll confirm one'
-  : 'Choose two options for each eblast (' + numw(2 * ep) + ' total), and we\'ll confirm one date for each'));
-if (kp) st.push('Pick your Instagram story dates. ' + (kp === 1 ? 'Choose two options for your story, and we\'ll confirm one'
-  : 'Choose two options for each story (' + numw(2 * kp) + ' total), and we\'ll confirm one date for each'));
+if (E.dates) st.push('Pick your preferred send dates. ' + (E.dates === 1 ? 'Choose two options for your eblast, and we\'ll confirm one'
+  : 'Choose two options for each eblast (' + numw(2 * E.dates) + ' total), and we\'ll confirm one date for each'));
+if (S.dates) st.push('Pick your Instagram story dates. ' + (S.dates === 1 ? 'Choose two options for your story, and we\'ll confirm one'
+  : 'Choose two options for each story (' + numw(2 * S.dates) + ' total), and we\'ll confirm one date for each'));
 return st;
 }
-function needsDates(sp) { var E = itemsLeft(sp, 'Eblast'), S = itemsLeft(sp, 'Story'); return E.open.length > E.dated || S.open.length > S.dated; }
+// "We'll email you once your dates are locked in" only while a date is still to pick or to approve.
+function datesPending(sp) { return ['Eblast', 'Story'].some(function(t){ var o = itemsLeft(sp, t); return o.dates || o.picked; }); }
 function emailClose(sp) {
-return [(needsDates(sp) ? 'We\'ll email you once your dates are locked in. ' : '') + 'We\'ll also be adding your event photos to your folder, so you\'ll find them on the same page.',
+return [(datesPending(sp) ? 'We\'ll email you once your dates are locked in. ' : '') + 'We\'ll also be adding your event photos to your folder, so you\'ll find them on the same page.',
         'Thanks again for being part of this. If anything comes up, just reply here and I\'ll help.'];
 }
 function emailSubject(sp) { return 'Pines Party 2026: Your ' + hubName(sp); }
@@ -423,10 +431,12 @@ function sponsorEmailHTML(sp) {
 return '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.55;color:#222">'
 + '<p>Hi ' + esc(greetName(sp)) + ',</p>'
 + '<p>Thank you so much for supporting Pines Party 2026. As a ' + TIER_LABEL[sp.t] + ' sponsor, your package includes ' + esc(pkgSentence(sp)) + '.</p>'
-+ '<p>To make things easy, we\'ve put everything in one place: <a href="' + esc(sponsorLink(sp)) + '"><b>' + esc(hubName(sp)) + '</b></a></p>'
++ (allDelivered(sp)
+  ? '<p>Everything in your package has gone out. Your event photos will be on your Hub: <a href="' + esc(sponsorLink(sp)) + '"><b>' + esc(hubName(sp)) + '</b></a></p>'
+  : '<p>To make things easy, we\'ve put everything in one place: <a href="' + esc(sponsorLink(sp)) + '"><b>' + esc(hubName(sp)) + '</b></a></p>')
 + emailStepsHTML(sp)
 + (sp.eml ? '<p>' + esc(sp.eml) + '</p>' : '')
-+ emailClose(sp).map(function(x){ return '<p>' + esc(x) + '</p>'; }).join('')
++ emailClose(sp).slice(allDelivered(sp) ? 1 : 0).map(function(x){ return '<p>' + esc(x) + '</p>'; }).join('')
 + '<p>Thanks again for your support,<br>' + esc(signer()) + '</p></div>';
 }
 function emailStepsHTML(sp) {
