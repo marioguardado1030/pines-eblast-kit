@@ -424,7 +424,7 @@ return st;
 function datesPending(sp) { return ['Eblast', 'Story'].some(function(t){ var o = itemsLeft(sp, t); return o.dates || o.picked; }); }
 function emailClose(sp) {
 return [(datesPending(sp) ? 'We\'ll email you once your dates are locked in. ' : '') + 'We\'ll also be adding your event photos to your folder, so you\'ll find them on the same page.',
-        'Thanks again for being part of this. If anything comes up, just reply here and I\'ll help.'];
+        'If anything comes up, just reply here and I\'ll help.'];
 }
 function emailSubject(sp) { return 'Pines Party 2026: Your ' + hubName(sp); }
 function sponsorEmailHTML(sp) {
