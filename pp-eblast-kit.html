@@ -411,6 +411,7 @@ function emailSteps(sp) {
 var st = [], E = itemsLeft(sp, 'Eblast'), S = itemsLeft(sp, 'Story'), e = E.assets.length, k = S.assets.length;
 if (e) st.push('Open the writing kit, which has a guide, a template and an example, and draft your ' + (E.done ? 'remaining ' : '') + 'eblast copy');
 if (k) st.push('Build your ' + (S.done ? 'remaining ' : '') + 'Instagram ' + (k === 1 ? 'story' : 'stories') + ' with our ' + SG + ' (see our ' + EX + ' for ideas). We\'ve made it easy to build a story, download it and share it with us' + (S.dates ? ', then select your desired dates' : ''));
+if (!k && S.open) st.push('See our ' + EX + ' for what your Instagram ' + (S.open === 1 ? 'story' : 'stories') + ' can look like');
 var t = fileTag(sp) + '_', fp = E.assets.map(function(i){ return t + 'Eblast' + i + '_'; }).concat(S.assets.map(function(i){ return t + 'InstagramStory' + i + '_'; }));
 if (e || k) st.push((e ? 'Upload your logo, photos and copy' + (k ? ', plus your story video and brief' : '') : 'Upload the story video and brief you download from the Story Generator') + ' to your folder.'
   + ' Please start each file name with ' + andList(fp, 'or') + ' so we can keep everything straight');
@@ -517,6 +518,8 @@ if (replace) q.replace = '1';
 post(q, DRAFT_WAIT_MS).then(function(d){
 var url = gmailDraftUrl(d.messageId);
 sendTab(tab, url);
+// Phones: the draft exists now, so go straight to it (iPhone: in Chrome, where Gmail is signed in).
+if (PHONE) setTimeout(function(){ try { location.assign(IOS ? chromeUrl(url) : url); } catch (x) {} }, 600);
 var open = ' <a href="' + esc(url) + '" target="_blank" rel="noopener">Open it in Gmail</a>.';
 if (IOS) open = ' <a href="' + esc(chromeUrl(url)) + '"><b>Open it in Chrome</b></a> (or <a href="' + esc(url) + '" target="_blank" rel="noopener">your default browser</a>).';
 if (d.existing) {
