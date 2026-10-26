@@ -487,6 +487,10 @@ btn.parentNode.insertBefore(box, btn.nextSibling); inp.focus();
 // button turns into "Replace draft". If the server fails, the tab becomes a Gmail compose window instead.
 var GMAIL = 'https://mail.google.com/mail/?authuser=mario.guardado@pinesparty.com';
 var DRAFT_WAIT_MS = 90000; // the server normally answers in a few seconds; never wait forever
+var PHONE = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+// iPhone / iPad: links open in Safari, where Gmail isn't signed in. googlechromes:// opens the same page in Chrome.
+var IOS = PHONE && /iPhone|iPad|iPod/.test(navigator.userAgent || '');
+function chromeUrl(url) { return String(url).replace(/^https:\/\//, 'googlechromes://'); }
 function gmailDraftUrl(messageId) { return GMAIL + (messageId ? '#drafts?compose=' + encodeURIComponent(messageId) : '#drafts'); }
 function gmailComposeUrl(sp) {
 // Body left empty on purpose: a plain-text body would show raw URLs. The formatted email is copied separately.
@@ -505,13 +509,16 @@ function draftEmail(btn, i, replace, signed) {
 var sp = SPONSORS[i];
 if (!signed) { askSigner(btn, i, replace); return; }
 var orig = 'Email Draft'; btn.disabled = true; btn.textContent = 'Drafting…';
-var tab = openPendingTab(sp);
+// Phones: opening a tab switches to another app (Safari / Gmail) and the page doing the work gets suspended before the
+// draft is made. So on touch devices make the draft first, here, then offer the link (a tap opens the Gmail app).
+var tab = PHONE ? null : openPendingTab(sp);
 var q = {action:'draft', key:ADMIN.key, to:(sp.em||'').replace(/\s+/g,''), subject:emailSubject(sp), html:sponsorEmailHTML(sp)};
 if (replace) q.replace = '1';
 post(q, DRAFT_WAIT_MS).then(function(d){
 var url = gmailDraftUrl(d.messageId);
 sendTab(tab, url);
 var open = ' <a href="' + esc(url) + '" target="_blank" rel="noopener">Open it in Gmail</a>.';
+if (IOS) open = ' <a href="' + esc(chromeUrl(url)) + '"><b>Open it in Chrome</b></a> (or <a href="' + esc(url) + '" target="_blank" rel="noopener">your default browser</a>).';
 if (d.existing) {
 setMsg('ob', 'info', 'A draft already exists for ' + esc(sp.n) + ' in mario.guardado@pinesparty.com.' + open + ' Click <b>Replace draft</b> to swap it for a fresh one.');
 btn.textContent = 'Replace draft'; btn.onclick = function(){ draftEmail(btn, i, true); };
