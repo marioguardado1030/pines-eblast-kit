@@ -834,6 +834,13 @@ return '<button class="dt ' + (ST_CLS[st] || 'dt-o') + '" title="' + esc(tip + '
 }).join('') + '</div>';
 }
 // Status cell: booked dates (label from the tracker; click twice to release) and requested dates (approve / reject).
+// Still to book = owed items not yet Sent / Posted / declined that have no approved date (from the tracker).
+// An item that went out without a calendar date is not "to book". No tracker (sponsor view): owed minus booked dates.
+function toBook(type, s, owed, booked) {
+if (!TRACKER.length) return owed - booked;
+var o = itemsLeft(s, type === 'eblast' ? 'Eblast' : 'Story');
+return o.dates + o.picked; // no date yet (or a missed one), or picks waiting for our approval
+}
 function statusCell(type, s, owed) {
 if (s.old) return '<span class="dt dt-x">'+esc(s.old)+'</span>';
 if (!CAL_OK) return '<span class="dash">loading&hellip;</span>';
@@ -846,7 +853,7 @@ c.req.forEach(function(r){
 h += '<button class="dt dt-r" title="Click to approve this date" data-t="'+type+'" data-d="'+esc(r.date)+'" data-s="'+esc(s.n)+'" onclick="obAct(\'approve\',this)">'+rankOf(r, s.n)+'Req '+shortDate(r.date)+' &#10003;</button>'
 +'<button class="dt dt-rej" title="Reject this request (optionally propose another date)" data-t="'+type+'" data-d="'+esc(r.date)+'" data-s="'+esc(s.n)+'" onclick="obRejectOpen(this)">&#10005;</button>';
 });
-if (owed) { var left = owed - c.booked.length; if (left > 0) h += '<span class="dt dt-n">'+left+' to book</span>'; }
+if (owed) { var left = toBook(type, s, owed, c.booked.length); if (left > 0) h += '<span class="dt dt-n">'+left+' to book</span>'; }
 else if (type === 'eblast' && (c.booked.length || c.req.length)) h += '<span class="dt dt-n">Not owed: check</span>';
 if (type === 'story' && s.sh) h += '<span class="dt dt-x" title="Shout-outs are scheduled by the team">+'+s.sh+' shout-out'+(s.sh===1?'':'s')+'</span>';
 h += trackerChips(type, s);
@@ -896,17 +903,19 @@ function obStats() {
 var live = SPONSORS.filter(function(s){ return !s.old; });
 var owedS = live.filter(function(s){ return s.eb; });
 var owed = owedS.reduce(function(a,s){ return a + s.eb; }, 0);
-var booked = 0, sent = 0, reqS = 0, sOwed = 0, sBooked = 0;
+var booked = 0, sent = 0, reqS = 0, sOwed = 0, sBooked = 0, ebLeft2 = 0, stLeft = 0, ebDone = 0, ebDated = 0;
 live.forEach(function(s){ sOwed += socOwed(s); });
 if (CAL_OK) {
-owedS.forEach(function(s){ var b = calFor('eblast', s.n).booked.slice(0, s.eb); booked += b.length; sent += b.filter(function(r){ return bookedLabel(s.n, 'eblast', r.date) === 'Sent'; }).length; });
-live.forEach(function(s){ if (hasReq(s)) reqS++; var n = socOwed(s); if (n) sBooked += Math.min(calFor('story', s.n).booked.length, n); });
+owedS.forEach(function(s){ var b = calFor('eblast', s.n).booked.slice(0, s.eb); booked += b.length; sent += b.filter(function(r){ return bookedLabel(s.n, 'eblast', r.date) === 'Sent'; }).length;
+  ebLeft2 += toBook('eblast', s, s.eb, b.length); if (TRACKER.length) { var E = itemsLeft(s, 'Eblast'); ebDone += E.done; ebDated += E.open - E.dates - E.picked; } });
+live.forEach(function(s){ if (hasReq(s)) reqS++; var n = socOwed(s); if (n) { var sb = Math.min(calFor('story', s.n).booked.length, n); sBooked += sb; stLeft += toBook('story', s, n, sb); } });
+if (TRACKER.length) { sent = ebDone; booked = ebDone + ebDated; }
 }
 function st(v, l, c) { return '<div class="stat '+(c||'')+'"><b>'+v+'</b><span>'+l+'</span></div>'; }
 function w(v) { return CAL_OK ? v : '&hellip;'; }
 return st(live.length, 'Sponsors (2026)') + st(owed, 'Eblasts owed', 'pink') + st(w(booked - sent), 'Dates approved', 'ok')
-+ st(w(sent), 'Sent') + st(w(owed - booked), 'Eblasts to book', 'warn')
-+ st(sOwed, 'Stories owed', 'pink') + st(w(sBooked), 'Stories booked', 'ok') + st(w(sOwed - sBooked), 'Stories to book', 'warn') + st(w(reqS), 'Sponsors w/ requests', 'pink')
++ st(w(sent), 'Sent') + st(w(ebLeft2), 'Eblasts to book', 'warn')
++ st(sOwed, 'Stories owed', 'pink') + st(w(sBooked), 'Stories booked', 'ok') + st(w(stLeft), 'Stories to book', 'warn') + st(w(reqS), 'Sponsors w/ requests', 'pink')
 + st(live.filter(function(s){ return s.flag; }).length, 'Needs check', 'warn');
 }
 // Date requests waiting for a decision (upcoming dates only).
